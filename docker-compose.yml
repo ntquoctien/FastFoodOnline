@@ -4,6 +4,8 @@ services:
     restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: fooddeliverydb
+    ports:
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -36,7 +38,7 @@ services:
       - backend
     environment:
       VITE_PORT: 5173
-      VITE_API_URL: http://backend:4000
+      VITE_API_URL: http://localhost:4000
     ports:
       - "5173:5173"
 
@@ -48,7 +50,7 @@ services:
       - backend
     environment:
       VITE_PORT: 5174
-      VITE_API_URL: http://backend:4000
+      VITE_API_URL: http://localhost:4000
     ports:
       - "5174:5174"
 

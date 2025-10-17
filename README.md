@@ -57,6 +57,8 @@ You can spin up the complete stack with Docker:
    This creates/updates:
    - Customer: `user@example.com` / `user1234`
    - Admin: `admin@example.com` / `admin1234`
+3. Kết nối MongoDB từ host (Compass, mongosh, v.v.) qua `mongodb://localhost:27017/fooddeliverydb`. Cổng 27017 đã được
+   publish nên bạn có thể xem/sửa dữ liệu trực tiếp mà không cần vào container.
 
 To rebuild after code changes you can run `docker compose up --build` again, or `docker compose up` if the images are already built.
 
@@ -72,24 +74,19 @@ Go to the project directory
 ```bash
     cd Food-Delivery
 ```
-Install dependencies (frontend)
+Install dependencies (all apps)
 
 ```bash
-    cd frontend
     npm install
 ```
-Install dependencies (admin)
+> The root `postinstall` script installs backend, frontend, and admin dependencies automatically, so you only run the command once.
+
+Start all apps locally in one terminal
 
 ```bash
-    cd admin
-    npm install
+    npm run dev
 ```
-Install dependencies (backend)
-
-```bash
-    cd backend
-    npm install
-```
+> This uses `concurrently` to run the backend, frontend, and admin dev servers together.
 Setup Environment Vaiables
 
 ```Make .env file in "backend" folder and store environment Variables
