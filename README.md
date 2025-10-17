@@ -41,6 +41,25 @@ This repository hosts the source code for TOMATO, a dynamic food ordering websit
 ![Login](https://i.ibb.co/s6PgwkZ/food-login.png)
 - Login Popup
 
+## Docker Compose Setup
+
+You can spin up the complete stack with Docker:
+
+1. Build and start the services:
+   ```bash
+   docker compose up --build
+   ```
+   The stack exposes the frontend at `http://localhost:5173`, the admin panel at `http://localhost:5174`, and the API at `http://localhost:4000`.
+2. Seed default accounts (one customer and one admin):
+   ```bash
+   docker compose exec backend node scripts/seedUsers.js
+   ```
+   This creates/updates:
+   - Customer: `user@example.com` / `user1234`
+   - Admin: `admin@example.com` / `admin1234`
+
+To rebuild after code changes you can run `docker compose up --build` again, or `docker compose up` if the images are already built.
+
 ## Run Locally
 
 Clone the project
@@ -107,6 +126,17 @@ Start the Backend server
 ```bash
     npm start
 ```
+
+### Seed accounts without Docker
+
+If you are running the stack manually, you can still create the default users with:
+
+```bash
+cd backend
+node scripts/seedUsers.js
+```
+
+The script uses `backend/.env` for connection settings and updates/creates the same credentials listed above.
 ## Tech Stack
 * [React](https://reactjs.org/)
 * [Node.js](https://nodejs.org/en)

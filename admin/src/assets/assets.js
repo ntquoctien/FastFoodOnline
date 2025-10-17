@@ -14,4 +14,6 @@ export const assets ={
     parcel_icon
 }
 
-export const url = 'https://food-delivery-backend-5b6g.onrender.com'
+export const apiBaseUrl =
+  import.meta.env.VITE_API_URL || "https://food-delivery-backend-5b6g.onrender.com";
+export const url = apiBaseUrl;

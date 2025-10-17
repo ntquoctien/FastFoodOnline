@@ -10,7 +10,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
 
 const App = () => {
-  const url = "https://food-delivery-backend-5b6g.onrender.com";
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL || "https://food-delivery-backend-5b6g.onrender.com";
   return (
     <div>
       <ToastContainer />
@@ -19,10 +20,10 @@ const App = () => {
       <div className="app-content">
         <Sidebar />
         <Routes>
-          <Route path="/" element={<Login url={url}/>} />
-          <Route path="/add" element={<Add url={url}/>} />
-          <Route path="/list" element={<List url={url}/>} />
-          <Route path="/orders" element={<Orders url={url}/>} />
+          <Route path="/" element={<Login url={apiBaseUrl}/>} />
+          <Route path="/add" element={<Add url={apiBaseUrl}/>} />
+          <Route path="/list" element={<List url={apiBaseUrl}/>} />
+          <Route path="/orders" element={<Orders url={apiBaseUrl}/>} />
         </Routes>
       </div>
     </div>
