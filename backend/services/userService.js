@@ -16,7 +16,8 @@ export const login = async (email, password) => {
   }
   const role = user.role;
   const token = createToken(user._id);
-  return { success: true, token, role };
+    const branchId = user.branchId;
+  return { success: true, token, role, branchId };
 };
 
 export const register = async (name, email, password) => {
@@ -38,7 +39,8 @@ export const register = async (name, email, password) => {
   const user = await userRepo.createUser({ name, email, password: hashedPassword });
   const role = user.role;
   const token = createToken(user._id);
-  return { success: true, token, role };
+    const branchId = user.branchId;
+  return { success: true, token, role, branchId };
 };
 
 export default { login, register };

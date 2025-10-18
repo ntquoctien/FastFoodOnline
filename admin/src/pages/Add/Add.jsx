@@ -1,59 +1,138 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./Add.css";
 import { assets } from "../../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
-import { useEffect } from "react";
-import {useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Add = ({url}) => {
-  const navigate=useNavigate();
-  const {token,admin} = useContext(StoreContext);
-  const [image, setImage] = useState(false);
-  const [data, setData] = useState({
+const Add = ({ url }) => {
+  const navigate = useNavigate();
+  const { token, role } = useContext(StoreContext);
+  const [image, setImage] = useState(null);
+  const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
-    category: "Salad",
+    categoryId: "",
   });
+  const [categories, setCategories] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [variants, setVariants] = useState([
+    { size: "", price: "", branchId: "", isDefault: true },
+  ]);
 
-  const onChangeHandler = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setData((data) => ({ ...data, [name]: value }));
+  const fetchMeta = async () => {
+    try {
+      const response = await axios.get(`${url}/api/v2/menu/default`);
+      if (response.data.success) {
+        const { categories = [], branches = [] } = response.data.data;
+        setCategories(categories);
+        setBranches(branches);
+        if (categories.length && !form.categoryId) {
+          setForm((prev) => ({ ...prev, categoryId: categories[0]._id }));
+        }
+        if (branches.length) {
+          setVariants((prev) =>
+            prev.map((variant, index) => ({
+              ...variant,
+              branchId: variant.branchId || branches[0]._id,
+            }))
+          );
+        }
+      }
+    } catch (error) {
+      toast.error("Unable to load categories");
+    }
+  };
+
+  useEffect(() => {
+    if (!token || role !== "admin") {
+      toast.error("Please login first");
+      navigate("/");
+      return;
+    }
+    fetchMeta();
+  }, [token, role]);
+
+  const updateForm = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const updateVariant = (index, field, value) => {
+    setVariants((prev) =>
+      prev.map((variant, i) =>
+        i === index
+          ? {
+              ...variant,
+              [field]: field === "price" ? value.replace(/[^0-9.]/g, "") : value,
+            }
+          : variant
+      )
+    );
+  };
+
+  const addVariantRow = () => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        size: "",
+        price: "",
+        branchId: branches[0]?._id || "",
+        isDefault: false,
+      },
+    ]);
+  };
+
+  const setDefaultVariant = (index) => {
+    setVariants((prev) => prev.map((variant, i) => ({
+      ...variant,
+      isDefault: i === index,
+    })));
   };
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("description", data.description);
-    formData.append("price", Number(data.price));
-    formData.append("category", data.category);
-    formData.append("image", image);
+    const preparedVariants = variants
+      .filter((variant) => variant.size && variant.price)
+      .map((variant) => ({
+        ...variant,
+        price: Number(variant.price),
+      }));
 
-    const response = await axios.post(`${url}/api/food/add`, formData,{headers:{token}});
-    if (response.data.success) {
-      setData({
-        name: "",
-        description: "",
-        price: "",
-        category: "Salad",
+    if (!preparedVariants.length) {
+      toast.error("Please add at least one variant with size and price");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", form.name);
+    formData.append("description", form.description);
+    formData.append("categoryId", form.categoryId);
+    if (image) {
+      formData.append("image", image);
+    }
+    formData.append("variants", JSON.stringify(preparedVariants));
+
+    try {
+      const response = await axios.post(`${url}/api/v2/menu/foods`, formData, {
+        headers: { token },
       });
-      setImage(false);
-      toast.success(response.data.message);
-    } else {
-      toast.error(response.data.message);
+      if (response.data.success) {
+        toast.success("Food item created");
+        setForm({ name: "", description: "", categoryId: categories[0]?._id || "" });
+        setVariants([
+          { size: "", price: "", branchId: branches[0]?._id || "", isDefault: true },
+        ]);
+        setImage(null);
+      } else {
+        toast.error(response.data.message || "Could not create food");
+      }
+    } catch (error) {
+      toast.error("Unable to create food item");
     }
   };
-  useEffect(()=>{
-    if(!admin && !token){
-      toast.error("Please Login First");
-       navigate("/");
-    }
-  },[])
+
   return (
     <div className="add">
       <form onSubmit={onSubmitHandler} className="flex-col">
@@ -62,7 +141,7 @@ const Add = ({url}) => {
           <label htmlFor="image">
             <img
               src={image ? URL.createObjectURL(image) : assets.upload_area}
-              alt=""
+              alt="upload"
             />
           </label>
           <input
@@ -70,14 +149,13 @@ const Add = ({url}) => {
             type="file"
             id="image"
             hidden
-            required
           />
         </div>
         <div className="add-product-name flex-col">
           <p>Product name</p>
           <input
-            onChange={onChangeHandler}
-            value={data.name}
+            onChange={updateForm}
+            value={form.name}
             type="text"
             name="name"
             placeholder="Type here"
@@ -87,8 +165,8 @@ const Add = ({url}) => {
         <div className="add-product-description flex-col">
           <p>Product description</p>
           <textarea
-            onChange={onChangeHandler}
-            value={data.description}
+            onChange={updateForm}
+            value={form.description}
             name="description"
             rows="6"
             placeholder="Write content here"
@@ -99,32 +177,64 @@ const Add = ({url}) => {
           <div className="add-category flex-col">
             <p>Product category</p>
             <select
-              name="category"
+              name="categoryId"
               required
-              onChange={onChangeHandler}
-              value={data.category}
+              onChange={updateForm}
+              value={form.categoryId}
             >
-              <option value="Salad">Salad</option>
-              <option value="Rolls">Rolls</option>
-              <option value="Deserts">Deserts</option>
-              <option value="Sandwich">Sandwich</option>
-              <option value="Cake">Cake</option>
-              <option value="Pure Veg">Pure Veg</option>
-              <option value="Pasta">Pasta</option>
-              <option value="Noodles">Noodles</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
-          <div className="add-price flex-col">
-            <p>Product price</p>
-            <input
-              onChange={onChangeHandler}
-              value={data.price}
-              type="Number"
-              name="price"
-              placeholder="$20"
-              required
-            />
+        </div>
+        <div className="variant-section">
+          <div className="variant-header">
+            <p>Variants</p>
+            <button type="button" onClick={addVariantRow}>
+              + Add Variant
+            </button>
           </div>
+          {variants.map((variant, index) => (
+            <div key={index} className="variant-row">
+              <input
+                type="text"
+                placeholder="Size"
+                value={variant.size}
+                onChange={(event) => updateVariant(index, "size", event.target.value)}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Price"
+                value={variant.price}
+                onChange={(event) => updateVariant(index, "price", event.target.value)}
+                required
+              />
+              <select
+                value={variant.branchId}
+                onChange={(event) => updateVariant(index, "branchId", event.target.value)}
+                required
+              >
+                {branches.map((branch) => (
+                  <option key={branch._id} value={branch._id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <label className="variant-default">
+                <input
+                  type="radio"
+                  name="defaultVariant"
+                  checked={variant.isDefault}
+                  onChange={() => setDefaultVariant(index)}
+                />
+                Default
+              </label>
+            </div>
+          ))}
         </div>
         <button type="submit" className="add-btn">
           ADD

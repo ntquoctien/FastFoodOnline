@@ -1,6 +1,6 @@
 # TOMATO - Food Ordering Website
 
-This repository hosts the source code for TOMATO, a dynamic food ordering website built with the MERN Stack. It offers a user-friendly platform for seamless online food ordering.
+This repository hosts the source code for TOMATO, a dynamic food ordering website built with the MERN stack. It offers a user-friendly platform for seamless online food ordering.
 
 ## Demo
 
@@ -21,11 +21,10 @@ This repository hosts the source code for TOMATO, a dynamic food ordering websit
 - Order Management
 - Products Management
 - Filter Food Products
-- Login/Signup
 - Authenticated APIs
 - REST APIs
 - Role-Based Identification
-- Beautiful Alerts
+- Toast notifications
 
 ## Screenshots
 
@@ -50,17 +49,168 @@ You can spin up the complete stack with Docker:
    docker compose up --build
    ```
    The stack exposes the frontend at `http://localhost:5173`, the admin panel at `http://localhost:5174`, and the API at `http://localhost:4000`.
-2. Seed default accounts (one customer and one admin):
+2. Connect MongoDB clients (Compass, mongosh, etc.) via `mongodb://localhost:27017/fooddeliverydb`. Port 27017 is published so you can browse data directly from Windows.
+3. Seed demo menu/branch data (restaurants, branches, foods, variants, drones):
    ```bash
-   docker compose exec backend node scripts/seedUsers.js
+   npm run seed:v2
    ```
-   This creates/updates:
-   - Customer: `user@example.com` / `user1234`
-   - Admin: `admin@example.com` / `admin1234`
-3. Kết nối MongoDB từ host (Compass, mongosh, v.v.) qua `mongodb://localhost:27017/fooddeliverydb`. Cổng 27017 đã được
-   publish nên bạn có thể xem/sửa dữ liệu trực tiếp mà không cần vào container.
+> After seeding you can browse collections such as `restaurant`, `branch`, `category`, `food`, `foodVariant`, `order`, and `payment`.
 
 To rebuild after code changes you can run `docker compose up --build` again, or `docker compose up` if the images are already built.
+
+## MongoDB ERD (Expanded)
+
+```mermaid
+erDiagram
+    restaurant {
+        ObjectId _id PK
+        string name
+        string description
+        string phone
+        string email
+        string logoUrl
+        string cuisine
+        bool   isActive
+        date   createdAt
+    }
+
+    branch {
+        ObjectId _id PK
+        ObjectId restaurantId FK
+        string name
+        string street
+        string district
+        string city
+        string phone
+        double latitude
+        double longitude
+        bool   isPrimary
+        date   createdAt
+    }
+
+    category {
+        ObjectId _id PK
+        ObjectId restaurantId FK
+        string name
+        string description
+        bool   isActive
+    }
+
+    food {
+        ObjectId _id PK
+        ObjectId categoryId FK
+        string name
+        string description
+        string imageUrl
+        bool   isActive
+        date   createdAt
+    }
+
+    foodVariant {
+        ObjectId _id PK
+        ObjectId foodId FK
+        ObjectId branchId FK
+        string size
+        decimal price
+        bool   isDefault
+    }
+
+    inventory {
+        ObjectId _id PK
+        ObjectId branchId FK
+        ObjectId foodVariantId FK
+        int quantity
+        date updatedAt
+    }
+
+    user {
+        ObjectId _id PK
+        string fullName
+        string email
+        string passwordHash
+        string phone
+        string role
+        bool   isActive
+        ObjectId branchId
+        date   createdAt
+    }
+
+    shipperProfile {
+        ObjectId _id PK
+        ObjectId userId FK
+        string vehicleType
+        string licensePlate
+        string status
+    }
+
+    order {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId branchId FK
+        decimal subtotal
+        decimal deliveryFee
+        decimal totalAmount
+        string status
+        string paymentStatus
+        date   createdAt
+        object address
+    }
+
+    orderItem {
+        ObjectId _id PK
+        ObjectId orderId FK
+        ObjectId foodVariantId FK
+        int quantity
+        decimal unitPrice
+        decimal totalPrice
+        string note
+    }
+
+    deliveryAssignment {
+        ObjectId _id PK
+        ObjectId orderId FK
+        ObjectId shipperId FK
+        string status
+        date assignedAt
+        date pickedAt
+        date deliveredAt
+    }
+
+    payment {
+        ObjectId _id PK
+        ObjectId orderId FK
+        string provider
+        string transactionId
+        decimal amount
+        string status
+        date paidAt
+        object meta
+    }
+
+    restaurant ||--o{ branch : "has"
+    restaurant ||--o{ category : "categorises"
+    category ||--o{ food : "contains"
+    food ||--o{ foodVariant : "offers"
+    branch ||--o{ foodVariant : "sells"
+    branch ||--o{ inventory : "tracks"
+    foodVariant ||--o{ inventory : "stocked"
+    user ||--o{ order : "places"
+    order ||--o{ orderItem : "includes"
+    foodVariant ||--o{ orderItem : "ordered_as"
+    user ||--o{ shipperProfile : "extends"
+    shipperProfile ||--o{ deliveryAssignment : "delivers"
+    order ||--o{ deliveryAssignment : "assigned"
+    order ||--o{ payment : "paid_via"
+```
+
+## Menu & Order v2 Highlights
+
+- Backend v2 introduces restaurants, branches, categories, foods and variants so pricing can vary by size/branch.
+- New `/api/v2/menu` endpoints serve the dynamic menu and expose admin endpoints to create categories/foods.
+- `/api/v2/orders/confirm-payment` confirms payment and instantly assigns the order to an available drone shipper (vehicle type `drone`).
+- Dashboard roles: admin (manage menu, inventory, shippers, orders) and branch managers (view branch menu, adjust inventory, monitor orders).
+- Checkout flow now supports Cash on Delivery and a simulated Visa payment step.
+- Admins manage live orders with `/api/v2/orders` and patch statuses via `/api/v2/orders/:id/status`.
 
 ## Run Locally
 
@@ -87,60 +237,38 @@ Start all apps locally in one terminal
     npm run dev
 ```
 > This uses `concurrently` to run the backend, frontend, and admin dev servers together.
-Setup Environment Vaiables
 
-```Make .env file in "backend" folder and store environment Variables
-  JWT_SECRET=YOUR_SECRET_TEXT
-  SALT=YOUR_SALT_VALUE
-  MONGO_URL=YOUR_DATABASE_URL
-  STRIPE_SECRET_KEY=YOUR_KEY
- ```
-
-Setup the Frontend and Backend URL
-   - App.jsx in Admin folder
-      const url = YOUR_BACKEND_URL
-     
-  - StoreContext.js in Frontend folder
-      const url = YOUR_BACKEND_URL
-
-  - orderController in Backend folder
-      const frontend_url = YOUR_FRONTEND_URL 
-
-Start the Backend server
+### Seed demo menu data
 
 ```bash
-    nodemon server.js
+npm run seed:v2
 ```
 
-Start the Frontend server
+Default accounts after running `npm run seed:v2`:
+- Admin dashboard: `admin@example.com` / `admin1234`
+- Branch manager dashboard: `branch.manager@example.com` / `branch1234`
+- Sample customer: `user@example.com` / `user1234`
 
-```bash
-    npm start
+### Environment Variables
+
+Create `.env` inside `backend/` and set your configuration:
+
+```
+JWT_SECRET=YOUR_SECRET_TEXT
+SALT=YOUR_SALT_VALUE
+MONGO_URL=YOUR_DATABASE_URL
+STRIPE_SECRET_KEY=YOUR_KEY
 ```
 
-Start the Backend server
+Update frontend/admin URLs if you deploy to another host (see `frontend/src/context/StoreContext.jsx` and `admin/src/App.jsx`).
 
-```bash
-    npm start
-```
-
-### Seed accounts without Docker
-
-If you are running the stack manually, you can still create the default users with:
-
-```bash
-cd backend
-node scripts/seedUsers.js
-```
-
-The script uses `backend/.env` for connection settings and updates/creates the same credentials listed above.
 ## Tech Stack
 * [React](https://reactjs.org/)
 * [Node.js](https://nodejs.org/en)
 * [Express.js](https://expressjs.com/)
-* [Mongodb](https://www.mongodb.com/)
+* [MongoDB](https://www.mongodb.com/)
 * [Stripe](https://stripe.com/)
-* [JWT-Authentication](https://jwt.io/introduction)
+* [JWT](https://jwt.io/introduction)
 * [Multer](https://www.npmjs.com/package/multer)
 
 ## Deployment
@@ -149,8 +277,7 @@ The application is deployed on Render.
 
 ## Contributing
 
-Contributions are always welcome!
-Just raise an issue, and we will discuss it.
+Contributions are always welcome! Just raise an issue and we can discuss it.
 
 ## Feedback
 

@@ -40,4 +40,39 @@
     .add-product-name, .add-product-description{
         width: max(40%,220px);
     }
+}.variant-section{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.variant-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.variant-header button{
+    border:none;
+    background-color:#f57c51;
+    color:#fff;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+}
+.variant-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:12px;
+    align-items:center;
+}
+.variant-row input[type="text"],
+.variant-row input[type="number"],
+.variant-row select{
+    padding:8px;
+    border:1px solid #ddd;
+    border-radius:6px;
+}
+.variant-default{
+    display:flex;
+    align-items:center;
+    gap:6px;
 }

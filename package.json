@@ -11,6 +11,7 @@
     "install:frontend": "npm install --prefix frontend",
     "install:admin": "npm install --prefix admin",
     "install:all": "npm run install:backend && npm run install:frontend && npm run install:admin",
-    "postinstall": "npm run install:all"
+    "postinstall": "npm run install:all",
+    "seed:v2": "node backend/scripts/seedV2.js"
   }
 }

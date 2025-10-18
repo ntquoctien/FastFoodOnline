@@ -79,7 +79,8 @@ export const assets = {
     profile_icon,
     logout_icon,
     bag_icon,
-    parcel_icon
+    parcel_icon,
+    placeholder_image: food_1
 }
 
 export const menu_list = [

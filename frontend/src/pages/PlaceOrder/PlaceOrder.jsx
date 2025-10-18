@@ -1,15 +1,21 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 
 const PlaceOrder = () => {
-  const navigate= useNavigate();
+  const navigate = useNavigate();
+  const {
+    getTotalCartAmount,
+    token,
+    cartItems,
+    url,
+    variantMap,
+    setCartItems,
+  } = useContext(StoreContext);
 
-  const { getTotalCartAmount, token, food_list, cartItems, url } =
-    useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -21,48 +27,160 @@ const PlaceOrder = () => {
     country: "",
     phone: "",
   });
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [cardInfo, setCardInfo] = useState({
+    name: "",
+    number: "",
+    expiry: "",
+    cvc: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const totalAmount = useMemo(() => getTotalCartAmount(), [cartItems, variantMap]);
+  const deliveryFee = totalAmount === 0 ? 0 : 2;
 
   const onChangeHandler = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setData((data) => ({ ...data, [name]: value }));
+    const { name, value } = event.target;
+    setData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleCardChange = (event) => {
+    const { name, value } = event.target;
+    setCardInfo((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const buildOrderPayload = () =>
+    Object.entries(cartItems)
+      .filter(([, quantity]) => quantity > 0)
+      .map(([variantId, quantity]) => {
+        const variant = variantMap[variantId];
+        if (!variant) return null;
+        return { variantId, quantity };
+      })
+      .filter(Boolean);
 
   const placeOrder = async (event) => {
     event.preventDefault();
-    let orderItems = [];
-    food_list.map((item) => {
-      if (cartItems[item._id] > 0) {
-        let itemInfo = item;
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo);
+    if (submitting) return;
+    const orderItems = buildOrderPayload();
+    if (!orderItems.length) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    const branchIds = new Set(
+      orderItems
+        .map((item) => variantMap[item.variantId]?.branchId)
+        .filter(Boolean)
+    );
+    if (branchIds.size === 0) {
+      toast.error("Unable to determine serving branch");
+      return;
+    }
+    if (branchIds.size > 1) {
+      toast.error("Please group cart items by branch before checkout");
+      return;
+    }
+    const [branchId] = Array.from(branchIds);
+
+    if (paymentMethod === "visa") {
+      const missingCardField = Object.entries(cardInfo).find(([, value]) => !value.trim());
+      if (missingCardField) {
+        toast.error("Please fill in all card details");
+        return;
       }
-    });
-    let orderData = {
-      address: data,
-      items: orderItems,
-      amount: getTotalCartAmount() + 2,
-    };
-    
-    let response= await axios.post(url+"/api/order/place",orderData,{headers:{token}});
-    if(response.data.success){
-      const {session_url}=response.data;
-      window.location.replace(session_url);
-    }else{
-      toast.error("Errors!")
+    }
+
+    setSubmitting(true);
+    try {
+      const orderResponse = await axios.post(
+        `${url}/api/v2/orders`,
+        {
+          branchId,
+          items: orderItems,
+          address: data,
+        },
+        { headers: { token } }
+      );
+      if (!orderResponse.data.success) {
+        toast.error(orderResponse.data.message || "Unable to create order");
+        setSubmitting(false);
+        return;
+      }
+
+      const orderId = orderResponse.data.data._id;
+      const amount = totalAmount + deliveryFee;
+
+      if (paymentMethod === "cash") {
+        const paymentResponse = await axios.post(
+          `${url}/api/v2/orders/confirm-payment`,
+          {
+            orderId,
+            provider: "cash",
+            transactionId: `cash-${Date.now()}`,
+            amount,
+          },
+          { headers: { token } }
+        );
+        if (paymentResponse.data.success) {
+          toast.success("Order confirmed - cash on delivery");
+          setCartItems({});
+          navigate("/myorders");
+        } else {
+          toast.error(paymentResponse.data.message || "Unable to confirm payment");
+        }
+      } else {
+        const initResponse = await axios.post(
+          `${url}/api/v2/orders/pay/stripe`,
+          {
+            orderId,
+            amount,
+            card: cardInfo,
+          },
+          { headers: { token } }
+        );
+        if (!initResponse.data.success) {
+          toast.error(initResponse.data.message || "Unable to initiate payment");
+          setSubmitting(false);
+          return;
+        }
+        const clientSecret = initResponse.data.data?.clientSecret;
+        const paymentResponse = await axios.post(
+          `${url}/api/v2/orders/confirm-payment`,
+          {
+            orderId,
+            provider: "visa",
+            transactionId: clientSecret,
+            amount,
+          },
+          { headers: { token } }
+        );
+        if (paymentResponse.data.success) {
+          toast.success("Payment simulated successfully");
+          setCartItems({});
+          navigate("/myorders");
+        } else {
+          toast.error(paymentResponse.data.message || "Payment confirmation failed");
+        }
+      }
+    } catch (error) {
+      console.error("Checkout failed", error);
+      toast.error("Unable to complete checkout");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  useEffect(()=>{
-    if(!token){
-      toast.error("Please Login first")
-      navigate("/cart")
+  useEffect(() => {
+    if (!token) {
+      toast.error("Please login first");
+      navigate("/cart");
+    } else if (totalAmount === 0) {
+      toast.error("Your cart is empty");
+      navigate("/cart");
     }
-    else if(getTotalCartAmount()===0){
-      toast.error("Please Add Items to Cart");
-      navigate("/cart")
-    }
-  },[token])
+  }, [token, totalAmount, navigate]);
+
   return (
     <form className="place-order" onSubmit={placeOrder}>
       <div className="place-order-left">
@@ -90,7 +208,7 @@ const PlaceOrder = () => {
           name="email"
           value={data.email}
           onChange={onChangeHandler}
-          type="text"
+          type="email"
           placeholder="Email Address"
         />
         <input
@@ -145,29 +263,87 @@ const PlaceOrder = () => {
           type="text"
           placeholder="Phone"
         />
+        <div className="payment-method">
+          <p className="title">Payment Method</p>
+          <label>
+            <input
+              type="radio"
+              name="payment"
+              value="cash"
+              checked={paymentMethod === "cash"}
+              onChange={() => setPaymentMethod("cash")}
+            />
+            Cash on delivery
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="payment"
+              value="visa"
+              checked={paymentMethod === "visa"}
+              onChange={() => setPaymentMethod("visa")}
+            />
+            Visa (demo)
+          </label>
+          {paymentMethod === "visa" && (
+            <div className="card-fields">
+              <input
+                name="name"
+                value={cardInfo.name}
+                onChange={handleCardChange}
+                type="text"
+                placeholder="Name on card"
+              />
+              <input
+                name="number"
+                value={cardInfo.number}
+                onChange={handleCardChange}
+                type="text"
+                placeholder="Card number"
+              />
+              <div className="multi-fields">
+                <input
+                  name="expiry"
+                  value={cardInfo.expiry}
+                  onChange={handleCardChange}
+                  type="text"
+                  placeholder="MM/YY"
+                />
+                <input
+                  name="cvc"
+                  value={cardInfo.cvc}
+                  onChange={handleCardChange}
+                  type="text"
+                  placeholder="CVC"
+                />
+              </div>
+              <small>This is a simulated payment flow. No real charge will be made.</small>
+            </div>
+          )}
+        </div>
       </div>
       <div className="place-order-right">
         <div className="cart-total">
           <h2>Cart Totals</h2>
           <div>
             <div className="cart-total-details">
-              <p>Subtotals</p>
-              <p>${getTotalCartAmount()}</p>
+              <p>Subtotal</p>
+              <p>${totalAmount.toFixed(2)}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <p>Delivery Fee</p>
-              <p>${getTotalCartAmount() === 0 ? 0 : 2}</p>
+              <p>${deliveryFee.toFixed(2)}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>
-                ${getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}
-              </b>
+              <b>${(totalAmount + deliveryFee).toFixed(2)}</b>
             </div>
           </div>
-          <button type="submit">PROCEED TO PAYMENT</button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Processing..." : "Confirm Order"}
+          </button>
         </div>
       </div>
     </form>

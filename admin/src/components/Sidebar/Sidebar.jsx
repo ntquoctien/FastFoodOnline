@@ -1,27 +1,44 @@
-import React from 'react'
-import './Sidebar.css'
-import { assets } from '../../assets/assets'
-import { NavLink } from 'react-router-dom'
+import React, { useContext } from "react";
+import "./Sidebar.css";
+import { assets } from "../../assets/assets";
+import { NavLink } from "react-router-dom";
+import { StoreContext } from "../../context/StoreContext";
+
+const adminLinks = [
+  { to: "/add", icon: assets.add_icon, label: "Add Items" },
+  { to: "/list", icon: assets.order_icon, label: "List Items" },
+  { to: "/inventory", icon: assets.order_icon, label: "Inventory" },
+  { to: "/shippers", icon: assets.order_icon, label: "Shippers" },
+  { to: "/orders", icon: assets.order_icon, label: "Orders" },
+];
+
+const branchLinks = [
+  { to: "/branch/menu", icon: assets.order_icon, label: "Menu" },
+  { to: "/branch/inventory", icon: assets.order_icon, label: "Inventory" },
+  { to: "/branch/orders", icon: assets.order_icon, label: "Orders" },
+];
 
 const Sidebar = () => {
+  const { token, role } = useContext(StoreContext);
+
+  if (!token) {
+    return null;
+  }
+
+  const links = role === "admin" ? adminLinks : branchLinks;
+
   return (
-    <div className='sidebar'>
+    <div className="sidebar">
       <div className="sidebar-options">
-        <NavLink to='add' className="sidebar-option">
-          <img src={assets.add_icon} alt="" />
-          <p>Add Items</p>
-        </NavLink>
-        <NavLink to='list' className="sidebar-option">
-          <img src={assets.order_icon} alt="" />
-          <p>List Items</p>
-        </NavLink>
-        <NavLink to='orders' className="sidebar-option">
-          <img src={assets.order_icon} alt="" />
-          <p>Orders</p>
-        </NavLink>
+        {links.map((link) => (
+          <NavLink to={link.to} key={link.to} className="sidebar-option">
+            <img src={link.icon} alt="option" />
+            <p>{link.label}</p>
+          </NavLink>
+        ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

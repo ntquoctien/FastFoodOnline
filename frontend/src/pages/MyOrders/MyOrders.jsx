@@ -6,16 +6,18 @@ import { assets } from "../../assets/frontend_assets/assets";
 
 const MyOrders = () => {
   const { url, token } = useContext(StoreContext);
-  const [data, setData] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   const fetchOrders = async () => {
-    const response = await axios.post(
-      url + "/api/order/userorders",
-      {},
-      { headers: { token } }
-    );
-    if (response.data.success) {
-      setData(response.data.data);
+    try {
+      const response = await axios.get(`${url}/api/v2/orders/me`, {
+        headers: { token },
+      });
+      if (response.data.success) {
+        setOrders(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to load orders", error);
     }
   };
 
@@ -24,24 +26,20 @@ const MyOrders = () => {
       fetchOrders();
     }
   }, [token]);
+
   return (
     <div className="my-orders">
       <h2>Orders</h2>
       <div className="container">
-        {data.map((order, index) => {
+        {orders.map((order) => {
+          const itemSummary = order.items
+            .map((item) => `${item.title} (${item.size}) x ${item.quantity}`)
+            .join(", ");
           return (
-            <div key={index} className="my-orders-order">
-              <img src={assets.parcel_icon} alt="" />
-              <p>
-                {order.items.map((item, index) => {
-                  if (index === order.items.length - 1) {
-                    return item.name + " X " + item.quantity;
-                  } else {
-                    return item.name + " X " + item.quantity + ",";
-                  }
-                })}
-              </p>
-              <p>${order.amount}.00</p>
+            <div key={order._id} className="my-orders-order">
+              <img src={assets.parcel_icon} alt="Parcel" />
+              <p>{itemSummary}</p>
+              <p>${order.totalAmount?.toFixed(2)}</p>
               <p>items: {order.items.length}</p>
               <p>
                 <span>&#x25cf;</span>

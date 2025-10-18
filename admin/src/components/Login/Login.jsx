@@ -4,48 +4,74 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
-import {useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
+const allowedRoles = ["admin", "manager", "branch_manager", "staff"];
 
 const Login = ({ url }) => {
-  const navigate=useNavigate();
-  const {admin,setAdmin,token, setToken } = useContext(StoreContext);
+  const navigate = useNavigate();
+  const { token, role, persistAuth } = useContext(StoreContext);
   const [data, setData] = useState({
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+
   const onChangeHandler = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setData((data) => ({ ...data, [name]: value }));
+    const { name, value } = event.target;
+    setData((prev) => ({ ...prev, [name]: value }));
   };
+
   const onLogin = async (event) => {
     event.preventDefault();
-    const response = await axios.post(url + "/api/user/login", data);
-    if (response.data.success) {
-      if (response.data.role === "admin") {
-        setToken(response.data.token);
-        setAdmin(true);
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("admin", true);
-        toast.success("Login Successfully");
-        navigate("/add")
-      }else{
-        toast.error("You are not an admin");
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await axios.post(url + "/api/user/login", data);
+      if (response.data.success) {
+        const userRole = response.data.role;
+        if (!allowedRoles.includes(userRole)) {
+          toast.error("Your account does not have dashboard access");
+          setLoading(false);
+          return;
+        }
+        persistAuth({
+          token: response.data.token,
+          role: userRole,
+          branchId: response.data.branchId || "",
+        });
+        toast.success("Login successfully");
+        if (userRole === "admin") {
+          navigate("/add", { replace: true });
+        } else {
+          navigate("/branch/menu", { replace: true });
+        }
+      } else {
+        toast.error(response.data.message);
       }
-    } else {
-      toast.error(response.data.message);
+    } catch (error) {
+      console.error("Admin login failed", error);
+      toast.error("Login failed");
+    } finally {
+      setLoading(false);
     }
   };
-  useEffect(()=>{
-    if(admin && token){
-       navigate("/add");
+
+  useEffect(() => {
+    if (token && role) {
+      if (role === "admin") {
+        navigate("/add", { replace: true });
+      } else {
+        navigate("/branch/menu", { replace: true });
+      }
     }
-  },[])
+  }, [token, role, navigate]);
+
   return (
     <div className="login-popup">
       <form onSubmit={onLogin} className="login-popup-container">
         <div className="login-popup-title">
-          <h2>Login</h2>
+          <h2>Dashboard Login</h2>
         </div>
         <div className="login-popup-inputs">
           <input
@@ -55,6 +81,7 @@ const Login = ({ url }) => {
             type="email"
             placeholder="Your email"
             required
+            disabled={loading}
           />
           <input
             name="password"
@@ -63,9 +90,12 @@ const Login = ({ url }) => {
             type="password"
             placeholder="Your password"
             required
+            disabled={loading}
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Please wait..." : "Login"}
+        </button>
       </form>
     </div>
   );

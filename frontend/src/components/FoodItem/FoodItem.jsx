@@ -1,37 +1,104 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import "./FoodItem.css";
 import { assets } from "../../assets/frontend_assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 
-const FoodItem = ({ id, name, price, description, image }) => {
-  const {cartItems,addToCart,removeFromCart,url}=useContext(StoreContext); 
+const FoodItem = ({ food }) => {
+  const { cartItems, addToCart, removeFromCart, url, variantMap } =
+    useContext(StoreContext);
+  const variants = food?.variants || [];
+
+  const defaultVariantId = useMemo(() => {
+    if (!variants.length) return null;
+    const preferred = variants.find((variant) => variant.isDefault);
+    return (preferred && preferred._id) || variants[0]._id || null;
+  }, [variants]);
+
+  const [selectedVariantId, setSelectedVariantId] = useState(defaultVariantId);
+
+  useEffect(() => {
+    setSelectedVariantId(defaultVariantId);
+  }, [defaultVariantId, food?._id]);
+
+  const selectedVariant = useMemo(() => {
+    if (!selectedVariantId) return null;
+    return (
+      variantMap[selectedVariantId] ||
+      variants.find((variant) => variant._id === selectedVariantId)
+    );
+  }, [selectedVariantId, variantMap, variants]);
+
+  const quantity = selectedVariantId ? cartItems[selectedVariantId] || 0 : 0;
+  const price = selectedVariant?.price || 0;
+
+  const handleAdd = () => {
+    if (selectedVariantId) {
+      addToCart(selectedVariantId);
+    }
+  };
+
+  const handleRemove = () => {
+    if (selectedVariantId) {
+      removeFromCart(selectedVariantId);
+    }
+  };
+
+  const imageSrc = food.imageUrl
+    ? `${url}/images/${food.imageUrl}`
+    : assets.placeholder_image;
 
   return (
     <div className="food-item">
       <div className="food-item-img-container">
-        <img src={url+"/images/"+image} alt="" className="food-item-image" />
-        {!cartItems[id] ? (
+        <img src={imageSrc} alt={food.name} className="food-item-image" />
+        {quantity === 0 ? (
           <img
             className="add"
-            onClick={() => addToCart(id)}
+            onClick={handleAdd}
             src={assets.add_icon_white}
-            alt=""
+            alt="add"
           />
         ) : (
           <div className="food-item-counter">
-            <img onClick={()=>removeFromCart(id)} src={assets.remove_icon_red} alt="" />
-            <p>{cartItems[id]}</p>
-            <img onClick={()=>addToCart(id)} src={assets.add_icon_green} alt="" />
+            <img
+              onClick={handleRemove}
+              src={assets.remove_icon_red}
+              alt="remove"
+            />
+            <p>{quantity}</p>
+            <img
+              onClick={handleAdd}
+              src={assets.add_icon_green}
+              alt="add"
+            />
           </div>
         )}
       </div>
       <div className="food-item-info">
         <div className="food-item-name-rating">
-          <p>{name}</p>
-          <img src={assets.rating_starts} alt="" />
+          <p>{food.name}</p>
+          <img src={assets.rating_starts} alt="rating" />
         </div>
-        <p className="food-item-desc">{description}</p>
-        <p className="food-item-price">${price}</p>
+        <p className="food-item-desc">{food.description}</p>
+        {selectedVariant?.branchName && (
+          <p className="food-item-branch">
+            Available at {selectedVariant.branchName}
+          </p>
+        )}
+        {variants.length > 1 && (
+          <select
+            className="food-item-variant"
+            value={selectedVariantId || ""}
+            onChange={(event) => setSelectedVariantId(event.target.value)}
+          >
+            {variants.map((variant) => (
+              <option key={variant._id} value={variant._id}>
+                {variant.size} - ${variant.price.toFixed(2)}
+              </option>
+            ))}
+          </select>
+        )}
+        <p className="food-item-price">${price.toFixed(2)}</p>
       </div>
     </div>
   );

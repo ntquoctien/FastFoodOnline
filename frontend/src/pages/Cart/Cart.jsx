@@ -2,19 +2,20 @@ import React, { useContext } from "react";
 import "./Cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
+import { assets } from "../../assets/frontend_assets/assets";
 
 const Cart = () => {
   const {
-    food_list,
     cartItems,
-    setCartItems,
     addToCart,
     removeFromCart,
     getTotalCartAmount,
-    url
+    url,
+    variantMap,
   } = useContext(StoreContext);
 
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+  const cartEntries = Object.entries(cartItems).filter(([, qty]) => qty > 0);
 
   return (
     <div className="cart">
@@ -22,6 +23,8 @@ const Cart = () => {
         <div className="cart-items-title">
           <p>Items</p>
           <p>Title</p>
+          <p>Variant</p>
+          <p>Branch</p>
           <p>Price</p>
           <p>Quantity</p>
           <p>Total</p>
@@ -29,24 +32,31 @@ const Cart = () => {
         </div>
         <br />
         <hr />
-        {food_list.map((item, index) => {
-          if (cartItems[item._id] > 0) {
-            return (
-              <div>
-                <div className="cart-items-title cart-items-item">
-                  <img src={url+"/images/"+item.image} alt="" />
-                  <p>{item.name}</p>
-                  <p>${item.price}</p>
-                  <p>{cartItems[item._id]}</p>
-                  <p>${item.price * cartItems[item._id]}</p>
-                  <p onClick={() => removeFromCart(item._id)} className="cross">
-                    x
-                  </p>
-                </div>
-                <hr />
+        {cartEntries.map(([variantId, quantity]) => {
+          const variant = variantMap[variantId];
+          if (!variant) return null;
+          const price = variant.price;
+          const total = price * quantity;
+          const imageSrc = variant.foodImage
+            ? `${url}/images/${variant.foodImage}`
+            : assets.placeholder_image;
+          return (
+            <div key={variantId}>
+              <div className="cart-items-title cart-items-item">
+                <img src={imageSrc} alt={variant.foodName} />
+                <p>{variant.foodName}</p>
+                <p>{variant.size}</p>
+                 <p>{variant.branchName || "Branch"}</p>
+                <p>${price.toFixed(2)}</p>
+                <p>{quantity}</p>
+                <p>${total.toFixed(2)}</p>
+                <p onClick={() => removeFromCart(variantId)} className="cross">
+                  x
+                </p>
               </div>
-            );
-          }
+              <hr />
+            </div>
+          );
         })}
       </div>
       <div className="cart-bottom">
@@ -55,20 +65,27 @@ const Cart = () => {
           <div>
             <div className="cart-total-details">
               <p>Subtotals</p>
-              <p>${getTotalCartAmount()}</p>
+              <p>${getTotalCartAmount().toFixed(2)}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <p>Delivery Fee</p>
-              <p>${getTotalCartAmount()===0?0:2}</p>
+              <p>${getTotalCartAmount() === 0 ? 0 : 2}</p>
             </div>
             <hr />
             <div className="cart-total-details">
               <b>Total</b>
-              <b>${getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
+              <b>
+                $
+                {getTotalCartAmount() === 0
+                  ? 0
+                  : (getTotalCartAmount() + 2).toFixed(2)}
+              </b>
             </div>
           </div>
-          <button onClick={()=>navigate('/order')}>PROCEED TO CHECKOUT</button>
+          <button onClick={() => navigate("/order")}>
+            PROCEED TO CHECKOUT
+          </button>
         </div>
         <div className="cart-promocode">
           <div>

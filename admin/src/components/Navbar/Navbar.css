@@ -13,3 +13,14 @@
 .login-conditon{
     font-size: 20px;
 }
+.navbar-actions{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+.navbar-role{
+    font-size:16px;
+    color:#555;
+    text-transform:capitalize;
+}
+
