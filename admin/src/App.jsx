@@ -10,6 +10,7 @@ import Shippers from "./pages/Shippers/Shippers";
 import BranchMenu from "./pages/Branch/Menu";
 import BranchInventory from "./pages/Branch/Inventory";
 import BranchOrders from "./pages/Branch/Orders";
+import Branches from "./pages/Branches/Branches";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
@@ -45,6 +46,7 @@ const App = () => {
             <>
               <Route path="/add" element={<Add url={apiBaseUrl} />} />
               <Route path="/list" element={<List url={apiBaseUrl} />} />
+              <Route path="/branches" element={<Branches url={apiBaseUrl} />} />
               <Route path="/inventory" element={<Inventory url={apiBaseUrl} />} />
               <Route path="/shippers" element={<Shippers url={apiBaseUrl} />} />
               <Route path="/orders" element={<Orders url={apiBaseUrl} />} />

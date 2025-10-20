@@ -15,6 +15,7 @@ const branchSchema = new mongoose.Schema(
     latitude: { type: Number },
     longitude: { type: Number },
     isPrimary: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
   {
     collection: "branches",
@@ -22,7 +23,10 @@ const branchSchema = new mongoose.Schema(
   }
 );
 
-branchSchema.index({ restaurantId: 1, name: 1 }, { unique: true });
+branchSchema.index(
+  { restaurantId: 1, name: 1 },
+  { unique: true, partialFilterExpression: { isActive: true } }
+);
 
 const BranchModel =
   mongoose.models.Branch || mongoose.model("Branch", branchSchema);

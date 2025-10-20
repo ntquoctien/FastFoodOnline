@@ -10,6 +10,7 @@ import menuV2Router from "./routes/menuV2Route.js";
 import orderV2Router from "./routes/orderV2Route.js";
 import inventoryV2Router from "./routes/inventoryV2Route.js";
 import shipperV2Router from "./routes/shipperV2Route.js";
+import branchV2Router from "./routes/branchV2Route.js";
 
 // app config
 const app = express();
@@ -32,6 +33,7 @@ app.use("/api/v2/menu", menuV2Router);
 app.use("/api/v2/orders", orderV2Router);
 app.use("/api/v2/inventory", inventoryV2Router);
 app.use("/api/v2/shippers", shipperV2Router);
+app.use("/api/v2/branches", branchV2Router);
 
 app.get("/", (req, res) => {
   res.send("API Working");

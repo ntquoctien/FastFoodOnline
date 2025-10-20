@@ -7,6 +7,7 @@ import { StoreContext } from "../../context/StoreContext";
 const adminLinks = [
   { to: "/add", icon: assets.add_icon, label: "Add Items" },
   { to: "/list", icon: assets.order_icon, label: "List Items" },
+  { to: "/branches", icon: assets.parcel_icon, label: "Branches" },
   { to: "/inventory", icon: assets.order_icon, label: "Inventory" },
   { to: "/shippers", icon: assets.order_icon, label: "Shippers" },
   { to: "/orders", icon: assets.order_icon, label: "Orders" },

@@ -14,7 +14,7 @@ export const getDefaultMenu = async ({ branchId } = {}) => {
   }
 
   const [branches, categories, foods] = await Promise.all([
-    branchRepo.findAll({ restaurantId: restaurant._id }),
+    branchRepo.findActive({ restaurantId: restaurant._id }),
     categoryRepo.findAll({ restaurantId: restaurant._id, isActive: true }),
     foodRepo.findAll({ isActive: true }).lean(),
   ]);
