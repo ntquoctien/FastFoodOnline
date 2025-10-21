@@ -36,6 +36,13 @@
     padding: 10px;
     border-radius: 4px;
 }
+.login-remember{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+}
 .login-popup-container button{
     border: none;
     padding: 10px;

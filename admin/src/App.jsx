@@ -11,6 +11,8 @@ import BranchMenu from "./pages/Branch/Menu";
 import BranchInventory from "./pages/Branch/Inventory";
 import BranchOrders from "./pages/Branch/Orders";
 import Branches from "./pages/Branches/Branches";
+import Staff from "./pages/Staff/Staff";
+import Profile from "./pages/Profile/Profile";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
@@ -35,35 +37,39 @@ const App = () => {
   const isAdmin = role === "admin";
 
   return (
-    <div>
+    <div className="app-shell">
       <ToastContainer />
       <Navbar />
-      <hr />
-      <div className="app-content">
+      <div className="app-body">
         <Sidebar />
-        <Routes>
-          {isAdmin ? (
-            <>
-              <Route path="/add" element={<Add url={apiBaseUrl} />} />
-              <Route path="/list" element={<List url={apiBaseUrl} />} />
-              <Route path="/branches" element={<Branches url={apiBaseUrl} />} />
-              <Route path="/inventory" element={<Inventory url={apiBaseUrl} />} />
-              <Route path="/shippers" element={<Shippers url={apiBaseUrl} />} />
-              <Route path="/orders" element={<Orders url={apiBaseUrl} />} />
-              <Route path="*" element={<Navigate to="/add" replace />} />
-            </>
-          ) : (
-            <>
-              <Route path="/branch/menu" element={<BranchMenu url={apiBaseUrl} />} />
-              <Route
-                path="/branch/inventory"
-                element={<BranchInventory url={apiBaseUrl} />}
-              />
-              <Route path="/branch/orders" element={<BranchOrders url={apiBaseUrl} />} />
-              <Route path="*" element={<Navigate to="/branch/menu" replace />} />
-            </>
-          )}
-        </Routes>
+        <main className="app-main">
+          <Routes>
+            {isAdmin ? (
+              <>
+                <Route path="/add" element={<Add url={apiBaseUrl} />} />
+                <Route path="/list" element={<List url={apiBaseUrl} />} />
+                <Route path="/branches" element={<Branches url={apiBaseUrl} />} />
+                <Route path="/staff" element={<Staff url={apiBaseUrl} />} />
+                <Route path="/inventory" element={<Inventory url={apiBaseUrl} />} />
+                <Route path="/shippers" element={<Shippers url={apiBaseUrl} />} />
+                <Route path="/orders" element={<Orders url={apiBaseUrl} />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<Navigate to="/add" replace />} />
+              </>
+            ) : (
+              <>
+                <Route path="/branch/menu" element={<BranchMenu url={apiBaseUrl} />} />
+                <Route
+                  path="/branch/inventory"
+                  element={<BranchInventory url={apiBaseUrl} />}
+                />
+                <Route path="/branch/orders" element={<BranchOrders url={apiBaseUrl} />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<Navigate to="/branch/menu" replace />} />
+              </>
+            )}
+          </Routes>
+        </main>
       </div>
     </div>
   );

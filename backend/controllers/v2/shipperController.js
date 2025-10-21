@@ -12,6 +12,31 @@ const handleError = (res, error, fallback) => {
   if (error.message === "INVALID_STATUS") {
     return res.status(400).json({ success: false, message: "Invalid shipper status" });
   }
+  if (error.message === "INVALID_NAME") {
+    return res.status(400).json({ success: false, message: "Name is required" });
+  }
+  if (error.message === "INVALID_EMAIL") {
+    return res.status(400).json({ success: false, message: "Please enter a valid email" });
+  }
+  if (error.message === "EMAIL_IN_USE") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Email is already in use by another account" });
+  }
+  if (error.message === "SHIPPER_EXISTS") {
+    return res
+      .status(409)
+      .json({ success: false, message: "A shipper profile already exists for this user" });
+  }
+  if (error.message === "BRANCH_REQUIRED") {
+    return res.status(400).json({ success: false, message: "Select a branch for this shipper" });
+  }
+  if (error.message === "BRANCH_NOT_FOUND") {
+    return res.status(404).json({ success: false, message: "Branch not found" });
+  }
+  if (error.message === "INVALID_VEHICLE") {
+    return res.status(400).json({ success: false, message: "Unsupported vehicle type" });
+  }
   console.error(fallback, error);
   return res.status(500).json({ success: false, message: "Shipper action failed" });
 };
@@ -42,4 +67,19 @@ export const updateShipperStatus = async (req, res) => {
   }
 };
 
-export default { listShippers, updateShipperStatus };
+export const createShipper = async (req, res) => {
+  try {
+    const result = await shipperService.createShipper({
+      userId: req.userId || req.body.userId,
+      name: req.body.name,
+      email: req.body.email,
+      branchId: req.body.branchId,
+      vehicleType: req.body.vehicleType,
+    });
+    res.json(result);
+  } catch (error) {
+    handleError(res, error, "Shipper create error");
+  }
+};
+
+export default { listShippers, updateShipperStatus, createShipper };

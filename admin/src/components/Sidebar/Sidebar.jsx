@@ -8,15 +8,18 @@ const adminLinks = [
   { to: "/add", icon: assets.add_icon, label: "Add Items" },
   { to: "/list", icon: assets.order_icon, label: "List Items" },
   { to: "/branches", icon: assets.parcel_icon, label: "Branches" },
+  { to: "/staff", icon: assets.order_icon, label: "Staff" },
   { to: "/inventory", icon: assets.order_icon, label: "Inventory" },
   { to: "/shippers", icon: assets.order_icon, label: "Shippers" },
   { to: "/orders", icon: assets.order_icon, label: "Orders" },
+  { to: "/profile", icon: assets.profile_image, label: "Profile" },
 ];
 
 const branchLinks = [
   { to: "/branch/menu", icon: assets.order_icon, label: "Menu" },
   { to: "/branch/inventory", icon: assets.order_icon, label: "Inventory" },
   { to: "/branch/orders", icon: assets.order_icon, label: "Orders" },
+  { to: "/profile", icon: assets.profile_image, label: "Profile" },
 ];
 
 const Sidebar = () => {
@@ -29,16 +32,33 @@ const Sidebar = () => {
   const links = role === "admin" ? adminLinks : branchLinks;
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-options">
-        {links.map((link) => (
-          <NavLink to={link.to} key={link.to} className="sidebar-option">
-            <img src={link.icon} alt="option" />
-            <p>{link.label}</p>
-          </NavLink>
-        ))}
+    <aside className="sidebar">
+      <div className="sidebar-shell">
+        <div className="sidebar-brand">
+          <img src={assets.logo} alt="FastFood Admin" />
+          <div>
+            <p>FastFood</p>
+            <span>{role === "admin" ? "Admin console" : "Branch dashboard"}</span>
+          </div>
+        </div>
+        <nav className="sidebar-nav">
+          {links.map((link) => (
+            <NavLink
+              to={link.to}
+              key={link.to}
+              className={({ isActive }) =>
+                `sidebar-option${isActive ? " is-active" : ""}`
+              }
+            >
+              <span className="sidebar-option-icon">
+                <img src={link.icon} alt="" />
+              </span>
+              <span className="sidebar-option-label">{link.label}</span>
+            </NavLink>
+          ))}
+        </nav>
       </div>
-    </div>
+    </aside>
   );
 };
 

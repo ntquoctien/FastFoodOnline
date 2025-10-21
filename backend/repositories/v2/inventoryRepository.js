@@ -21,7 +21,8 @@ export const findDetailed = (filter = {}) =>
     .populate("branchId")
     .populate({
       path: "foodVariantId",
-      populate: { path: "foodId", model: "Food" },
+      match: { isActive: true },
+      populate: { path: "foodId", model: "Food", match: { isActive: true } },
     });
 
 export default { upsert, adjustQuantity, findAll, findOne, findDetailed };

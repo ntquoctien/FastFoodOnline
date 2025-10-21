@@ -117,6 +117,17 @@ export const updateStatus = async (req, res) => {
   }
 };
 
+export const confirmReceipt = async (req, res) => {
+  try {
+    const userId = req.userId || req.body.userId;
+    const { orderId } = req.params;
+    const result = await orderService.confirmReceipt({ orderId, userId });
+    res.json(result);
+  } catch (error) {
+    handleCommonError(res, error, "Order v2 confirm receipt error");
+  }
+};
+
 export default {
   createOrder,
   confirmPayment,
@@ -124,4 +135,5 @@ export default {
   listUserOrders,
   listAllOrders,
   updateStatus,
+  confirmReceipt,
 };

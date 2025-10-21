@@ -13,18 +13,18 @@
 }
 .explore-menu-list{
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 18px;
     text-align: center;
     margin: 20px 0px;
-    overflow-x: scroll;
-}
-.explore-menu-list::-webkit-scrollbar{
-    display: none;
+    padding: 10px 0;
 }
 .explore-menu-list-item{
-    min-width: 120px;
+    flex: 0 1 160px;
+    display: flex;
+    justify-content: center;
 }
 .explore-menu-list-card{
     padding: 12px 18px;

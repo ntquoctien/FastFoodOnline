@@ -14,14 +14,35 @@
     gap: 20px;
     color: #49557e;
     font-size: 18px;
+    margin: 0;
+    padding: 0;
+}
+.navbar-menu li{
+    display: flex;
+}
+.navbar-menu a,
+.navbar-menu button{
+    text-decoration: none;
+    text-transform: uppercase;
+    color: inherit;
+    font-size: inherit;
+    background: transparent;
+    border: none;
+    padding: 6px 0;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.2s ease;
+}
+.navbar-menu button{
+    display: inline-flex;
 }
 .navbar-right{
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: 24px;
 }
 
-.navbar button{
+.navbar-right .auth-button{
     background: transparent;
     font-size: 16px;
     color: #49557e;
@@ -32,7 +53,7 @@
     transition: 0.3s;
 }
 
-.navbar button:hover{
+.navbar-right .auth-button:hover{
     background-color: #fff4f2;
 }
 
@@ -41,9 +62,6 @@
     border-bottom: 2px solid #49557e;
 }
 
-.navbar li{
-    cursor: pointer;
-}
 .navbar-search-icon{
     position: relative;
 }
@@ -89,6 +107,34 @@
 .nav-profile-dropdown li:hover{
     color: tomato;
 }
+.navbar-branch-select{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-transform: none;
+}
+.navbar-branch-select label{
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+.navbar-branch-select select{
+    appearance: none;
+    padding: 8px 36px 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #d4d4d8;
+    font-size: 14px;
+    color: #1f2933;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239999A1' d='M1.41.59 6 5.17 10.59.59 12 2l-6 6-6-6z'/%3E%3C/svg%3E") no-repeat right 12px center/12px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+.navbar-branch-select select:focus{
+    outline: 2px solid rgba(255, 99, 71, 0.2);
+    border-color: tomato;
+}
 @media (max-width:1050px) {
     .navbar .logo{
         width: 140px;
@@ -99,6 +145,9 @@
     }
     .navbar-right{
         gap: 30px;
+    }
+    .navbar-branch-select select{
+        max-width: 200px;
     }
     .navbar-right img{
         width: 22px;

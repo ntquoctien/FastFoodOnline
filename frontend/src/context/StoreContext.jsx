@@ -13,6 +13,7 @@ const StoreContextProvider = (props) => {
   const [categories, setCategories] = useState([]);
   const [branches, setBranches] = useState([]);
   const [variantMap, setVariantMap] = useState({});
+  const [selectedBranchId, setSelectedBranchId] = useState("all");
 
   const addToCart = async (variantId) => {
     if (!variantMap[variantId]) {
@@ -86,6 +87,11 @@ const StoreContextProvider = (props) => {
         setFoodList(foods);
         setCategories(categories);
         setBranches(branches);
+        setSelectedBranchId((prev) => {
+          if (prev === "all") return "all";
+          const stillExists = branches.some((branch) => branch._id === prev);
+          return stillExists ? prev : "all";
+        });
         const map = {};
         foods.forEach((food) => {
           (food.variants || []).forEach((variant) => {
@@ -156,6 +162,8 @@ const StoreContextProvider = (props) => {
     token,
     setToken,
     variantMap,
+    selectedBranchId,
+    setSelectedBranchId,
   };
 
   return (

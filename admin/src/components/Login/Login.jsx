@@ -15,6 +15,7 @@ const Login = ({ url }) => {
     email: "",
     password: "",
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onChangeHandler = (event) => {
@@ -35,11 +36,19 @@ const Login = ({ url }) => {
           setLoading(false);
           return;
         }
+        const userProfile =
+          response.data.user ||
+          response.data.profile || {
+            name: response.data.name || data.email.split("@")[0],
+            email: response.data.email || data.email,
+            avatarUrl: response.data.avatarUrl || "",
+          };
         persistAuth({
           token: response.data.token,
           role: userRole,
           branchId: response.data.branchId || "",
-        });
+          user: userProfile,
+        }, { remember: rememberMe });
         toast.success("Login successfully");
         if (userRole === "admin") {
           navigate("/add", { replace: true });
@@ -93,6 +102,15 @@ const Login = ({ url }) => {
             disabled={loading}
           />
         </div>
+        <label className="login-remember">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(event) => setRememberMe(event.target.checked)}
+            disabled={loading}
+          />
+          <span>Remember me</span>
+        </label>
         <button type="submit" disabled={loading}>
           {loading ? "Please wait..." : "Login"}
         </button>

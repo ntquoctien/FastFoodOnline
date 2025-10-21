@@ -8,8 +8,14 @@ const userSchema = new mongoose.Schema(
     phone: { type: String },
     role: { type: String, default: "user" },
     isActive: { type: Boolean, default: true },
+    avatarUrl: { type: String },
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: "Branch" },
     cartData: { type: Object, default: {} },
+    staffStatus: {
+      type: String,
+      enum: ["active", "inactive", "on_leave"],
+      default: "active",
+    },
   },
   { minimize: false }
 );

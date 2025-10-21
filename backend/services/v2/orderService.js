@@ -197,11 +197,42 @@ export const updateStatus = async ({ orderId, status, actorId, role, branchId })
       });
     }
   } else if (status === "cancelled") {
-    await deliveryRepo.updateByOrderId(orderId, {
+    const assignment = await deliveryRepo.updateByOrderId(orderId, {
       status: "cancelled",
+      cancelledAt: new Date(),
     });
+    if (assignment?.shipperId) {
+      await shipperRepo.updateById(assignment.shipperId, {
+        status: "available",
+      });
+    }
   }
   return { success: true, data: order };
+};
+
+export const confirmReceipt = async ({ orderId, userId }) => {
+  const order = await orderRepo.findById(orderId);
+  if (!order) {
+    return { success: false, message: "Order not found" };
+  }
+  if (String(order.userId?._id || order.userId) !== String(userId)) {
+    throw new Error("NOT_AUTHORISED");
+  }
+  if (order.status === "delivered") {
+    return { success: true, data: order };
+  }
+
+  const confirmableStatuses = ["in_transit"];
+  if (!confirmableStatuses.includes(order.status)) {
+    return { success: false, message: "Order cannot be confirmed yet" };
+  }
+
+  return updateStatus({
+    orderId,
+    status: "delivered",
+    actorId: userId,
+    role: "admin",
+  });
 };
 
 export const initializeStripePayment = async ({ orderId, amount }) => {
@@ -213,7 +244,7 @@ export const initializeStripePayment = async ({ orderId, amount }) => {
     return { success: false, message: "Order already paid" };
   }
 
-  // Stubbed integration – replace with Stripe PaymentIntent creation when keys are configured.
+  // Stubbed integration Ã¢â‚¬â€œ replace with Stripe PaymentIntent creation when keys are configured.
   const clientSecret = `demo_client_secret_${orderId}_${Date.now()}`;
   return {
     success: true,
@@ -231,4 +262,5 @@ export default {
   listAllOrders,
   updateStatus,
   initializeStripePayment,
+  confirmReceipt,
 };

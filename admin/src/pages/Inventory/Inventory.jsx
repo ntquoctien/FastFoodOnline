@@ -9,16 +9,8 @@ const Inventory = ({ url }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [branchFilter, setBranchFilter] = useState("");
-
-  const branches = useMemo(() => {
-    const map = new Map();
-    items.forEach((item) => {
-      if (item.branchId?._id) {
-        map.set(item.branchId._id, item.branchId.name);
-      }
-    });
-    return Array.from(map.entries());
-  }, [items]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [branchOptions, setBranchOptions] = useState([]);
 
   const fetchInventory = async (selectedBranch) => {
     setLoading(true);
@@ -45,6 +37,34 @@ const Inventory = ({ url }) => {
       fetchInventory(branchFilter);
     }
   }, [token, branchFilter]);
+
+  useEffect(() => {
+    if (!token) return;
+    axios
+      .get(`${url}/api/v2/branches`, { headers: { token } })
+      .then((response) => {
+        if (response.data?.success) {
+          setBranchOptions(response.data.data?.branches || []);
+        }
+      })
+      .catch((error) => {
+        console.warn("Failed to load branch options for inventory", error);
+      });
+  }, [token, url]);
+
+  const filteredItems = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return items.filter((entry) => {
+      if (
+        !query ||
+        entry.foodVariantId?.foodId?.name?.toLowerCase().includes(query) ||
+        entry.branchId?.name?.toLowerCase().includes(query)
+      ) {
+        return true;
+      }
+      return false;
+    });
+  }, [items, searchTerm]);
 
   const handleUpdate = async (entry) => {
     const currentQuantity = entry.quantity ?? 0;
@@ -82,44 +102,65 @@ const Inventory = ({ url }) => {
   return (
     <div className="inventory-page">
       <div className="inventory-header">
-        <h2>Inventory</h2>
-        <select
-          value={branchFilter}
-          onChange={(event) => setBranchFilter(event.target.value)}
-        >
-          <option value="">All branches</option>
-          {branches.map(([id, name]) => (
-            <option key={id} value={id}>
-              {name}
-            </option>
-          ))}
-        </select>
+        <div>
+          <h2>Inventory</h2>
+          <p>Monitor stock levels across every branch location.</p>
+        </div>
+        <div className="inventory-controls">
+          <input
+            type="search"
+            placeholder="Search dishes or branches"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <select
+            value={branchFilter}
+            onChange={(event) => setBranchFilter(event.target.value)}
+          >
+            <option value="">All branches</option>
+            {branchOptions.map((branch) => (
+              <option key={branch._id} value={branch._id}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       {loading ? (
-        <p>Loading...</p>
+        <div className="inventory-empty">Loading inventory...</div>
+      ) : filteredItems.length === 0 ? (
+        <div className="inventory-empty">
+          No inventory entries match the current filters.
+        </div>
       ) : (
-        <div className="inventory-table">
-          <div className="inventory-row inventory-header-row">
-            <span>Branch</span>
-            <span>Food</span>
-            <span>Size</span>
-            <span>Quantity</span>
-            <span>Updated</span>
-            <span>Action</span>
-          </div>
-          {items.map((entry) => (
-            <div key={entry._id} className="inventory-row">
-              <span>{entry.branchId?.name || "Unknown"}</span>
-              <span>{entry.foodVariantId?.foodId?.name || "Unknown"}</span>
-              <span>{entry.foodVariantId?.size || "-"}</span>
-              <span>{entry.quantity ?? 0}</span>
-              <span>
-                {entry.updatedAt
-                  ? new Date(entry.updatedAt).toLocaleString()
-                  : "-"}
-              </span>
-              <button onClick={() => handleUpdate(entry)}>Set quantity</button>
-            </div>
+        <div className="inventory-grid">
+          {filteredItems.map((entry) => (
+            <article key={entry._id} className="inventory-card">
+              <div className="inventory-card-header">
+                <span className="inventory-branch">
+                  {entry.branchId?.name || "Unknown branch"}
+                </span>
+                <span className="inventory-updated">
+                  {entry.updatedAt
+                    ? new Date(entry.updatedAt).toLocaleString()
+                    : "Never updated"}
+                </span>
+              </div>
+              <div className="inventory-card-body">
+                <h3>{entry.foodVariantId?.foodId?.name || "Unnamed item"}</h3>
+                <p className="inventory-variant">
+                  Size: {entry.foodVariantId?.size || "—"}
+                </p>
+              </div>
+              <div className="inventory-card-footer">
+                <span className="inventory-quantity">
+                  {entry.quantity ?? 0} in stock
+                </span>
+                <button type="button" onClick={() => handleUpdate(entry)}>
+                  Adjust quantity
+                </button>
+              </div>
+            </article>
           ))}
         </div>
       )}

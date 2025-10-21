@@ -13,6 +13,9 @@ const initialFormValues = {
   latitude: "",
   longitude: "",
   isPrimary: false,
+  managerName: "",
+  managerEmail: "",
+  managerPassword: "",
 };
 
 const formatAddress = (branch) =>
@@ -150,6 +153,9 @@ const Branches = ({ url }) => {
           ? ""
           : String(branch.longitude),
       isPrimary: Boolean(branch.isPrimary),
+      managerName: branch.manager?.name || "",
+      managerEmail: branch.manager?.email || "",
+      managerPassword: "",
     });
     setShowForm(true);
   };
@@ -184,17 +190,43 @@ const Branches = ({ url }) => {
       toast.error("Branch name is required");
       return;
     }
+    const {
+      managerName,
+      managerEmail,
+      managerPassword,
+      ...branchFields
+    } = formValues;
+    const payload = { ...branchFields };
+    if (managerName || managerEmail || managerPassword) {
+      payload.manager = {
+        name: managerName || undefined,
+        email: managerEmail || undefined,
+      };
+      if (managerPassword) {
+        payload.manager.password = managerPassword;
+      }
+    }
+    if (payload.manager) {
+      Object.keys(payload.manager).forEach((key) => {
+        if (!payload.manager[key]) {
+          delete payload.manager[key];
+        }
+      });
+      if (Object.keys(payload.manager).length === 0) {
+        delete payload.manager;
+      }
+    }
     setSaving(true);
     try {
       let response;
       if (editingBranchId) {
         response = await axios.put(
           `${url}/api/v2/branches/${editingBranchId}`,
-          formValues,
+          payload,
           { headers: { token } }
         );
       } else {
-        response = await axios.post(`${url}/api/v2/branches`, formValues, {
+        response = await axios.post(`${url}/api/v2/branches`, payload, {
           headers: { token },
         });
       }
@@ -325,6 +357,47 @@ const Branches = ({ url }) => {
                     onChange={handleInputChange}
                   />
                 </div>
+              </div>
+              <div className="branches-form-divider" />
+              <div className="branches-form-section">
+                <h4>Branch access</h4>
+                <p>Provide credentials for the branch manager account.</p>
+              </div>
+              <div className="branches-form-grid">
+                <div className="branches-form-row">
+                  <label htmlFor="branch-manager-name">Manager name</label>
+                  <input
+                    id="branch-manager-name"
+                    name="managerName"
+                    type="text"
+                    value={formValues.managerName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="branches-form-row">
+                  <label htmlFor="branch-manager-email">Manager email</label>
+                  <input
+                    id="branch-manager-email"
+                    name="managerEmail"
+                    type="email"
+                    value={formValues.managerEmail}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+              <div className="branches-form-row">
+                <label htmlFor="branch-manager-password">Temporary password</label>
+                <input
+                  id="branch-manager-password"
+                  name="managerPassword"
+                  type="text"
+                  value={formValues.managerPassword}
+                  onChange={handleInputChange}
+                  placeholder={editingBranchId ? "Leave blank to keep current password" : ""}
+                />
+                <span className="branches-form-hint">
+                  Password is required for new accounts. Leave empty when editing to keep the existing password.
+                </span>
               </div>
               <label className="branches-form-checkbox">
                 <input

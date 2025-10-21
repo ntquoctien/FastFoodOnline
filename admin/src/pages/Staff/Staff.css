@@ -1,0 +1,245 @@
+.staff-page{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    padding:32px clamp(16px, 4vw, 48px);
+    width:min(1180px, 100%);
+    margin:0 auto;
+}
+.staff-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+}
+.staff-header h2{
+    margin:0;
+    font-size:26px;
+    font-weight:600;
+    color:#0f172a;
+}
+.staff-header p{
+    margin:6px 0 0;
+    color:#64748b;
+    font-size:14px;
+}
+.staff-filters{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+}
+.staff-filters select{
+    padding:10px 16px;
+    border-radius:999px;
+    border:1px solid #cbd5f5;
+    background:#f8fafc;
+    font-size:14px;
+    color:#0f172a;
+}
+.staff-banner{
+    padding:16px 20px;
+    background:#fef3c7;
+    color:#92400e;
+    border-radius:16px;
+    border:1px solid rgba(217,119,6,0.25);
+    font-size:14px;
+}
+.staff-layout{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:24px;
+}
+.staff-form-card{
+    background:#ffffff;
+    border-radius:22px;
+    border:1px solid #e2e8f0;
+    box-shadow:0 18px 36px rgba(15,23,42,0.07);
+    padding:22px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+.staff-form-card h3{
+    margin:0;
+    font-size:20px;
+    font-weight:600;
+    color:#0f172a;
+}
+.staff-form-card form{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+.staff-form-card label{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    font-size:14px;
+    color:#334155;
+}
+.staff-form-card input,
+.staff-form-card select{
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid #dbeafe;
+    font-size:14px;
+    transition:border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.staff-form-card input:focus,
+.staff-form-card select:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,0.12);
+    outline:none;
+}
+.staff-form-card button{
+    border:none;
+    background:#2563eb;
+    color:#ffffff;
+    padding:12px 0;
+    border-radius:12px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:6px;
+    transition:transform 0.2s ease, box-shadow 0.2s ease;
+}
+.staff-form-card button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 12px 24px rgba(37,99,235,0.2);
+}
+.staff-form-card button:disabled{
+    background:#bfdbfe;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+.staff-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+.staff-empty{
+    padding:40px;
+    text-align:center;
+    border:1px dashed #e2e8f0;
+    border-radius:20px;
+    background:#ffffff;
+    color:#94a3b8;
+}
+.staff-card{
+    background:#ffffff;
+    border-radius:22px;
+    border:1px solid #e2e8f0;
+    box-shadow:0 15px 30px rgba(15,23,42,0.07);
+    padding:20px 22px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+.staff-card-main{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+.staff-avatar{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    background:#312e81;
+    color:#ffffff;
+    font-size:20px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.staff-card-info h4{
+    margin:0;
+    font-size:18px;
+    font-weight:600;
+}
+.staff-card-info p{
+    margin:4px 0 0;
+    font-size:13px;
+    color:#64748b;
+}
+.staff-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:8px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#e0f2fe;
+    color:#0369a1;
+    font-size:12px;
+    font-weight:600;
+}
+.staff-card-meta{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:13px;
+    color:#475569;
+}
+.staff-card-meta strong{
+    color:#0f172a;
+}
+.staff-status{
+    padding:4px 8px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+}
+.staff-status-active{
+    background:#dcfce7;
+    color:#16a34a;
+}
+.staff-status-inactive{
+    background:#fee2e2;
+    color:#dc2626;
+}
+.staff-status-on_leave{
+    background:#fef3c7;
+    color:#d97706;
+}
+.staff-card-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+.staff-card-actions select{
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid #dbeafe;
+    background:#f8fafc;
+    font-size:13px;
+}
+.staff-card-actions button{
+    border:none;
+    background:#0f172a;
+    color:#ffffff;
+    padding:8px 16px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+}
+.staff-card-actions button:hover{
+    background:#111827;
+}
+
+@media (max-width: 960px){
+    .staff-layout{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 640px){
+    .staff-page{
+        padding:24px 3%;
+    }
+    .staff-card{
+        border-radius:18px;
+    }
+}

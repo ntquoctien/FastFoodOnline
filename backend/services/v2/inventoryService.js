@@ -23,7 +23,21 @@ export const listInventory = async ({ userId, branchId: queryBranchId }) => {
   }
 
   const inventory = await inventoryRepo.findDetailed(filter);
-  return { success: true, data: inventory };
+  const filtered = inventory.filter((entry) => {
+    const variant = entry.foodVariantId;
+    const food = variant?.foodId;
+    if (!variant || !food) {
+      return false;
+    }
+    if (variant.isActive === false) {
+      return false;
+    }
+    if (food.isActive === false) {
+      return false;
+    }
+    return true;
+  });
+  return { success: true, data: filtered };
 };
 
 export const updateInventory = async ({

@@ -35,6 +35,20 @@ const PlaceOrder = () => {
     cvc: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const paymentOptions = [
+    {
+      id: "cash",
+      title: "Cash on delivery",
+      description: "Pay directly to the courier when your food arrives.",
+      badge: "CA",
+    },
+    {
+      id: "visa",
+      title: "Visa (demo)",
+      description: "Simulate a card payment with test card details.",
+      badge: "VI",
+    },
+  ];
 
   const totalAmount = useMemo(() => getTotalCartAmount(), [cartItems, variantMap]);
   const deliveryFee = totalAmount === 0 ? 0 : 2;
@@ -265,26 +279,31 @@ const PlaceOrder = () => {
         />
         <div className="payment-method">
           <p className="title">Payment Method</p>
-          <label>
-            <input
-              type="radio"
-              name="payment"
-              value="cash"
-              checked={paymentMethod === "cash"}
-              onChange={() => setPaymentMethod("cash")}
-            />
-            Cash on delivery
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="payment"
-              value="visa"
-              checked={paymentMethod === "visa"}
-              onChange={() => setPaymentMethod("visa")}
-            />
-            Visa (demo)
-          </label>
+          <div className="payment-method-options">
+            {paymentOptions.map((option) => (
+              <label
+                key={option.id}
+                htmlFor={`payment-${option.id}`}
+                className={`payment-option ${paymentMethod === option.id ? "selected" : ""}`}
+              >
+                <input
+                  id={`payment-${option.id}`}
+                  type="radio"
+                  name="payment"
+                  value={option.id}
+                  checked={paymentMethod === option.id}
+                  onChange={() => setPaymentMethod(option.id)}
+                />
+                <span className="payment-option-badge">{option.badge}</span>
+                <span className="payment-option-content">
+                  <span className="payment-option-title">{option.title}</span>
+                  <span className="payment-option-description">
+                    {option.description}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
           {paymentMethod === "visa" && (
             <div className="card-fields">
               <input

@@ -8,19 +8,27 @@
 }
 body{
     min-height: 100vh;
-    background-color: #fcfcfc;
+    background-color: #f4f6fb;
 }
 a{
     text-decoration: none;
     color: inherit;
 }
-hr{
-    border: none;
-    height: 1px;
-    background-color: #a9a9a9;
-}
-.app-content{
+.app-shell{
+    min-height: 100vh;
     display: flex;
+    flex-direction: column;
+}
+.app-body{
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+.app-main{
+    flex: 1;
+    padding: clamp(32px, 4vw, 48px);
+    overflow-y: auto;
+    background: linear-gradient(180deg,#f7f9fc 0%,#ffffff 60%);
 }
 .flex-col{
     display: flex;

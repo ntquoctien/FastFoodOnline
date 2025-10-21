@@ -7,6 +7,7 @@ import {
   listUserOrders,
   listAllOrders,
   updateStatus,
+  confirmReceipt,
 } from "../controllers/v2/orderController.js";
 
 const orderV2Router = express.Router();
@@ -16,6 +17,7 @@ orderV2Router.get("/me", authMiddleware, listUserOrders);
 orderV2Router.post("/confirm-payment", authMiddleware, confirmPayment);
 orderV2Router.post("/pay/stripe", authMiddleware, initializeStripePayment);
 orderV2Router.get("/", authMiddleware, listAllOrders);
+orderV2Router.patch("/:orderId/confirm-receipt", authMiddleware, confirmReceipt);
 orderV2Router.patch("/:orderId/status", authMiddleware, updateStatus);
 
 export default orderV2Router;

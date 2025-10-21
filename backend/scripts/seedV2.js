@@ -163,66 +163,72 @@ const seed = async () => {
   ]);
 
   const saltRounds = Number(process.env.SALT || 10);
-  const adminPassword = await bcrypt.hash(
-    "admin1234",
-    await bcrypt.genSalt(saltRounds)
-  );
-  const branchManagerPassword = await bcrypt.hash(
-    "branch1234",
-    await bcrypt.genSalt(saltRounds)
-  );
-  const customerPassword = await bcrypt.hash(
-    "user1234",
-    await bcrypt.genSalt(saltRounds)
-  );
+  const buildHash = async (plain) =>
+    bcrypt.hash(plain, await bcrypt.genSalt(saltRounds));
 
   const admin = await userModel.findOneAndUpdate(
     { email: "admin@example.com" },
     {
       name: "Platform Admin",
-      password: adminPassword,
+      password: await buildHash("admin1234"),
       role: "admin",
       isActive: true,
     },
-    { new: true, upsert: true }
+    { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
   const branchManager = await userModel.findOneAndUpdate(
     { email: "branch.manager@example.com" },
     {
       name: "Central Branch Manager",
-      password: branchManagerPassword,
+      password: await buildHash("branch1234"),
       role: "branch_manager",
       branchId: centralBranch._id,
+      staffStatus: "active",
       isActive: true,
     },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
-  await userModel.findOneAndUpdate(
-    { email: "user@example.com" },
+  const customer = await userModel.findOneAndUpdate(
+    { email: "customer@example.com" },
     {
       name: "Sample Customer",
-      password: customerPassword,
+      password: await buildHash("user1234"),
       role: "user",
       isActive: true,
     },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
-  if (admin) {
-    await ShipperProfileModel.deleteMany({});
+  const shipperUser = await userModel.findOneAndUpdate(
+    { email: "drone.pilot@example.com" },
+    {
+      name: "Drone Pilot",
+      password: await buildHash("drone1234"),
+      role: "staff",
+      branchId: centralBranch._id,
+      staffStatus: "active",
+      isActive: true,
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  await ShipperProfileModel.deleteMany({});
+  if (shipperUser) {
     await ShipperProfileModel.create({
-      userId: admin._id,
+      userId: shipperUser._id,
       branchId: centralBranch._id,
       vehicleType: "drone",
       licensePlate: "DRONE-01",
       status: "available",
     });
+  } else {
+    console.warn("Failed to seed shipper profile because shipper user missing");
   }
 
-  if (branchManager && !admin) {
-    console.log("Created branch manager account without admin user");
+  if (!admin) {
+    console.warn("Admin account was not created during seeding");
   }
 
   console.log("Seeded v2 data successfully");
