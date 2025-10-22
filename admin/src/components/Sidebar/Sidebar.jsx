@@ -8,6 +8,7 @@ const adminLinks = [
   { to: "/add", icon: assets.add_icon, label: "Add Items" },
   { to: "/list", icon: assets.order_icon, label: "List Items" },
   { to: "/branches", icon: assets.parcel_icon, label: "Branches" },
+  { to: "/categories", icon: assets.order_icon, label: "Categories" },
   { to: "/staff", icon: assets.order_icon, label: "Staff" },
   { to: "/inventory", icon: assets.order_icon, label: "Inventory" },
   { to: "/shippers", icon: assets.order_icon, label: "Shippers" },
@@ -18,6 +19,7 @@ const adminLinks = [
 const branchLinks = [
   { to: "/branch/menu", icon: assets.order_icon, label: "Menu" },
   { to: "/branch/inventory", icon: assets.order_icon, label: "Inventory" },
+  { to: "/branch/staff", icon: assets.order_icon, label: "Staff" },
   { to: "/branch/orders", icon: assets.order_icon, label: "Orders" },
   { to: "/profile", icon: assets.profile_image, label: "Profile" },
 ];
@@ -29,7 +31,13 @@ const Sidebar = () => {
     return null;
   }
 
-  const links = role === "admin" ? adminLinks : branchLinks;
+  const isAdmin = role === "admin";
+  const isBranchManager = role === "branch_manager" || role === "manager";
+  const links = isAdmin
+    ? adminLinks
+    : branchLinks.filter(
+        (link) => link.to !== "/branch/staff" || isBranchManager
+      );
 
   return (
     <aside className="sidebar">
@@ -38,7 +46,7 @@ const Sidebar = () => {
           <img src={assets.logo} alt="FastFood Admin" />
           <div>
             <p>FastFood</p>
-            <span>{role === "admin" ? "Admin console" : "Branch dashboard"}</span>
+            <span>{isAdmin ? "Admin console" : "Branch dashboard"}</span>
           </div>
         </div>
         <nav className="sidebar-nav">

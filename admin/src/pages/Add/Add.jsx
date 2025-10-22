@@ -408,7 +408,7 @@ const Add = ({ url }) => {
                     onChange={(event) => setImage(event.target.files?.[0] || null)}
                   />
                   <p className="add-upload-hint">
-                    Recommended size: 1200×800px, JPG or PNG up to 3MB.
+                    Recommended size: 1200x800px, JPG or PNG up to 3MB.
                   </p>
                 </div>
 
@@ -434,7 +434,7 @@ const Add = ({ url }) => {
                       required
                     />
                   </label>
-                  <label>
+                  <label className="add-category-label">
                     <span>Category</span>
                     <select
                       name="categoryId"

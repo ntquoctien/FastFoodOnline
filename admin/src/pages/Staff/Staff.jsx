@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import "./Staff.css";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
@@ -17,8 +17,15 @@ const statusOptions = [
   { value: "on_leave", label: "On leave" },
 ];
 
+const MANAGEABLE_ROLES = ["staff", "chef", "support"];
+
 const Staff = ({ url }) => {
-  const { token } = useContext(StoreContext);
+  const { token, role: currentRole, branchId: currentBranchId } =
+    useContext(StoreContext);
+  const isAdmin = currentRole === "admin";
+  const isBranchManager =
+    currentRole === "branch_manager" || currentRole === "manager";
+  const canManageStaff = isAdmin || isBranchManager;
   const [staffMembers, setStaffMembers] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,6 +33,14 @@ const Staff = ({ url }) => {
   const [filterBranch, setFilterBranch] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [endpointUnavailable, setEndpointUnavailable] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    phone: "",
+    role: roleOptions[1]?.value || "staff",
+    branchId: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -40,7 +55,35 @@ const Staff = ({ url }) => {
     return map;
   }, [branches]);
 
+  const editRoleOptions = useMemo(() => {
+    if (isAdmin) return roleOptions;
+    return roleOptions.filter((role) => MANAGEABLE_ROLES.includes(role.value));
+  }, [isAdmin]);
+
+  const normaliseId = useCallback((value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "object" && value._id) return value._id;
+    if (typeof value.toString === "function") return value.toString();
+    return "";
+  }, []);
+
+  const canManageMember = useCallback(
+    (member) => {
+      if (!member) return false;
+      if (isAdmin) return true;
+      if (!isBranchManager) return false;
+      const managerBranch = normaliseId(currentBranchId);
+      if (!managerBranch) return false;
+      const memberBranch = normaliseId(member.branchId);
+      if (managerBranch !== memberBranch) return false;
+      return MANAGEABLE_ROLES.includes(member.role);
+    },
+    [isAdmin, isBranchManager, currentBranchId, normaliseId]
+  );
+
   const fetchBranches = async () => {
+    if (!canManageStaff) return;
     try {
       const response = await axios.get(`${url}/api/v2/branches`, {
         headers: { token },
@@ -54,7 +97,7 @@ const Staff = ({ url }) => {
   };
 
   const fetchStaff = async () => {
-    if (!token) return;
+    if (!token || !canManageStaff) return;
     setLoading(true);
     try {
       const response = await axios.get(`${url}/api/v2/staff`, {
@@ -75,16 +118,23 @@ const Staff = ({ url }) => {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !canManageStaff) return;
     fetchBranches();
     fetchStaff();
-  }, [token]);
+  }, [token, canManageStaff]);
 
   useEffect(() => {
     if (!form.branchId && branches.length) {
       setForm((prev) => ({ ...prev, branchId: branches[0]._id }));
     }
   }, [branches, form.branchId]);
+
+  useEffect(() => {
+    if (!canManageStaff) return;
+    if (!isAdmin && currentBranchId && filterBranch === "all") {
+      setFilterBranch(currentBranchId);
+    }
+  }, [canManageStaff, isAdmin, currentBranchId, filterBranch]);
 
   const filteredStaff = useMemo(() => {
     return staffMembers.filter((member) => {
@@ -107,6 +157,92 @@ const Staff = ({ url }) => {
       branchId: branches[0]?._id || "",
       password: "",
     });
+  };
+
+  const resetEditState = () => {
+    setEditingStaff(null);
+    setEditForm({
+      name: "",
+      phone: "",
+      role: roleOptions[1]?.value || "staff",
+      branchId: "",
+    });
+  };
+
+  const openEditProfile = (member) => {
+    if (!canManageMember(member)) {
+      toast.error("You are not allowed to edit this profile");
+      return;
+    }
+    setEditingStaff(member);
+    setEditForm({
+      name: member.name || "",
+      phone: member.phone || "",
+      role: member.role || (roleOptions[1]?.value || "staff"),
+      branchId: normaliseId(member.branchId),
+    });
+  };
+
+  const closeEditProfile = () => {
+    if (editSaving) return;
+    resetEditState();
+  };
+
+  const updateEditForm = (event) => {
+    const { name, value } = event.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitEditProfile = async (event) => {
+    event.preventDefault();
+    if (!editingStaff || editSaving) return;
+    const payload = {};
+    const trimmedName = editForm.name.trim();
+    if (trimmedName && trimmedName !== (editingStaff.name || "").trim()) {
+      payload.name = trimmedName;
+    }
+    const trimmedPhone = editForm.phone.trim();
+    if (trimmedPhone !== (editingStaff.phone || "")) {
+      payload.phone = trimmedPhone;
+    }
+    if (editForm.role && editForm.role !== editingStaff.role) {
+      payload.role = editForm.role;
+    }
+    if (isAdmin) {
+      const originalBranch = normaliseId(editingStaff.branchId);
+      const nextBranch = editForm.branchId ? editForm.branchId : "";
+      if (nextBranch !== (originalBranch || "")) {
+        payload.branchId = nextBranch;
+      }
+    }
+    if (Object.keys(payload).length === 0) {
+      toast.info("No changes to save");
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const response = await axios.patch(
+        `${url}/api/v2/staff/${editingStaff._id}`,
+        payload,
+        { headers: { token } }
+      );
+      if (response.data?.success) {
+        toast.success("Staff profile updated");
+        resetEditState();
+        fetchStaff();
+      } else {
+        toast.error(response.data?.message || "Unable to update profile");
+      }
+    } catch (error) {
+      console.error("Update staff profile failed", error);
+      if (error.response?.status === 403) {
+        toast.error("You are not allowed to update this profile");
+      } else {
+        toast.error("Unable to update profile");
+      }
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const handleCreate = async (event) => {
@@ -169,7 +305,12 @@ const Staff = ({ url }) => {
     }
   };
 
-  const updateStatus = async (staffId, status) => {
+  const updateStatus = async (staffMember, status) => {
+    if (!canManageMember(staffMember)) {
+      toast.error("You are not allowed to update this status");
+      return;
+    }
+    const staffId = staffMember._id;
     if (endpointUnavailable) {
       setStaffMembers((prev) =>
         prev.map((member) =>
@@ -181,7 +322,7 @@ const Staff = ({ url }) => {
     }
     try {
       const response = await axios.patch(
-        `${url}/api/v2/staff/${staffId}`,
+        `${url}/api/v2/staff/${staffId}/status`,
         { status },
         { headers: { token } }
       );
@@ -193,11 +334,19 @@ const Staff = ({ url }) => {
       }
     } catch (error) {
       console.error("Update staff failed", error);
-      toast.error("Unable to update status");
+      if (error.response?.status === 403) {
+        toast.error("You are not allowed to update this status");
+      } else {
+        toast.error("Unable to update status");
+      }
     }
   };
 
   const resetPassword = async (staffId) => {
+    if (!isAdmin) {
+      toast.error("You are not allowed to reset passwords");
+      return;
+    }
     if (endpointUnavailable) {
       toast.info("Password reset simulated (API not available)");
       return;
@@ -218,6 +367,19 @@ const Staff = ({ url }) => {
       toast.error("Unable to reset password");
     }
   };
+
+  if (!canManageStaff) {
+    return (
+      <div className="staff-page">
+        <header className="staff-header">
+          <div>
+            <h2>Staff Management</h2>
+            <p>You do not have permission to manage staff.</p>
+          </div>
+        </header>
+      </div>
+    );
+  }
 
   return (
     <div className="staff-page">
@@ -254,15 +416,15 @@ const Staff = ({ url }) => {
 
       {endpointUnavailable ? (
         <div className="staff-banner">
-          API for staff management is not yet available. Entries created here are
-          stored temporarily for design preview.
+          Staff API is temporarily unavailable. Changes are stored locally for preview.
         </div>
       ) : null}
 
-      <div className="staff-layout">
-        <section className="staff-form-card">
-          <h3>Add team member</h3>
-          <form onSubmit={handleCreate}>
+      <div className={`staff-layout${isAdmin ? "" : " staff-layout-single"}`}>
+        {isAdmin ? (
+          <section className="staff-form-card">
+            <h3>Invite new staff</h3>
+            <form onSubmit={handleCreate}>
             <label>
               <span>Full name</span>
               <input
@@ -324,6 +486,7 @@ const Staff = ({ url }) => {
             </button>
           </form>
         </section>
+        ) : null}
 
         <section className="staff-list">
           {loading ? (
@@ -369,8 +532,9 @@ const Staff = ({ url }) => {
                   <select
                     value={member.status || "active"}
                     onChange={(event) =>
-                      updateStatus(member._id, event.target.value)
+                      updateStatus(member, event.target.value)
                     }
+                    disabled={!canManageMember(member)}
                   >
                     {statusOptions.map((status) => (
                       <option key={status.value} value={status.value}>
@@ -378,15 +542,122 @@ const Staff = ({ url }) => {
                       </option>
                     ))}
                   </select>
-                  <button type="button" onClick={() => resetPassword(member._id)}>
-                    Reset password
-                  </button>
+                  {canManageMember(member) ? (
+                    <button
+                      type="button"
+                      onClick={() => openEditProfile(member)}
+                    >
+                      Edit profile
+                    </button>
+                  ) : null}
+                  {isAdmin ? (
+                    <button
+                      type="button"
+                      onClick={() => resetPassword(member._id)}
+                    >
+                      Reset password
+                    </button>
+                  ) : null}
                 </div>
               </article>
             ))
           )}
         </section>
       </div>
+      {editingStaff ? (
+        <div className="staff-edit-modal" role="dialog" aria-modal="true">
+          <div
+            className="staff-edit-modal-backdrop"
+            onClick={closeEditProfile}
+          />
+          <div className="staff-edit-modal-card">
+            <h3>Edit profile</h3>
+            <p className="staff-edit-subtitle">
+              Update details for{" "}
+              <strong>{editingStaff.name || editingStaff.email}</strong>
+            </p>
+            <form onSubmit={submitEditProfile}>
+              <label>
+                <span>Full name</span>
+                <input
+                  name="name"
+                  value={editForm.name}
+                  onChange={updateEditForm}
+                  required
+                  disabled={editSaving}
+                />
+              </label>
+              <label>
+                <span>Role</span>
+                <select
+                  name="role"
+                  value={editForm.role}
+                  onChange={updateEditForm}
+                  disabled={editSaving || editRoleOptions.length === 0}
+                >
+                  {editRoleOptions.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {isAdmin ? (
+                <label>
+                  <span>Branch</span>
+                  <select
+                    name="branchId"
+                    value={editForm.branchId || ""}
+                    onChange={updateEditForm}
+                    disabled={editSaving}
+                  >
+                    <option value="">Unassigned</option>
+                    {branches.map((branch) => (
+                      <option key={branch._id} value={branch._id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <label>
+                  <span>Branch</span>
+                  <input
+                    value={
+                      branchNameMap.get(normaliseId(editingStaff.branchId)) ||
+                      editingStaff.branchName ||
+                      "Unassigned"
+                    }
+                    readOnly
+                  />
+                </label>
+              )}
+              <label>
+                <span>Phone</span>
+                <input
+                  name="phone"
+                  value={editForm.phone}
+                  onChange={updateEditForm}
+                  placeholder="Optional contact number"
+                  disabled={editSaving}
+                />
+              </label>
+              <div className="staff-edit-actions">
+                <button
+                  type="button"
+                  onClick={closeEditProfile}
+                  disabled={editSaving}
+                >
+                  Cancel
+                </button>
+                <button type="submit" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import {
   createStaff,
   listStaff,
   resetStaffPassword,
+  updateStaffProfile,
   updateStaffStatus,
 } from "../../services/v2/staffService.js";
 
@@ -64,9 +65,23 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+export const updateProfile = async (req, res) => {
+  try {
+    const result = await updateStaffProfile({
+      userId: req.userId || req.body.userId,
+      staffId: req.params.staffId,
+      ...req.body,
+    });
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    handleError(res, error, "Staff profile update error");
+  }
+};
+
 export default {
   getStaff,
   addStaff,
   changeStaffStatus,
   resetPassword,
+  updateProfile,
 };

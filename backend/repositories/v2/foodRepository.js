@@ -6,6 +6,7 @@ export const findById = (id) => FoodModel.findById(id);
 export const findOne = (filter = {}) => FoodModel.findOne(filter);
 export const updateById = (id, update) =>
   FoodModel.findByIdAndUpdate(id, update, { new: true });
+export const count = (filter = {}) => FoodModel.countDocuments(filter);
 
-export default { create, findAll, findById, findOne, updateById };
+export default { create, findAll, findById, findOne, updateById, count };
 

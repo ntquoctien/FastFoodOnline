@@ -11,6 +11,7 @@ import BranchMenu from "./pages/Branch/Menu";
 import BranchInventory from "./pages/Branch/Inventory";
 import BranchOrders from "./pages/Branch/Orders";
 import Branches from "./pages/Branches/Branches";
+import Categories from "./pages/Categories/Categories";
 import Staff from "./pages/Staff/Staff";
 import Profile from "./pages/Profile/Profile";
 import { ToastContainer } from "react-toastify";
@@ -49,6 +50,7 @@ const App = () => {
                 <Route path="/add" element={<Add url={apiBaseUrl} />} />
                 <Route path="/list" element={<List url={apiBaseUrl} />} />
                 <Route path="/branches" element={<Branches url={apiBaseUrl} />} />
+                <Route path="/categories" element={<Categories url={apiBaseUrl} />} />
                 <Route path="/staff" element={<Staff url={apiBaseUrl} />} />
                 <Route path="/inventory" element={<Inventory url={apiBaseUrl} />} />
                 <Route path="/shippers" element={<Shippers url={apiBaseUrl} />} />
@@ -63,6 +65,7 @@ const App = () => {
                   path="/branch/inventory"
                   element={<BranchInventory url={apiBaseUrl} />}
                 />
+                <Route path="/branch/staff" element={<Staff url={apiBaseUrl} />} />
                 <Route path="/branch/orders" element={<BranchOrders url={apiBaseUrl} />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="/branch/menu" replace />} />

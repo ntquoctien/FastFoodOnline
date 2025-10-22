@@ -70,24 +70,6 @@ export const getDefaultMenu = async ({ branchId } = {}) => {
   };
 };
 
-export const createCategory = async ({ name, description }) => {
-  const restaurant =
-    (await restaurantRepo.findOne({ isActive: true })) ||
-    (await restaurantRepo.findOne({}));
-
-  if (!restaurant) {
-    return { success: false, message: "Restaurant not configured" };
-  }
-
-  const category = await categoryRepo.create({
-    restaurantId: restaurant._id,
-    name,
-    description,
-  });
-
-  return { success: true, data: category };
-};
-
 export const createFoodWithVariants = async ({
   categoryId,
   name,
@@ -132,7 +114,6 @@ export const archiveFood = async ({ foodId }) => {
 
 export default {
   getDefaultMenu,
-  createCategory,
   createFoodWithVariants,
   archiveFood,
 };

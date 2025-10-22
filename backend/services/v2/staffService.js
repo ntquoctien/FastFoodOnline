@@ -5,6 +5,8 @@ import * as branchRepo from "../../repositories/v2/branchRepository.js";
 
 const STAFF_ROLES = ["manager", "branch_manager", "staff", "chef", "support"];
 const STAFF_STATUSES = ["active", "inactive", "on_leave"];
+const BRANCH_MANAGER_ROLES = ["manager", "branch_manager"];
+const MANAGEABLE_STAFF_ROLES = ["staff", "chef", "support"];
 
 const sanitiseStaff = (doc) => {
   if (!doc) return null;
@@ -34,15 +36,6 @@ const sanitiseStaff = (doc) => {
   };
 };
 
-const ensureAdmin = async (userId) => {
-  const requester = await userRepo.findById(userId);
-  if (!requester || requester.role !== "admin") {
-    const error = new Error("NOT_AUTHORISED");
-    throw error;
-  }
-  return requester;
-};
-
 const ensureBranch = async (branchId) => {
   if (!branchId) return null;
   const branch = await branchRepo.findById(branchId);
@@ -62,11 +55,61 @@ const ensureStaffExists = async (staffId) => {
   return staff;
 };
 
+const normaliseId = (value) =>
+  value && typeof value.toString === "function" ? value.toString() : value;
+
+const getRequesterContext = async (userId) => {
+  if (!userId) {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
+  const requester = await userRepo.findById(userId);
+  if (!requester) {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
+  if (requester.role === "admin") {
+    return { type: "admin", requester };
+  }
+  if (BRANCH_MANAGER_ROLES.includes(requester.role)) {
+    if (!requester.branchId) {
+      const error = new Error("NOT_AUTHORISED");
+      throw error;
+    }
+    return { type: "branch_manager", requester };
+  }
+  const error = new Error("NOT_AUTHORISED");
+  throw error;
+};
+
+const assertManagerCanManageStaff = (context, staff) => {
+  if (context.type !== "branch_manager") {
+    return;
+  }
+  const managerBranchId = normaliseId(context.requester.branchId);
+  const staffBranchId = normaliseId(staff.branchId);
+  if (!managerBranchId || !staffBranchId || managerBranchId !== staffBranchId) {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
+  if (!MANAGEABLE_STAFF_ROLES.includes(staff.role)) {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
+};
+
 export const listStaff = async ({ userId }) => {
-  await ensureAdmin(userId);
-  const staffMembers = await userRepo.findStaff({
-    role: { $in: STAFF_ROLES },
-  });
+  const context = await getRequesterContext(userId);
+  let filter;
+  if (context.type === "admin") {
+    filter = { role: { $in: STAFF_ROLES } };
+  } else {
+    filter = {
+      role: { $in: MANAGEABLE_STAFF_ROLES },
+      branchId: context.requester.branchId,
+    };
+  }
+  const staffMembers = await userRepo.findStaff(filter);
   return {
     success: true,
     data: staffMembers.map(sanitiseStaff),
@@ -81,7 +124,11 @@ export const createStaff = async ({
   role,
   branchId,
 }) => {
-  await ensureAdmin(userId);
+  const context = await getRequesterContext(userId);
+  if (context.type !== "admin") {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
 
   if (!name?.trim()) {
     return { success: false, message: "Name is required" };
@@ -129,11 +176,12 @@ export const createStaff = async ({
 };
 
 export const updateStaffStatus = async ({ userId, staffId, status }) => {
-  await ensureAdmin(userId);
+  const context = await getRequesterContext(userId);
   if (!STAFF_STATUSES.includes(status)) {
     return { success: false, message: "Invalid status value" };
   }
-  await ensureStaffExists(staffId);
+  const staff = await ensureStaffExists(staffId);
+  assertManagerCanManageStaff(context, staff);
   await userRepo.updateByIdAndReturn(staffId, { staffStatus: status });
   const populated = await userRepo.findStaffById(staffId);
   return {
@@ -143,7 +191,11 @@ export const updateStaffStatus = async ({ userId, staffId, status }) => {
 };
 
 export const resetStaffPassword = async ({ userId, staffId }) => {
-  await ensureAdmin(userId);
+  const context = await getRequesterContext(userId);
+  if (context.type !== "admin") {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
   await ensureStaffExists(staffId);
   const tempPassword = `Temp${Math.random().toString(36).slice(-8)}`;
   const salt = await bcrypt.genSalt(Number(process.env.SALT));
@@ -156,9 +208,71 @@ export const resetStaffPassword = async ({ userId, staffId }) => {
   };
 };
 
+export const updateStaffProfile = async ({
+  userId,
+  staffId,
+  name,
+  phone,
+  role,
+  branchId,
+}) => {
+  const context = await getRequesterContext(userId);
+  const staff = await ensureStaffExists(staffId);
+  assertManagerCanManageStaff(context, staff);
+
+  const update = {};
+
+  if (typeof name === "string" && name.trim()) {
+    update.name = name.trim();
+  }
+  if (typeof phone === "string") {
+    update.phone = phone.trim();
+  }
+  if (role) {
+    if (!STAFF_ROLES.includes(role)) {
+      return { success: false, message: "Invalid staff role" };
+    }
+    if (
+      context.type === "branch_manager" &&
+      !MANAGEABLE_STAFF_ROLES.includes(role)
+    ) {
+      const error = new Error("NOT_AUTHORISED");
+      throw error;
+    }
+    update.role = role;
+  }
+  if (branchId !== undefined) {
+    if (context.type === "branch_manager") {
+      const managerBranchId = normaliseId(context.requester.branchId);
+      if (branchId && normaliseId(branchId) !== managerBranchId) {
+        const error = new Error("NOT_AUTHORISED");
+        throw error;
+      }
+      update.branchId = context.requester.branchId;
+    } else if (branchId) {
+      const branch = await ensureBranch(branchId);
+      update.branchId = branch._id;
+    } else {
+      update.branchId = null;
+    }
+  }
+
+  if (Object.keys(update).length === 0) {
+    return { success: false, message: "No changes submitted" };
+  }
+
+  await userRepo.updateByIdAndReturn(staffId, update);
+  const refreshed = await userRepo.findStaffById(staffId);
+  return {
+    success: true,
+    data: sanitiseStaff(refreshed),
+  };
+};
+
 export default {
   listStaff,
   createStaff,
   updateStaffStatus,
   resetStaffPassword,
+  updateStaffProfile,
 };

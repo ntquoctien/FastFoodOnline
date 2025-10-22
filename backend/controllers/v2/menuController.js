@@ -1,5 +1,6 @@
 import * as menuService from "../../services/v2/menuService.js";
 import * as userRepo from "../../repositories/userRepository.js";
+import * as categoryService from "../../services/v2/categoryService.js";
 
 const ensureAdmin = async (userId) => {
   const user = await userRepo.findById(userId);
@@ -27,7 +28,10 @@ export const createCategory = async (req, res) => {
   try {
     await ensureAdmin(req.userId || req.body.userId);
     const { name, description } = req.body;
-    const result = await menuService.createCategory({ name, description });
+    const result = await categoryService.createCategory({ name, description });
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
     res.json(result);
   } catch (error) {
     if (error.message === "NOT_AUTHORISED") {

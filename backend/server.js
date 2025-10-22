@@ -12,6 +12,8 @@ import inventoryV2Router from "./routes/inventoryV2Route.js";
 import shipperV2Router from "./routes/shipperV2Route.js";
 import branchV2Router from "./routes/branchV2Route.js";
 import staffV2Router from "./routes/staffV2Route.js";
+import notificationV2Router from "./routes/notificationV2Route.js";
+import categoryV2Router from "./routes/categoryV2Route.js";
 
 // app config
 const app = express();
@@ -36,6 +38,8 @@ app.use("/api/v2/inventory", inventoryV2Router);
 app.use("/api/v2/shippers", shipperV2Router);
 app.use("/api/v2/branches", branchV2Router);
 app.use("/api/v2/staff", staffV2Router);
+app.use("/api/v2/notifications", notificationV2Router);
+app.use("/api/v2/categories", categoryV2Router);
 
 app.get("/", (req, res) => {
   res.send("API Working");
