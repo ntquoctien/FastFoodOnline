@@ -14,6 +14,7 @@ const StoreContextProvider = (props) => {
   const [branches, setBranches] = useState([]);
   const [variantMap, setVariantMap] = useState({});
   const [selectedBranchId, setSelectedBranchId] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const addToCart = async (variantId) => {
     if (!variantMap[variantId]) {
@@ -164,6 +165,8 @@ const StoreContextProvider = (props) => {
     variantMap,
     selectedBranchId,
     setSelectedBranchId,
+    searchTerm,
+    setSearchTerm,
   };
 
   return (

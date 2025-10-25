@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./Navbar.css";
 import { assets } from "../../assets/frontend_assets/assets";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -14,7 +14,10 @@ const Navbar = ({ setShowLogin }) => {
     branches,
     selectedBranchId,
     setSelectedBranchId,
+    searchTerm,
+    setSearchTerm,
   } = useContext(StoreContext);
+  const searchInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,6 +44,32 @@ const Navbar = ({ setShowLogin }) => {
     if (window.location.pathname !== "/") {
       navigate("/");
     }
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const trimmed = searchTerm.trim();
+    if (trimmed !== searchTerm) {
+      setSearchTerm(trimmed);
+    }
+    if (location.pathname !== "/") {
+      navigate("/", { state: { scrollTo: "food-display" } });
+      return;
+    }
+    const target = document.getElementById("food-display");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleSearchClear = () => {
+    if (!searchTerm) return;
+    setSearchTerm("");
+    searchInputRef.current?.focus();
   };
 
   return (
@@ -113,7 +142,33 @@ const Navbar = ({ setShowLogin }) => {
             </select>
           </div>
         )}
-        <img src={assets.search_icon} alt="" />
+        <form className="navbar-search" onSubmit={handleSearchSubmit}>
+          <input
+            ref={searchInputRef}
+            type="search"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search dishes..."
+            aria-label="Search dishes"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="navbar-search-clear"
+              onClick={handleSearchClear}
+              aria-label="Clear search"
+            >
+              <img src={assets.cross_icon} alt="" />
+            </button>
+          )}
+          <button
+            type="submit"
+            className="navbar-search-submit"
+            aria-label="Search"
+          >
+            <img src={assets.search_dark_icon} alt="" />
+          </button>
+        </form>
         <div className="navbar-search-icon">
           <Link to="/cart">
             <img src={assets.basket_icon} alt="" />

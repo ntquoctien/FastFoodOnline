@@ -42,6 +42,61 @@
     gap: 24px;
 }
 
+.navbar-search{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #d4d4d8;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navbar-search:focus-within{
+    border-color: tomato;
+    box-shadow: 0 4px 12px rgba(255, 99, 71, 0.2);
+}
+
+.navbar-search input{
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    min-width: 200px;
+    color: #1f2937;
+}
+
+.navbar-search input::placeholder{
+    color: #94a3b8;
+}
+
+.navbar-search button{
+    border: none;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.navbar-search button img{
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.navbar-search-clear img{
+    opacity: 0.65;
+    transition: opacity 0.2s ease;
+}
+
+.navbar-search-clear:hover img{
+    opacity: 1;
+}
+
 .navbar-right .auth-button{
     background: transparent;
     font-size: 16px;
@@ -146,6 +201,9 @@
     .navbar-right{
         gap: 30px;
     }
+    .navbar-search input{
+        min-width: 160px;
+    }
     .navbar-branch-select select{
         max-width: 200px;
     }
@@ -167,6 +225,9 @@
     .navbar-right{
         gap: 20px;
     }
+    .navbar-search input{
+        min-width: 140px;
+    }
     .navbar-right img{
         width: 20px;
     }
@@ -178,5 +239,16 @@
 @media (max-width:750px) { 
     .navbar-menu{
         display: none;
+    }
+    .navbar-right{
+        gap: 12px;
+    }
+    .navbar-search{
+        flex: 1;
+        max-width: 220px;
+    }
+    .navbar-search input{
+        min-width: 0;
+        width: 100%;
     }
 }

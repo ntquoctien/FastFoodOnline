@@ -31,6 +31,9 @@
     border-radius: 999px;
     border: 2px solid transparent;
     background: #f6f6f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
 }
