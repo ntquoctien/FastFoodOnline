@@ -1,4 +1,4 @@
-.list-page {
+﻿.list-page {
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -68,67 +68,46 @@
   font-size: 15px;
 }
 
-.list-table {
+.list-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.list-food-card {
   background: #ffffff;
-  border-radius: 28px;
+  border-radius: 24px;
   border: 1px solid rgba(229, 231, 235, 0.9);
   box-shadow: 0 26px 44px -24px rgba(15, 23, 42, 0.28);
-  overflow: hidden;
-}
-
-.list-table-header {
-  display: grid;
-  grid-template-columns: minmax(260px, 2fr) minmax(160px, 1.1fr) minmax(100px, 0.6fr) minmax(
-      220px,
-      1.3fr
-    );
-  padding: 18px 28px;
-  background: #111827;
-  color: #f9fafb;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.list-table-body {
+  padding: 24px clamp(18px, 3vw, 32px);
   display: flex;
   flex-direction: column;
-}
-
-.list-row {
-  display: grid;
-  grid-template-columns: minmax(260px, 2fr) minmax(160px, 1.1fr) minmax(100px, 0.6fr) minmax(
-      220px,
-      1.3fr
-    );
   gap: 20px;
-  align-items: stretch;
-  padding: 24px 28px;
-  border-bottom: 1px solid #e5e7eb;
 }
 
-.list-row:last-child {
-  border-bottom: none;
-}
-
-.list-cell {
+.list-food-header {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.list-cell-food {
-  flex-direction: row;
+.list-food-main {
+  display: flex;
   gap: 18px;
+  align-items: center;
+  flex: 1;
+  min-width: 240px;
 }
 
 .list-food-thumb {
-  width: 84px;
-  height: 84px;
-  border-radius: 18px;
+  width: 92px;
+  height: 92px;
+  border-radius: 20px;
   overflow: hidden;
-  background: #e5e7eb;
+  background: #f1f5f9;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
   flex-shrink: 0;
 }
 
@@ -136,85 +115,163 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .list-food-info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.list-food-info h3 {
+.list-food-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.list-food-name h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #111827;
+  color: #0f172a;
+}
+
+.list-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .list-food-description {
   margin: 0;
   font-size: 13px;
-  color: #4b5563;
+  color: #64748b;
   line-height: 1.5;
+  max-width: 520px;
 }
 
-.list-tag {
+.list-remove {
   align-self: flex-start;
+  border: 1px solid #fca5a5;
+  background: #fff1f2;
+  color: #b91c1c;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 4px 10px;
+  padding: 8px 16px;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.list-cell-variant {
-  justify-content: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #4b5563;
+.list-remove:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #7f1d1d;
+  transform: translateY(-1px);
 }
 
-.list-variant-size {
+.list-variant-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list-variant-table-head,
+.list-variant-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(90px, 0.6fr) minmax(
+      110px,
+      0.6fr
+    ) minmax(260px, 1.6fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.list-variant-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-variant-size-control select {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 12px;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-variant-size-control select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.list-variant-size-placeholder {
   font-weight: 600;
-  color: #111827;
+  color: #475569;
+}
+
+.list-variant-table-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list-variant-row {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.list-variant-row:nth-child(even) {
+  background: #f1f5f9;
 }
 
 .list-variant-branch {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
-}
-
-.list-variant-empty {
-  font-size: 13px;
-  color: #9ca3af;
-}
-
-.list-cell-price {
-  justify-content: center;
   font-weight: 600;
-  font-size: 15px;
-  color: #111827;
+  color: #0f172a;
 }
 
-.list-cell-quantity {
-  gap: 12px;
+.list-variant-size {
+  font-weight: 500;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.list-variant-price {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.list-variant-inventory {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .list-current-qty {
   font-size: 13px;
-  color: #6b7280;
+  color: #64748b;
 }
 
 .list-quantity-controls {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -242,8 +299,7 @@
   padding: 10px 18px;
   border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .list-quantity-controls button:hover:not(:disabled) {
@@ -260,59 +316,67 @@
   transform: none;
 }
 
-.list-remove {
-  align-self: flex-start;
-  border: 1px solid #fca5a5;
-  background: #fff1f2;
-  color: #b91c1c;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease,
-    border-color 0.2s ease, transform 0.2s ease;
+.list-variant-empty {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px dashed #d1d5db;
+  color: #6b7280;
+  font-size: 14px;
 }
 
-.list-remove:hover {
-  background: #fee2e2;
-  border-color: #f87171;
-  color: #7f1d1d;
-  transform: translateY(-1px);
-}
-
-@media (max-width: 1024px) {
-  .list-table-header,
-  .list-row {
-    grid-template-columns: minmax(220px, 1.8fr) minmax(140px, 1fr) minmax(
-        80px,
+@media (max-width: 900px) {
+  .list-variant-table-head,
+  .list-variant-row {
+    grid-template-columns: minmax(140px, 1.2fr) minmax(80px, 0.6fr) minmax(
+        100px,
         0.6fr
-      ) minmax(200px, 1.2fr);
+      ) minmax(220px, 1.4fr);
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 720px) {
   .list-page {
     padding: 28px 20px;
   }
 
-  .list-table-header,
-  .list-row {
+  .list-food-card {
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .list-food-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .list-food-thumb {
+    width: 100%;
+    height: 180px;
+  }
+
+  .list-variant-table-head,
+  .list-variant-row {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .list-row {
-    gap: 16px;
+  .list-variant-row {
+    gap: 12px;
   }
 
-  .list-cell-price {
-    flex-direction: row;
-    align-items: center;
+  .list-variant-inventory {
+    border-top: 1px dashed #d1d5db;
+    padding-top: 12px;
   }
 
-  .list-cell-quantity {
-    border-top: 1px dashed #e5e7eb;
-    padding-top: 16px;
+  .list-quantity-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-quantity-controls input,
+  .list-quantity-controls button {
+    width: 100%;
   }
 }
 
@@ -321,27 +385,7 @@
     padding: 24px 16px;
   }
 
-  .list-cell-food {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .list-food-thumb {
-    width: 100%;
-    height: 160px;
-    border-radius: 16px;
-  }
-
-  .list-quantity-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .list-quantity-controls input {
-    width: 100%;
-  }
-
-  .list-quantity-controls button {
-    width: 100%;
+  .list-food-card {
+    padding: 18px;
   }
 }

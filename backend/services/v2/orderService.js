@@ -6,6 +6,7 @@ import * as shipperRepo from "../../repositories/v2/shipperRepository.js";
 import * as deliveryRepo from "../../repositories/v2/deliveryAssignmentRepository.js";
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
+import { createPaymentUrl, verifyReturnParams } from "../../utils/vnpay.js";
 
 const calculateItems = async (items) => {
   const variantIds = items.map((item) => new mongoose.Types.ObjectId(item.variantId));
@@ -107,20 +108,36 @@ export const confirmPayment = async ({
   provider,
   transactionId,
   amount,
+  meta,
+  order: existingOrder,
 }) => {
-  const order = await orderRepo.findById(orderId);
+  const order = existingOrder || (await orderRepo.findById(orderId));
   if (!order) {
     return { success: false, message: "Order not found" };
   }
 
-  await paymentRepo.create({
-    orderId,
-    provider,
+  if (order.paymentStatus === "paid") {
+    return { success: true, message: "Order already paid" };
+  }
+
+  const paymentUpdate = {
     transactionId,
     amount,
     status: "success",
     paidAt: new Date(),
-  });
+    meta: meta || {},
+  };
+
+  const existingPayment = await paymentRepo.findByOrderAndProvider(orderId, provider);
+  if (existingPayment) {
+    await paymentRepo.updateByOrderAndProvider(orderId, provider, paymentUpdate);
+  } else {
+    await paymentRepo.create({
+      orderId,
+      provider,
+      ...paymentUpdate,
+    });
+  }
 
   await orderRepo.updateById(orderId, {
     paymentStatus: "paid",
@@ -141,6 +158,108 @@ export const confirmPayment = async ({
       assignment,
     },
   };
+};
+
+export const initializeVnpayPayment = async ({ orderId, amount, ipAddress }) => {
+  try {
+    const order = await orderRepo.findById(orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+    if (order.paymentStatus === "paid") {
+      return { success: false, message: "Order already paid" };
+    }
+
+    const paymentAmount = Number(amount || order.totalAmount);
+    const { paymentUrl, params } = createPaymentUrl({
+      orderId: String(orderId),
+      amount: paymentAmount,
+      orderInfo: `Payment for order ${orderId}`,
+      ipAddress,
+    });
+
+    return {
+      success: true,
+      data: {
+        paymentUrl,
+        amount: paymentAmount,
+        txnRef: params.vnp_TxnRef,
+      },
+    };
+  } catch (error) {
+    if (error.message === "VNPAY_CONFIG_INCOMPLETE") {
+      return { success: false, message: "VNPAY configuration missing" };
+    }
+    if (error.message === "VNPAY_INVALID_AMOUNT") {
+      return { success: false, message: "Invalid payment amount" };
+    }
+    console.error("VNPAY initialise error", error);
+    return { success: false, message: "Failed to initialise VNPAY payment" };
+  }
+};
+
+export const verifyVnpayPayment = async (query) => {
+  try {
+    const verification = verifyReturnParams(query);
+    if (!verification.isValid) {
+      return {
+        success: false,
+        message: verification.message || "Invalid VNPAY signature",
+        data: { responseCode: query?.vnp_ResponseCode },
+      };
+    }
+
+    const params = verification.data;
+    const orderId = params.vnp_TxnRef;
+    const responseCode = params.vnp_ResponseCode;
+    const amount = Number(params.vnp_Amount || 0) / 100;
+    const order = await orderRepo.findById(orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+
+    if (responseCode !== "00") {
+      return {
+        success: false,
+        message: "Payment was not successful",
+        data: {
+          orderId,
+          responseCode,
+        },
+      };
+    }
+
+    const transactionId = params.vnp_TransactionNo || params.vnp_TxnRef;
+    const confirmResult = await confirmPayment({
+      orderId,
+      provider: "vnpay",
+      transactionId,
+      amount,
+      meta: {
+        vnp_ResponseCode: responseCode,
+        vnp_TransactionNo: params.vnp_TransactionNo,
+        vnp_BankCode: params.vnp_BankCode,
+        vnp_CardType: params.vnp_CardType,
+        vnp_PayDate: params.vnp_PayDate,
+      },
+      order,
+    });
+
+    return {
+      ...confirmResult,
+      data: {
+        ...(confirmResult.data || {}),
+        orderId,
+        responseCode,
+      },
+    };
+  } catch (error) {
+    if (error.message === "VNPAY_CONFIG_INCOMPLETE") {
+      return { success: false, message: "VNPAY configuration missing" };
+    }
+    console.error("VNPAY verify error", error);
+    return { success: false, message: "Failed to verify VNPAY payment" };
+  }
 };
 
 export const listUserOrders = async ({ userId }) => {
@@ -235,32 +354,15 @@ export const confirmReceipt = async ({ orderId, userId }) => {
   });
 };
 
-export const initializeStripePayment = async ({ orderId, amount }) => {
-  const order = await orderRepo.findById(orderId);
-  if (!order) {
-    return { success: false, message: "Order not found" };
-  }
-  if (order.paymentStatus === "paid") {
-    return { success: false, message: "Order already paid" };
-  }
-
-  // Stubbed integration Ã¢â‚¬â€œ replace with Stripe PaymentIntent creation when keys are configured.
-  const clientSecret = `demo_client_secret_${orderId}_${Date.now()}`;
-  return {
-    success: true,
-    data: {
-      clientSecret,
-      amount: amount || order.totalAmount,
-    },
-  };
-};
-
 export default {
   createOrder,
   confirmPayment,
+  initializeVnpayPayment,
+  verifyVnpayPayment,
   listUserOrders,
   listAllOrders,
   updateStatus,
-  initializeStripePayment,
   confirmReceipt,
 };
+
+

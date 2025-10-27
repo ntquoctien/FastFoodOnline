@@ -4,6 +4,13 @@ import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { assets } from "../../assets/frontend_assets/assets";
+
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
@@ -14,6 +21,7 @@ const PlaceOrder = () => {
     url,
     variantMap,
     setCartItems,
+    branches,
   } = useContext(StoreContext);
 
   const [data, setData] = useState({
@@ -28,12 +36,6 @@ const PlaceOrder = () => {
     phone: "",
   });
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [cardInfo, setCardInfo] = useState({
-    name: "",
-    number: "",
-    expiry: "",
-    cvc: "",
-  });
   const [submitting, setSubmitting] = useState(false);
   const paymentOptions = [
     {
@@ -43,10 +45,10 @@ const PlaceOrder = () => {
       badge: "CA",
     },
     {
-      id: "visa",
-      title: "Visa (demo)",
-      description: "Simulate a card payment with test card details.",
-      badge: "VI",
+      id: "vnpay",
+      title: "VNPAY QR",
+      description: "Pay instantly via VNPAY QR / mobile app.",
+      badge: "VN",
     },
   ];
 
@@ -58,34 +60,61 @@ const PlaceOrder = () => {
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCardChange = (event) => {
-    const { name, value } = event.target;
-    setCardInfo((prev) => ({ ...prev, [name]: value }));
-  };
+  const branchLookup = useMemo(() => {
+    const lookup = {};
+    (branches || []).forEach((branch) => {
+      lookup[String(branch._id)] = branch.name;
+    });
+    return lookup;
+  }, [branches]);
 
-  const buildOrderPayload = () =>
-    Object.entries(cartItems)
+  const checkoutItems = useMemo(() => {
+    return Object.entries(cartItems)
       .filter(([, quantity]) => quantity > 0)
       .map(([variantId, quantity]) => {
         const variant = variantMap[variantId];
         if (!variant) return null;
-        return { variantId, quantity };
+        const branchId = variant.branchId ? String(variant.branchId) : null;
+        const imageSrc = variant.foodImage
+          ? `${url}/images/${variant.foodImage}`
+          : assets.placeholder_image;
+        return {
+          variantId,
+          quantity,
+          branchId,
+          name: variant.foodName || variant.name || "Món ăn",
+          size: variant.size,
+          price: variant.price,
+          total: (variant.price || 0) * quantity,
+          description: variant.foodDescription || variant.description || "",
+          branchName:
+            variant.branchName || (branchId ? branchLookup[branchId] : ""),
+          image: imageSrc,
+        };
       })
       .filter(Boolean);
+  }, [cartItems, variantMap, branchLookup, url]);
+
+  const activeBranchName = useMemo(() => {
+    if (!checkoutItems.length) return "";
+    return (
+      checkoutItems[0].branchName ||
+      (checkoutItems[0].branchId
+        ? branchLookup[checkoutItems[0].branchId]
+        : "")
+    );
+  }, [checkoutItems, branchLookup]);
 
   const placeOrder = async (event) => {
     event.preventDefault();
     if (submitting) return;
-    const orderItems = buildOrderPayload();
-    if (!orderItems.length) {
+    if (!checkoutItems.length) {
       toast.error("Your cart is empty");
       return;
     }
 
     const branchIds = new Set(
-      orderItems
-        .map((item) => variantMap[item.variantId]?.branchId)
-        .filter(Boolean)
+      checkoutItems.map((item) => item.branchId).filter(Boolean)
     );
     if (branchIds.size === 0) {
       toast.error("Unable to determine serving branch");
@@ -96,14 +125,10 @@ const PlaceOrder = () => {
       return;
     }
     const [branchId] = Array.from(branchIds);
-
-    if (paymentMethod === "visa") {
-      const missingCardField = Object.entries(cardInfo).find(([, value]) => !value.trim());
-      if (missingCardField) {
-        toast.error("Please fill in all card details");
-        return;
-      }
-    }
+    const orderItems = checkoutItems.map((item) => ({
+      variantId: item.variantId,
+      quantity: item.quantity,
+    }));
 
     setSubmitting(true);
     try {
@@ -137,6 +162,7 @@ const PlaceOrder = () => {
           { headers: { token } }
         );
         if (paymentResponse.data.success) {
+          sessionStorage.removeItem("pendingOrderId");
           toast.success("Order confirmed - cash on delivery");
           setCartItems({});
           navigate("/myorders");
@@ -145,37 +171,26 @@ const PlaceOrder = () => {
         }
       } else {
         const initResponse = await axios.post(
-          `${url}/api/v2/orders/pay/stripe`,
+          `${url}/api/v2/orders/pay/vnpay`,
           {
             orderId,
             amount,
-            card: cardInfo,
           },
           { headers: { token } }
         );
         if (!initResponse.data.success) {
           toast.error(initResponse.data.message || "Unable to initiate payment");
-          setSubmitting(false);
           return;
         }
-        const clientSecret = initResponse.data.data?.clientSecret;
-        const paymentResponse = await axios.post(
-          `${url}/api/v2/orders/confirm-payment`,
-          {
-            orderId,
-            provider: "visa",
-            transactionId: clientSecret,
-            amount,
-          },
-          { headers: { token } }
-        );
-        if (paymentResponse.data.success) {
-          toast.success("Payment simulated successfully");
-          setCartItems({});
-          navigate("/myorders");
-        } else {
-          toast.error(paymentResponse.data.message || "Payment confirmation failed");
+        const paymentUrl = initResponse.data.data?.paymentUrl;
+        if (!paymentUrl) {
+          toast.error("Payment URL not received");
+          return;
         }
+        sessionStorage.setItem("pendingOrderId", orderId);
+        toast.info("Redirecting to VNPAY...", { autoClose: 1500 });
+        window.location.href = paymentUrl;
+        return;
       }
     } catch (error) {
       console.error("Checkout failed", error);
@@ -304,65 +319,82 @@ const PlaceOrder = () => {
               </label>
             ))}
           </div>
-          {paymentMethod === "visa" && (
-            <div className="card-fields">
-              <input
-                name="name"
-                value={cardInfo.name}
-                onChange={handleCardChange}
-                type="text"
-                placeholder="Name on card"
-              />
-              <input
-                name="number"
-                value={cardInfo.number}
-                onChange={handleCardChange}
-                type="text"
-                placeholder="Card number"
-              />
-              <div className="multi-fields">
-                <input
-                  name="expiry"
-                  value={cardInfo.expiry}
-                  onChange={handleCardChange}
-                  type="text"
-                  placeholder="MM/YY"
-                />
-                <input
-                  name="cvc"
-                  value={cardInfo.cvc}
-                  onChange={handleCardChange}
-                  type="text"
-                  placeholder="CVC"
-                />
-              </div>
-              <small>This is a simulated payment flow. No real charge will be made.</small>
-            </div>
-          )}
         </div>
       </div>
       <div className="place-order-right">
-        <div className="cart-total">
-          <h2>Cart Totals</h2>
-          <div>
-            <div className="cart-total-details">
-              <p>Subtotal</p>
-              <p>${totalAmount.toFixed(2)}</p>
-            </div>
-            <hr />
-            <div className="cart-total-details">
-              <p>Delivery Fee</p>
-              <p>${deliveryFee.toFixed(2)}</p>
-            </div>
-            <hr />
-            <div className="cart-total-details">
-              <b>Total</b>
-              <b>${(totalAmount + deliveryFee).toFixed(2)}</b>
-            </div>
+        <div className="order-summary">
+          <div className="order-summary-header">
+            <h2>Đơn hàng của bạn</h2>
+            {activeBranchName && checkoutItems.length > 0 && (
+              <span className="order-summary-branch">
+                Giao từ: <strong>{activeBranchName}</strong>
+              </span>
+            )}
           </div>
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Processing..." : "Confirm Order"}
-          </button>
+
+          <div className="order-summary-list">
+            {checkoutItems.length === 0 ? (
+              <p className="order-summary-empty">
+                Giỏ hàng của bạn đang trống. Hãy thêm món trước khi thanh toán.
+              </p>
+            ) : (
+              checkoutItems.map((item) => (
+                <div className="order-summary-item" key={item.variantId}>
+                  <div className="order-summary-item-media">
+                    <img src={item.image} alt={item.name} />
+                    <span className="order-summary-quantity">
+                      x{item.quantity}
+                    </span>
+                  </div>
+                  <div className="order-summary-item-content">
+                    <div className="order-summary-item-title">
+                      <span>{item.name}</span>
+                      <span>{formatCurrency(item.total)}</span>
+                    </div>
+                    <div className="order-summary-item-meta">
+                      {item.size && (
+                        <span className="order-summary-item-badge">
+                          Size {item.size}
+                        </span>
+                      )}
+                      {item.branchName && (
+                        <span className="order-summary-item-badge muted">
+                          {item.branchName}
+                        </span>
+                      )}
+                    </div>
+                    {item.description && (
+                      <p className="order-summary-item-desc">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="order-summary-totals">
+            <div className="order-summary-row">
+              <span>Tạm tính</span>
+              <span>{formatCurrency(totalAmount)}</span>
+            </div>
+            <div className="order-summary-row">
+              <span>Phí giao hàng</span>
+              <span>{formatCurrency(deliveryFee)}</span>
+            </div>
+            <div className="order-summary-row order-summary-row-total">
+              <span>Tổng cộng</span>
+              <span>{formatCurrency(totalAmount + deliveryFee)}</span>
+            </div>
+            <button
+              type="submit"
+              className="order-summary-action"
+              disabled={submitting || checkoutItems.length === 0}
+            >
+              {submitting ? "Đang xử lý..." : "Xác nhận đặt món"}
+            </button>
+          </div>
         </div>
       </div>
     </form>
@@ -370,3 +402,4 @@ const PlaceOrder = () => {
 };
 
 export default PlaceOrder;
+

@@ -37,10 +37,13 @@ Authentication: Most endpoints require JWT via `Authorization: Bearer <token>` a
   - Desc: Confirm payment result.
   - Auth: User.
   - Body: `{ orderId, provider, transactionId, amount }`
-- POST `/pay/stripe`
-  - Desc: Initialize Stripe payment intent.
+- POST `/pay/vnpay`
+  - Desc: Initialize VNPAY payment request and return checkout URL.
   - Auth: User.
   - Body: `{ orderId, amount }`
+- GET `/pay/vnpay/verify`
+  - Desc: Verify VNPAY return payload (query parameters from VNPAY redirect).
+  - Auth: Public (HMAC signature is verified server-side).
 - GET `/`
   - Desc: List all orders. If role is admin/branch_manager, can filter by `?branchId=`.
   - Auth: Authenticated.

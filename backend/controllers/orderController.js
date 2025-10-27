@@ -1,5 +1,18 @@
 import * as orderService from "../services/orderService.js";
 
+const getClientIp = (req) => {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return (
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.ip ||
+    "127.0.0.1"
+  );
+};
+
 // placing user order for frontend
 const placeOrder = async (req, res) => {
   try {
@@ -8,6 +21,7 @@ const placeOrder = async (req, res) => {
       items: req.body.items,
       amount: req.body.amount,
       address: req.body.address,
+      ipAddress: getClientIp(req),
     });
     res.json(result);
   } catch (error) {

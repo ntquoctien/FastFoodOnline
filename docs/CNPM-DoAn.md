@@ -10,11 +10,11 @@ Ngày cập nhật: 2025-10-21
 - Kiến trúc: client (frontend) và admin gọi API REST của backend. Backend kết nối MongoDB.
 - Docker compose cung cấp 4 services: mongo, backend (port 4000), frontend (5173), admin (5174). Mongo khởi tạo DB `fooddeliverydb`.
 - Biến môi trường chính:
-  - Backend: `PORT` (mặc định 4000), `MONGO_URL` (đặt trong docker compose trỏ tới `mongodb://mongo:27017/fooddeliverydb`), `SALT` (rounds cho bcrypt), các khóa thanh toán (nếu dùng Stripe).
+  - Backend: `PORT` (mặc định 4000), `MONGO_URL` (đặt trong docker compose trỏ tới `mongodb://mongo:27017/fooddeliverydb`), `SALT` (rounds cho bcrypt), các khóa thanh toán (nếu dùng VNPAY).
   - Frontend/Admin: `VITE_API_URL` (ví dụ http://localhost:4000), `VITE_PORT` (5173/5174).
 
 ## 3. Backend
-- Framework: Express 4, Mongoose 8, JWT, Multer, Stripe (tuỳ chọn), CORS.
+- Framework: Express 4, Mongoose 8, JWT, Multer, VNPAY (tuỳ chọn), CORS.
 - Điểm vào: `backend/server.js`.
 - Middlewares: `express.json()`, `cors()`, `authMiddleware` cho các tuyến cần xác thực.
 - Static: `/images` phục vụ từ thư mục `backend/uploads`.
@@ -30,7 +30,7 @@ Ngày cập nhật: 2025-10-21
 - FoodVariant: foodId, branchId, size, price, isDefault, isActive. Unique (foodId, branchId, size).
 - Inventory: branchId, foodVariantId, quantity, updatedAt.
 - Order: userId, branchId, items[{foodVariantId, title, size, quantity, unitPrice, totalPrice}], address, subtotal, deliveryFee, totalAmount, status, paymentStatus, timeline.
-- Payment: orderId, provider[stripe|momo|zalopay|cash|card], transactionId, amount, status, paidAt, meta.
+- Payment: orderId, provider[vnpay|momo|zalopay|cash|card], transactionId, amount, status, paidAt, meta.
 - ShipperProfile: userId, branchId, vehicleType, licensePlate, status[available|busy|inactive].
 - DeliveryAssignment: orderId, shipperId, status[assigned|picked|delivered|cancelled], các mốc thời gian.
 
@@ -44,7 +44,7 @@ Ngày cập nhật: 2025-10-21
   - POST `/` (auth): Tạo đơn từ {branchId, items[], address}.
   - GET `/me` (auth): Liệt kê đơn của người dùng hiện tại.
   - POST `/confirm-payment` (auth): Xác nhận thanh toán.
-  - POST `/pay/stripe` (auth): Khởi tạo thanh toán Stripe.
+  - POST `/pay/vnpay` (auth): Khởi tạo thanh toán VNPAY.
   - GET `/` (auth, role-aware): Admin/branch_manager xem tất cả đơn; filter `?branchId=`.
   - PATCH `/:orderId/status` (auth): Cập nhật trạng thái đơn.
 - Inventory `/api/v2/inventory`
@@ -92,5 +92,6 @@ Ngày cập nhật: 2025-10-21
 - Lưu trữ ảnh: Multer lưu vào `backend/uploads`, truy cập qua `/images/<filename>`.
 
 ## 7. Phụ lục
-- Danh mục dependencies Backend: bcrypt, body-parser, cors, dotenv, express, jsonwebtoken, mongoose, multer, nodemon, stripe, validator.
+- Danh mục dependencies Backend: bcrypt, body-parser, cors, dotenv, express, jsonwebtoken, mongoose, multer, nodemon, validator.
 - Cổng dịch vụ mặc định: 4000 (API), 5173 (frontend), 5174 (admin), 27017 (MongoDB).
+

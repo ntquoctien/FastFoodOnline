@@ -1,39 +1,34 @@
-import Stripe from "stripe";
 import * as userRepo from "../repositories/userRepository.js";
 import * as orderRepo from "../repositories/orderRepository.js";
+import { createPaymentUrl } from "../utils/vnpay.js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-export const placeOrder = async ({ userId, items, amount, address }) => {
+export const placeOrder = async ({ userId, items, amount, address, ipAddress }) => {
   const newOrder = await orderRepo.createOrder({ userId, items, amount, address });
   await userRepo.clearCart(userId);
 
-  const line_items = items.map((item) => ({
-    price_data: {
-      currency: "usd",
-      product_data: { name: item.name },
-      unit_amount: item.price * 100,
-    },
-    quantity: item.quantity,
-  }));
-  line_items.push({
-    price_data: {
-      currency: "usd",
-      product_data: { name: "Delivery Charges" },
-      unit_amount: 2 * 100,
-    },
-    quantity: 1,
-  });
-
-  const frontend_url = process.env.FRONTEND_URL || "https://food-delivery-frontend-s2l9.onrender.com";
-  const session = await stripe.checkout.sessions.create({
-    line_items,
-    mode: "payment",
-    success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-    cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-  });
-
-  return { success: true, session_url: session.url };
+  try {
+    const { paymentUrl } = createPaymentUrl({
+      orderId: String(newOrder._id),
+      amount,
+      orderInfo: `Payment for order ${newOrder._id}`,
+      ipAddress,
+    });
+    return {
+      success: true,
+      payment_url: paymentUrl,
+      session_url: paymentUrl,
+      orderId: String(newOrder._id),
+    };
+  } catch (error) {
+    if (error.message === "VNPAY_CONFIG_INCOMPLETE") {
+      return { success: false, message: "VNPAY configuration missing" };
+    }
+    if (error.message === "VNPAY_INVALID_AMOUNT") {
+      return { success: false, message: "Invalid payment amount" };
+    }
+    console.error("VNPAY place order error", error);
+    return { success: false, message: "Unable to create VNPAY payment" };
+  }
 };
 
 export const verifyOrder = async ({ orderId, success }) => {
@@ -70,4 +65,5 @@ export const updateStatus = async ({ userId, orderId, status }) => {
 };
 
 export default { placeOrder, verifyOrder, userOrders, listOrders, updateStatus };
+
 

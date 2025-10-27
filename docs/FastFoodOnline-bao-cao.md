@@ -4,14 +4,14 @@
 
 - Khách hàng cần đặt món trực tuyến nhanh, tiện lợi, dễ theo dõi trạng thái đơn hàng theo thời gian thực.
 - Nhà hàng/chuỗi cửa hàng cần hệ thống quản lý menu, chi nhánh, tồn kho, nhân sự và đơn hàng để giảm sai sót khi lưu thông tin thủ công.
-- Doanh nghiệp cần thanh toán trực tuyến an toàn (Stripe), phân quyền rõ ràng (khách, nhân viên, quản trị) và khả năng mở rộng nhiều chi nhánh.
+- Doanh nghiệp cần thanh toán trực tuyến an toàn (VNPAY), phân quyền rõ ràng (khách, nhân viên, quản trị) và khả năng mở rộng nhiều chi nhánh.
 - Triển khai linh hoạt: chạy cục bộ và đóng gói bằng Docker để dễ vận hành, thử nghiệm và triển khai.
 
 ## 1.1 High Level Approach
 
 - Xây dựng web app tương thích desktop/mobile: trang khách hàng (Frontend) và trang quản trị/nhân sự (Admin).
 - Backend Node.js/Express cung cấp REST API v2, xác thực JWT, quản lý menu, đơn hàng, tồn kho, shipper, chi nhánh.
-- Tích hợp Stripe cho quy trình thanh toán; lưu trạng thái thanh toán và đơn hàng trong MongoDB.
+- Tích hợp VNPAY cho quy trình thanh toán; lưu trạng thái thanh toán và đơn hàng trong MongoDB.
 - Phân quyền theo vai trò (user, admin, staff/shipper) tại middleware và từng service.
 - Đóng gói bằng Docker Compose: Backend, Frontend, Admin và MongoDB khởi chạy đồng bộ.
 - Lưu ảnh món ăn qua multipart (Multer) vào thư mục uploads và phục vụ tĩnh qua đường dẫn /images/...
@@ -21,7 +21,7 @@
 Kịch bản Khách hàng (User):
 
 - Truy cập website, xem menu theo chi nhánh, thêm món (biến thể/size) vào giỏ hàng và đặt đơn.
-- Thanh toán trực tuyến (Stripe) hoặc phương thức hỗ trợ, nhận thông báo trạng thái: pending → confirmed → preparing → delivered.
+- Thanh toán trực tuyến (VNPAY) hoặc phương thức hỗ trợ, nhận thông báo trạng thái: pending → confirmed → preparing → delivered.
 - Tra cứu lịch sử đơn hàng của chính mình.
 
 Kịch bản Admin/Nhà hàng (Admin/Staff):
@@ -53,7 +53,7 @@ Xem sơ đồ tổng quan và ERD trong `docs/diagrams.md` (Mermaid: kiến trú
 3. Menu theo danh mục và biến thể (size/price) theo chi nhánh; upload ảnh món (Multer).
 4. Quản lý đơn hàng end-to-end: tạo đơn, theo dõi trạng thái, lịch sử người dùng; phân công shipper.
 5. Tồn kho theo chi nhánh và biến thể; cập nhật và kiểm soát số lượng thực tế.
-6. Thanh toán Stripe: tạo intent, xác nhận; lưu Payment liên kết Order.
+6. Thanh toán VNPAY: tạo intent, xác nhận; lưu Payment liên kết Order.
 7. Quản trị chi nhánh, danh mục, món ăn, nhân sự/shipper; xem danh sách và cập nhật trạng thái.
 8. Docker Compose khởi chạy đầy đủ stack; script seed dữ liệu mẫu.
 
@@ -86,9 +86,9 @@ Future considerations:
 
 ## 2.3 Key Flows
 
-- Operational flow (tổng quát): Frontend/Admin → REST API → MongoDB; ảnh → uploads; thanh toán → Stripe.
+- Operational flow (tổng quát): Frontend/Admin → REST API → MongoDB; ảnh → uploads; thanh toán → VNPAY.
 - Order processing flow: create order → confirm → preparing → assigned (shipper) → delivered/cancelled.
-- Payment processing flow: init intent (Stripe) → confirm → update Payment + Order.paymentStatus.
+- Payment processing flow: init intent (VNPAY) → confirm → update Payment + Order.paymentStatus.
 - Inventory flow: nhập/xuất theo biến thể-chi nhánh; kiểm soát số lượng trước khi xác nhận đơn.
 - User/Role flow: đăng nhập JWT, middleware gắn `req.user`, kiểm soát quyền theo route/service.
 
@@ -114,7 +114,7 @@ Future considerations:
 | --- | --- | --- |
 | Tuần 1 | Hoàn thiện setup & Docker | Chạy đủ 4 dịch vụ; cấu hình env; seed dữ liệu mẫu |
 | Tuần 2 | Menu + Đơn hàng cơ bản | Duyệt menu, tạo đơn, theo dõi trạng thái; upload ảnh |
-| Tuần 3 | Thanh toán Stripe | Tạo/confirm payment intent; cập nhật Payment/Order |
+| Tuần 3 | Thanh toán VNPAY | Tạo/confirm payment intent; cập nhật Payment/Order |
 | Tuần 4 | Tồn kho + Shipper | Cập nhật inventory; phân công shipper; báo cáo cơ bản |
 
 ---
@@ -140,7 +140,7 @@ Triển khai chuẩn bằng Docker Compose (4 services). Có thể mở rộng l
 
 ## Sub-systems
 
-- Payment (Stripe): tạo payment intent, xác nhận kết quả; đồng bộ Payment ↔ Order.
+- Payment (VNPAY): tạo payment intent, xác nhận kết quả; đồng bộ Payment ↔ Order.
 - Order Processing: tạo/đọc đơn, cập nhật status, tạo timeline; lọc theo user/branch/role.
 - Dispatch Shipper: quản lý `ShipperProfile`, trạng thái available/busy/inactive; `DeliveryAssignment` gắn với Order.
 - Inventory: theo dõi tồn kho ở cấp `FoodVariant`-`Branch`; cập nhật khi chuẩn bị/giao hàng.
@@ -162,7 +162,7 @@ Triển khai chuẩn bằng Docker Compose (4 services). Có thể mở rộng l
 
 - Base URL: `http://localhost:4000/api/v2`.
 - Menu: GET `/menu/default?branchId=...`, POST `/menu/categories`, `/menu/foods`, DELETE `/menu/foods/:id`.
-- Orders: POST `/orders`, GET `/orders/me`, PATCH `/orders/:id/status`, POST `/orders/pay/stripe`, `/orders/confirm-payment`.
+- Orders: POST `/orders`, GET `/orders/me`, PATCH `/orders/:id/status`, POST `/orders/pay/vnpay`, `/orders/confirm-payment`.
 - Inventory: GET/POST `/inventory` (theo branch, foodVariant).
 - Branches/Shippers: CRUD branch; shipper list + cập nhật trạng thái.
 

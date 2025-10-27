@@ -28,6 +28,19 @@ const handleCommonError = (res, error, fallback) => {
     .json({ success: false, message: "Order action failed" });
 };
 
+const getClientIp = (req) => {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return (
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.ip ||
+    "127.0.0.1"
+  );
+};
+
 export const createOrder = async (req, res) => {
   try {
     const { branchId, items, address } = req.body;
@@ -61,14 +74,29 @@ export const confirmPayment = async (req, res) => {
   }
 };
 
-export const initializeStripePayment = async (req, res) => {
+export const initializeVnpayPayment = async (req, res) => {
   try {
     const { orderId, amount } = req.body;
-    const result = await orderService.initializeStripePayment({ orderId, amount });
+    const ipAddress = getClientIp(req);
+    const result = await orderService.initializeVnpayPayment({
+      orderId,
+      amount,
+      ipAddress,
+    });
     res.json(result);
   } catch (error) {
     console.error("Order v2 init payment error", error);
     res.status(500).json({ success: false, message: "Failed to initialise payment" });
+  }
+};
+
+export const verifyVnpayPayment = async (req, res) => {
+  try {
+    const result = await orderService.verifyVnpayPayment(req.query);
+    res.json(result);
+  } catch (error) {
+    console.error("Order v2 verify payment error", error);
+    res.status(500).json({ success: false, message: "Failed to verify payment" });
   }
 };
 
@@ -131,7 +159,8 @@ export const confirmReceipt = async (req, res) => {
 export default {
   createOrder,
   confirmPayment,
-  initializeStripePayment,
+  initializeVnpayPayment,
+  verifyVnpayPayment,
   listUserOrders,
   listAllOrders,
   updateStatus,

@@ -28,10 +28,7 @@
 }
 .place-order-right{
     width: 100%;
-    max-width: max(40%,500px);
-}
-.place-order .cart-total button{
-    margin-top: 30px;
+    max-width: max(40%,520px);
 }
 @media (max-width:800px) {
     .place-order{
@@ -102,23 +99,188 @@
     box-shadow:0 0 0 3px rgba(255, 99, 71, 0.18);
     background-color:#fff8f6;
 }
-.card-fields{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    background:#f8fafc;
-    padding:12px;
-    border-radius:8px;
-}
-.card-fields input{
-    margin-bottom:0;
-}
-.card-fields small{
-    color:#64748b;
-}
 @media (max-width:800px){
     .place-order-left .multi-fields{
         flex-direction:column;
+    }
+}
+
+.order-summary{
+    background:#ffffff;
+    border:1px solid #e2e8f0;
+    border-radius:16px;
+    padding:24px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    box-shadow:0 20px 40px -24px rgba(15,23,42,0.18);
+}
+.order-summary-header{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+.order-summary-header h2{
+    font-size:24px;
+    font-weight:700;
+    color:#0f172a;
+}
+.order-summary-branch{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:#475569;
+    background:#f1f5f9;
+    border-radius:999px;
+    padding:4px 12px;
+    width:fit-content;
+}
+.order-summary-list{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    max-height:320px;
+    overflow-y:auto;
+    padding-right:4px;
+}
+.order-summary-list::-webkit-scrollbar{
+    width:6px;
+}
+.order-summary-list::-webkit-scrollbar-thumb{
+    background:#cbd5f5;
+    border-radius:999px;
+}
+.order-summary-list::-webkit-scrollbar-track{
+    background:transparent;
+}
+.order-summary-item{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+}
+.order-summary-item-media{
+    position:relative;
+    min-width:72px;
+    height:72px;
+    border-radius:16px;
+    overflow:hidden;
+    background:#f8fafc;
+    box-shadow:0 4px 16px -12px rgba(15,23,42,0.45);
+}
+.order-summary-item-media img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+.order-summary-quantity{
+    position:absolute;
+    right:6px;
+    bottom:6px;
+    background:rgba(15,23,42,0.9);
+    color:#fff;
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+}
+.order-summary-item-content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+.order-summary-item-title{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-weight:600;
+    color:#0f172a;
+}
+.order-summary-item-title span:last-child{
+    white-space:nowrap;
+}
+.order-summary-item-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+.order-summary-item-badge{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#fef2f2;
+    color:#b91c1c;
+    font-size:12px;
+    font-weight:500;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+}
+.order-summary-item-badge.muted{
+    background:#eff6ff;
+    color:#1d4ed8;
+}
+.order-summary-item-desc{
+    font-size:13px;
+    color:#64748b;
+    line-height:1.5;
+}
+.order-summary-empty{
+    font-size:14px;
+    color:#64748b;
+    background:#f8fafc;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+}
+.order-summary-totals{
+    border-top:1px solid #e2e8f0;
+    padding-top:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.order-summary-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:14px;
+    color:#475569;
+}
+.order-summary-row-total{
+    font-weight:700;
+    font-size:16px;
+    color:#0f172a;
+}
+.order-summary-action{
+    margin-top:8px;
+    width:100%;
+    border:none;
+    border-radius:12px;
+    background:tomato;
+    color:#ffffff;
+    font-weight:600;
+    font-size:15px;
+    padding:14px;
+    cursor:pointer;
+    transition:background-color 0.2s ease, transform 0.2s ease;
+}
+.order-summary-action:hover:not(:disabled){
+    background:#ff5e42;
+    transform:translateY(-1px);
+}
+.order-summary-action:disabled{
+    background:#fecaca;
+    cursor:not-allowed;
+}
+@media (max-width:800px){
+    .order-summary{
+        max-height:none;
+        padding:20px;
+    }
+    .order-summary-list{
+        max-height:unset;
     }
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+﻿import React, { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
@@ -52,19 +52,55 @@ const Inventory = ({ url }) => {
       });
   }, [token, url]);
 
+  const normalizedItems = useMemo(() => {
+    return (items || []).map((entry) => {
+      const food = entry.foodVariantId?.foodId || {};
+      const branch = entry.branchId || {};
+      return {
+        id: entry._id,
+        raw: entry,
+        foodId: food._id || entry.foodVariantId?.foodId || entry.foodVariantId?._id,
+        foodName: food.name || "Unnamed dish",
+        categoryName: food.categoryId?.name || "",
+        branchId: branch._id || "",
+        branchName: branch.name || "Unknown branch",
+        size: entry.foodVariantId?.size || "N/A",
+        quantity: entry.quantity ?? 0,
+        updatedAt: entry.updatedAt || entry.createdAt,
+        variantId: entry.foodVariantId?._id,
+      };
+    });
+  }, [items]);
+
   const filteredItems = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-    return items.filter((entry) => {
-      if (
-        !query ||
-        entry.foodVariantId?.foodId?.name?.toLowerCase().includes(query) ||
-        entry.branchId?.name?.toLowerCase().includes(query)
-      ) {
-        return true;
+    if (!query) return normalizedItems;
+    return normalizedItems.filter(
+      (entry) =>
+        entry.foodName.toLowerCase().includes(query) ||
+        entry.branchName.toLowerCase().includes(query) ||
+        entry.size.toLowerCase().includes(query)
+    );
+  }, [normalizedItems, searchTerm]);
+
+  const groupedInventory = useMemo(() => {
+    const map = new Map();
+    const groups = [];
+    filteredItems.forEach((entry) => {
+      const key = entry.foodId || entry.variantId || entry.id;
+      if (!map.has(key)) {
+        map.set(key, {
+          foodId: key,
+          foodName: entry.foodName,
+          categoryName: entry.categoryName,
+          variants: [],
+        });
+        groups.push(map.get(key));
       }
-      return false;
+      map.get(key).variants.push(entry);
     });
-  }, [items, searchTerm]);
+    return groups;
+  }, [filteredItems]);
 
   const handleUpdate = async (entry) => {
     const currentQuantity = entry.quantity ?? 0;
@@ -104,7 +140,7 @@ const Inventory = ({ url }) => {
       <div className="inventory-header">
         <div>
           <h2>Inventory</h2>
-          <p>Monitor stock levels across every branch location.</p>
+          <p>Monitor stock levels by branch and variant.</p>
         </div>
         <div className="inventory-controls">
           <input
@@ -128,37 +164,62 @@ const Inventory = ({ url }) => {
       </div>
       {loading ? (
         <div className="inventory-empty">Loading inventory...</div>
-      ) : filteredItems.length === 0 ? (
+      ) : groupedInventory.length === 0 ? (
         <div className="inventory-empty">
           No inventory entries match the current filters.
         </div>
       ) : (
-        <div className="inventory-grid">
-          {filteredItems.map((entry) => (
-            <article key={entry._id} className="inventory-card">
-              <div className="inventory-card-header">
-                <span className="inventory-branch">
-                  {entry.branchId?.name || "Unknown branch"}
+        <div className="inventory-group-list">
+          {groupedInventory.map((group) => (
+            <article key={group.foodId} className="inventory-group-card">
+              <header className="inventory-group-header">
+                <div className="inventory-group-title">
+                  <h3>{group.foodName}</h3>
+                  {group.categoryName && (
+                    <span className="inventory-group-category">
+                      {group.categoryName}
+                    </span>
+                  )}
+                </div>
+                <span className="inventory-group-count">
+                  {group.variants.length} variants
                 </span>
-                <span className="inventory-updated">
-                  {entry.updatedAt
-                    ? new Date(entry.updatedAt).toLocaleString()
-                    : "Never updated"}
-                </span>
-              </div>
-              <div className="inventory-card-body">
-                <h3>{entry.foodVariantId?.foodId?.name || "Unnamed item"}</h3>
-                <p className="inventory-variant">
-                  Size: {entry.foodVariantId?.size || "—"}
-                </p>
-              </div>
-              <div className="inventory-card-footer">
-                <span className="inventory-quantity">
-                  {entry.quantity ?? 0} in stock
-                </span>
-                <button type="button" onClick={() => handleUpdate(entry)}>
-                  Adjust quantity
-                </button>
+              </header>
+              <div className="inventory-variant-table">
+                <div className="inventory-variant-table-head">
+                  <span>Branch</span>
+                  <span>Size</span>
+                  <span>Quantity</span>
+                  <span>Updated</span>
+                  <span />
+                </div>
+                {group.variants.map((variant) => (
+                  <div
+                    key={variant.id}
+                    className="inventory-variant-table-row"
+                  >
+                    <span className="inventory-variant-branch">
+                      {variant.branchName}
+                    </span>
+                    <span>{variant.size}</span>
+                    <span className="inventory-variant-quantity">
+                      {variant.quantity}
+                    </span>
+                    <span className="inventory-variant-updated">
+                      {variant.updatedAt
+                        ? new Date(variant.updatedAt).toLocaleString()
+                        : "Never updated"}
+                    </span>
+                    <span>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdate(variant.raw)}
+                      >
+                        Adjust
+                      </button>
+                    </span>
+                  </div>
+                ))}
               </div>
             </article>
           ))}

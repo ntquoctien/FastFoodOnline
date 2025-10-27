@@ -13,7 +13,7 @@ This repository hosts the source code for TOMATO, a dynamic food ordering websit
 - Admin Panel
 - JWT Authentication
 - Password Hashing with Bcrypt
-- Stripe Payment Integration
+- VNPAY Payment Integration
 - Login/Signup
 - Logout
 - Add to Cart
@@ -93,7 +93,10 @@ Setup Environment Vaiables
   JWT_SECRET=YOUR_SECRET_TEXT
   SALT=YOUR_SALT_VALUE
   MONGO_URL=YOUR_DATABASE_URL
-  STRIPE_SECRET_KEY=YOUR_KEY
+  VNPAY_TMN_CODE=YOUR_TMN_CODE
+  VNPAY_HASH_SECRET=YOUR_HASH_SECRET
+  VNPAY_RETURN_URL=http://localhost:5173/verify
+  VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
  ```
 
 Setup the Frontend and Backend URL
@@ -139,7 +142,7 @@ The script uses `backend/.env` for connection settings and updates/creates the s
 * [Node.js](https://nodejs.org/en)
 * [Express.js](https://expressjs.com/)
 * [Mongodb](https://www.mongodb.com/)
-* [Stripe](https://stripe.com/)
+* [VNPAY Sandbox](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html)
 * [JWT-Authentication](https://jwt.io/introduction)
 * [Multer](https://www.npmjs.com/package/multer)
 
