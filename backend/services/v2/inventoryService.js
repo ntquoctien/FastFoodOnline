@@ -1,5 +1,7 @@
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as userRepo from "../../repositories/userRepository.js";
+import * as foodVariantRepo from "../../repositories/v2/foodVariantRepository.js";
+import * as foodRepo from "../../repositories/v2/foodRepository.js";
 
 const ensurePermission = async ({ userId }) => {
   const user = await userRepo.findById(userId);
@@ -26,15 +28,9 @@ export const listInventory = async ({ userId, branchId: queryBranchId }) => {
   const filtered = inventory.filter((entry) => {
     const variant = entry.foodVariantId;
     const food = variant?.foodId;
-    if (!variant || !food) {
-      return false;
-    }
-    if (variant.isActive === false) {
-      return false;
-    }
-    if (food.isActive === false) {
-      return false;
-    }
+    if (!variant || !food) return false;
+    if (variant.isArchived) return false;
+    if (food.isArchived) return false;
     return true;
   });
   return { success: true, data: filtered };
@@ -73,6 +69,20 @@ export const updateInventory = async ({
     foodVariantId,
     quantity: qty,
   });
+
+  const variant = await foodVariantRepo.findById(foodVariantId);
+  if (variant) {
+    const food = await foodRepo.findById(variant.foodId);
+    const foodManuallyDisabled = Boolean(food?.isManuallyDisabled);
+    if (!variant.isManuallyDisabled && !foodManuallyDisabled) {
+      if (qty <= 0 && variant.isActive) {
+        await foodVariantRepo.updateById(foodVariantId, { isActive: false });
+      }
+      if (qty > 0 && !variant.isActive) {
+        await foodVariantRepo.updateById(foodVariantId, { isActive: true });
+      }
+    }
+  }
 
   return { success: true, data: result };
 };

@@ -9,6 +9,11 @@ export const updateById = (id, update) =>
   FoodVariantModel.findByIdAndUpdate(id, update, { new: true });
 export const deactivateByFoodId = (foodId) =>
   FoodVariantModel.updateMany({ foodId }, { $set: { isActive: false } });
+export const updateMany = (filter = {}, update = {}) =>
+  FoodVariantModel.updateMany(filter, update);
+export const findByIds = (ids = []) =>
+  FoodVariantModel.find({ _id: { $in: ids } });
+export const deleteById = (id) => FoodVariantModel.findByIdAndDelete(id);
 
 export default {
   create,
@@ -17,4 +22,7 @@ export default {
   findById,
   updateById,
   deactivateByFoodId,
+  updateMany,
+  findByIds,
+  deleteById,
 };

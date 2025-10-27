@@ -5,9 +5,9 @@ import { NavLink } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 
 const adminLinks = [
+  { to: "/restaurant", icon: assets.parcel_icon, label: "Restaurant" },
   { to: "/add", icon: assets.add_icon, label: "Add Items" },
   { to: "/list", icon: assets.order_icon, label: "List Items" },
-  { to: "/branches", icon: assets.parcel_icon, label: "Branches" },
   { to: "/categories", icon: assets.order_icon, label: "Categories" },
   { to: "/staff", icon: assets.order_icon, label: "Staff" },
   { to: "/inventory", icon: assets.order_icon, label: "Inventory" },

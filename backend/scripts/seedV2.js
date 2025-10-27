@@ -64,6 +64,7 @@ const seed = async () => {
     phone: "+1 555-1000",
     email: "info@tomatoexpress.com",
     cuisine: "International",
+    policy: "Orders must be placed 30 minutes before closing time.",
   });
 
   const [centralBranch, downtownBranch] = await BranchModel.insertMany([

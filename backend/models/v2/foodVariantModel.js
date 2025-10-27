@@ -16,6 +16,8 @@ const foodVariantSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     isDefault: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+    isManuallyDisabled: { type: Boolean, default: false },
+    isArchived: { type: Boolean, default: false },
   },
   {
     collection: "foodVariants",

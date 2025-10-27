@@ -21,8 +21,19 @@ export const findDetailed = (filter = {}) =>
     .populate("branchId")
     .populate({
       path: "foodVariantId",
-      match: { isActive: true },
-      populate: { path: "foodId", model: "Food", match: { isActive: true } },
+      populate: { path: "foodId", model: "Food" },
     });
+export const findByVariantIds = (variantIds = []) =>
+  InventoryModel.find({ foodVariantId: { $in: variantIds } });
+export const deleteByVariantIds = (variantIds = []) =>
+  InventoryModel.deleteMany({ foodVariantId: { $in: variantIds } });
 
-export default { upsert, adjustQuantity, findAll, findOne, findDetailed };
+export default {
+  upsert,
+  adjustQuantity,
+  findAll,
+  findOne,
+  findDetailed,
+  findByVariantIds,
+  deleteByVariantIds,
+};

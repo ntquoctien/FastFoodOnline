@@ -5,7 +5,12 @@ import {
   getDefaultMenu,
   createCategory,
   createFood,
+  updateFood,
   archiveFood,
+  setFoodStatus,
+  setVariantStatus,
+  updateVariant,
+  removeVariant,
 } from "../controllers/v2/menuController.js";
 
 const menuV2Router = express.Router();
@@ -27,6 +32,16 @@ menuV2Router.post(
   upload.single("image"),
   createFood
 );
+menuV2Router.put(
+  "/foods/:foodId",
+  authMiddleware,
+  upload.single("image"),
+  updateFood
+);
 menuV2Router.delete("/foods/:foodId", authMiddleware, archiveFood);
+menuV2Router.put("/foods/:foodId/status", authMiddleware, setFoodStatus);
+menuV2Router.put("/variants/:variantId/status", authMiddleware, setVariantStatus);
+menuV2Router.put("/variants/:variantId", authMiddleware, updateVariant);
+menuV2Router.delete("/variants/:variantId", authMiddleware, removeVariant);
 
 export default menuV2Router;

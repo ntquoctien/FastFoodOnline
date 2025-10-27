@@ -8,6 +8,7 @@ const restaurantSchema = new mongoose.Schema(
     email: { type: String },
     logoUrl: { type: String },
     cuisine: { type: String },
+    policy: { type: String },
     isActive: { type: Boolean, default: true },
   },
   {

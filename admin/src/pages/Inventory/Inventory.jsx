@@ -3,9 +3,11 @@ import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import "./Inventory.css";
+import { useLocation } from "react-router-dom";
 
 const Inventory = ({ url }) => {
   const { token } = useContext(StoreContext);
+  const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [branchFilter, setBranchFilter] = useState("");
@@ -39,6 +41,14 @@ const Inventory = ({ url }) => {
   }, [token, branchFilter]);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const branchParam = params.get("branch") || "";
+    setBranchFilter((prev) =>
+      prev === branchParam ? prev : branchParam
+    );
+  }, [location.search]);
+
+  useEffect(() => {
     if (!token) return;
     axios
       .get(`${url}/api/v2/branches`, { headers: { token } })
@@ -59,10 +69,13 @@ const Inventory = ({ url }) => {
       return {
         id: entry._id,
         raw: entry,
-        foodId: food._id || entry.foodVariantId?.foodId || entry.foodVariantId?._id,
+        foodId:
+          food._id ||
+          entry.foodVariantId?.foodId ||
+          entry.foodVariantId?._id,
         foodName: food.name || "Unnamed dish",
         categoryName: food.categoryId?.name || "",
-        branchId: branch._id || "",
+        branchId: String(branch._id || ""),
         branchName: branch.name || "Unknown branch",
         size: entry.foodVariantId?.size || "N/A",
         quantity: entry.quantity ?? 0,
@@ -105,7 +118,9 @@ const Inventory = ({ url }) => {
   const handleUpdate = async (entry) => {
     const currentQuantity = entry.quantity ?? 0;
     const next = window.prompt(
-      `Set quantity for ${entry.foodVariantId?.foodId?.name || "item"} (${entry.foodVariantId?.size})`,
+      `Set quantity for ${
+        entry.foodVariantId?.foodId?.name || "item"
+      } (${entry.foodVariantId?.size})`,
       currentQuantity
     );
     if (next === null) return;
@@ -155,7 +170,7 @@ const Inventory = ({ url }) => {
           >
             <option value="">All branches</option>
             {branchOptions.map((branch) => (
-              <option key={branch._id} value={branch._id}>
+              <option key={String(branch._id)} value={String(branch._id)}>
                 {branch.name}
               </option>
             ))}
@@ -230,3 +245,5 @@ const Inventory = ({ url }) => {
 };
 
 export default Inventory;
+
+

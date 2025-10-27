@@ -11,6 +11,8 @@ const foodSchema = new mongoose.Schema(
     description: { type: String },
     imageUrl: { type: String },
     isActive: { type: Boolean, default: true },
+    isManuallyDisabled: { type: Boolean, default: false },
+    isArchived: { type: Boolean, default: false },
   },
   {
     collection: "foods",
