@@ -17,6 +17,8 @@ services:
   backend:
     build:
       context: ./backend
+      args:
+        SERVICE_DIR: .
     restart: unless-stopped
     depends_on:
       mongo:

@@ -1,0 +1,173 @@
+tags:
+  - name: Staff
+    description: Staff management for admins and branch managers.
+paths:
+  /api/v2/staff:
+    get:
+      tags:
+        - Staff
+      summary: List staff members visible to the requester.
+      security:
+        - TokenAuth: []
+      responses:
+        "200":
+          description: Staff list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Staff"
+        "403":
+          description: User lacks permission.
+    post:
+      tags:
+        - Staff
+      summary: Create a staff account (admin only).
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum:
+                    - manager
+                    - branch_manager
+                    - staff
+                    - chef
+                    - support
+                branchId:
+                  type: string
+      responses:
+        "200":
+          description: Staff member created.
+        "400":
+          description: Validation failure.
+        "403":
+          description: User lacks permission.
+  /api/v2/staff/{staffId}/status:
+    patch:
+      tags:
+        - Staff
+      summary: Update a staff member's status.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - inactive
+                    - on_leave
+      responses:
+        "200":
+          description: Status updated.
+        "400":
+          description: Invalid status.
+        "403":
+          description: User lacks permission.
+  /api/v2/staff/{staffId}:
+    patch:
+      tags:
+        - Staff
+      summary: Update staff profile fields.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                role:
+                  type: string
+                branchId:
+                  type: string
+      responses:
+        "200":
+          description: Profile updated.
+        "400":
+          description: No changes submitted or validation error.
+        "403":
+          description: User lacks permission.
+        "404":
+          description: Staff not found.
+  /api/v2/staff/{staffId}/reset-password:
+    post:
+      tags:
+        - Staff
+      summary: Generate a temporary password for staff (admin only).
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Temporary password generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      temporaryPassword:
+                        type: string
+        "403":
+          description: User lacks permission.
+        "404":
+          description: Staff not found.

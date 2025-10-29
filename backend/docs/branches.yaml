@@ -1,0 +1,140 @@
+tags:
+  - name: Branches
+    description: Manage restaurant branches (admin only).
+paths:
+  /api/v2/branches:
+    get:
+      tags:
+        - Branches
+      summary: List branches for the active restaurant.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: query
+          name: includeInactive
+          schema:
+            type: boolean
+          description: Include deactivated branches.
+      responses:
+        "200":
+          description: Branch collection.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      restaurant:
+                        type: object
+                      branches:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Branch"
+        "403":
+          description: Only admins may access this endpoint.
+    post:
+      tags:
+        - Branches
+      summary: Create a new branch.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                street:
+                  type: string
+                district:
+                  type: string
+                city:
+                  type: string
+                phone:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                isPrimary:
+                  type: boolean
+      responses:
+        "200":
+          description: Branch created.
+        "400":
+          description: Validation error.
+        "403":
+          description: Only admins may create branches.
+  /api/v2/branches/{branchId}:
+    put:
+      tags:
+        - Branches
+      summary: Update branch details.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: branchId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                street:
+                  type: string
+                district:
+                  type: string
+                city:
+                  type: string
+                phone:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                isPrimary:
+                  type: boolean
+      responses:
+        "200":
+          description: Branch updated.
+        "400":
+          description: Validation error.
+        "403":
+          description: Only admins may update branches.
+        "404":
+          description: Branch not found.
+    delete:
+      tags:
+        - Branches
+      summary: Deactivate a branch.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: branchId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Branch deactivated.
+        "403":
+          description: Only admins may delete branches.
+        "404":
+          description: Branch not found.

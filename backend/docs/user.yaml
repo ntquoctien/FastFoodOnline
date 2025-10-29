@@ -1,0 +1,112 @@
+tags:
+  - name: Auth
+    description: Authentication endpoints for customers and staff.
+paths:
+  /api/user/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserAuthRequest"
+      responses:
+        "200":
+          description: Registration result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/user/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate a user and return a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/user/profile:
+    get:
+      tags:
+        - Auth
+      summary: Get profile of the currently authenticated user.
+      security:
+        - TokenAuth: []
+      responses:
+        "200":
+          description: Profile payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Missing or invalid token.
+    put:
+      tags:
+        - Auth
+      summary: Update user profile and optionally avatar.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+                  description: Must be at least 8 characters if provided.
+                avatar:
+                  type: string
+                  format: binary
+                removeAvatar:
+                  type: string
+                  enum:
+                    - "true"
+                    - "false"
+      responses:
+        "200":
+          description: Profile updated.
+        "400":
+          description: Validation error.
+        "401":
+          description: Missing or invalid token.
+        "500":
+          description: Server error.

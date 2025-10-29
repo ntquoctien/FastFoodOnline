@@ -1,0 +1,99 @@
+tags:
+  - name: Shippers
+    description: Delivery partner management (admin/branch staff).
+paths:
+  /api/v2/shippers:
+    get:
+      tags:
+        - Shippers
+      summary: List shippers assigned to the organisation or branch.
+      security:
+        - TokenAuth: []
+      responses:
+        "200":
+          description: Shipper list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Shipper"
+        "403":
+          description: User lacks permission.
+    post:
+      tags:
+        - Shippers
+      summary: Create a shipper profile for an existing user.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - branchId
+                - vehicleType
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                branchId:
+                  type: string
+                vehicleType:
+                  type: string
+                  example: bike
+      responses:
+        "200":
+          description: Shipper created.
+        "400":
+          description: Validation error.
+        "403":
+          description: User lacks permission.
+        "409":
+          description: Shipper already exists.
+  /api/v2/shippers/{shipperId}/status:
+    patch:
+      tags:
+        - Shippers
+      summary: Update shipper availability status.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: shipperId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - available
+                    - busy
+                    - inactive
+      responses:
+        "200":
+          description: Status updated.
+        "400":
+          description: Invalid status.
+        "403":
+          description: User lacks permission.

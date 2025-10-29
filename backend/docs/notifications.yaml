@@ -1,0 +1,37 @@
+tags:
+  - name: Notifications
+    description: User notifications.
+paths:
+  /api/v2/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications for the authenticated user.
+      security:
+        - TokenAuth: []
+      responses:
+        "200":
+          description: Notification list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  notifications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+  /api/v2/notifications/mark-read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark notifications as read (placeholder implementation).
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: false
+      responses:
+        "200":
+          description: Notifications marked as read.

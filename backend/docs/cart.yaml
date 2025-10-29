@@ -1,0 +1,76 @@
+tags:
+  - name: Cart
+    description: Shopping cart endpoints for authenticated users.
+paths:
+  /api/cart/add:
+    post:
+      tags:
+        - Cart
+      summary: Increment quantity of a variant in the user's cart.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - itemId
+              properties:
+                itemId:
+                  type: string
+                  description: Variant identifier.
+      responses:
+        "200":
+          description: Variant added to the cart.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /api/cart/remove:
+    post:
+      tags:
+        - Cart
+      summary: Decrement quantity or remove a variant from the cart.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - itemId
+              properties:
+                itemId:
+                  type: string
+      responses:
+        "200":
+          description: Variant removed or decremented.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /api/cart/get:
+    post:
+      tags:
+        - Cart
+      summary: Retrieve the user's current cart state.
+      security:
+        - TokenAuth: []
+      responses:
+        "200":
+          description: Cart data retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  cartData:
+                    type: object
+                    additionalProperties:
+                      type: integer

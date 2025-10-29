@@ -1,5 +1,9 @@
 import express from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+import path from "path";
+import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
@@ -18,11 +22,58 @@ import restaurantV2Router from "./routes/restaurantV2Route.js";
 
 // app config
 const app = express();
-const port =process.env.PORT || 4000;
+const port = process.env.PORT || 4000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "FastFoodOnline API",
+      version: "2.0.0",
+      description:
+        "REST API documentation for the FastFoodOnline project. Endpoints under /api/v2/* represent the latest version.",
+    },
+    servers: [
+      {
+        url: process.env.SWAGGER_BASE_URL || `http://localhost:${port}`,
+        description: "Current environment",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        TokenAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "token",
+          description: "JWT token returned by the authentication endpoints.",
+        },
+      },
+    },
+    security: [
+      {
+        TokenAuth: [],
+      },
+    ],
+  },
+  apis: [
+    path.join(__dirname, "routes", "**", "*.js"),
+    path.join(__dirname, "controllers", "**", "*.js"),
+    path.join(__dirname, "docs", "**", "*.yaml"),
+  ],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 //middlewares
 app.use(express.json());
 app.use(cors());
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { explorer: true })
+);
 
 // DB connection
 connectDB();

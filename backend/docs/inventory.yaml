@@ -1,0 +1,73 @@
+tags:
+  - name: Inventory
+    description: Stock adjustments for menu variants.
+paths:
+  /api/v2/inventory:
+    get:
+      tags:
+        - Inventory
+      summary: List inventory for the current branch or all branches (admin).
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: query
+          name: branchId
+          schema:
+            type: string
+          description: Restrict results to a specific branch (admin only).
+      responses:
+        "200":
+          description: Inventory entries.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/InventoryItem"
+        "400":
+          description: Missing branch identifier (when required).
+        "403":
+          description: User is not authorised.
+    post:
+      tags:
+        - Inventory
+      summary: Update inventory quantity for a variant.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - foodVariantId
+                - quantity
+              properties:
+                branchId:
+                  type: string
+                foodVariantId:
+                  type: string
+                quantity:
+                  type: number
+      responses:
+        "200":
+          description: Inventory updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/InventoryItem"
+        "400":
+          description: Invalid quantity or missing parameters.
+        "403":
+          description: User is not authorised.

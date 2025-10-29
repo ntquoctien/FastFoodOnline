@@ -1,0 +1,44 @@
+tags:
+  - name: Restaurant
+    description: Restaurant configuration (admin only).
+paths:
+  /api/v2/restaurant:
+    get:
+      tags:
+        - Restaurant
+      summary: Retrieve restaurant settings.
+      security:
+        - TokenAuth: []
+      responses:
+        "200":
+          description: Restaurant settings payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/Restaurant"
+        "403":
+          description: Only admins may access settings.
+    put:
+      tags:
+        - Restaurant
+      summary: Create or update restaurant settings.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Restaurant"
+      responses:
+        "200":
+          description: Settings saved.
+        "400":
+          description: Validation error (e.g., missing name).
+        "403":
+          description: Only admins may update settings.

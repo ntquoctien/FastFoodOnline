@@ -1,0 +1,81 @@
+tags:
+  - name: Food (Legacy)
+    description: Legacy food management endpoints.
+paths:
+  /api/food/add:
+    post:
+      tags:
+        - Food (Legacy)
+      summary: Add a new food item (legacy flow).
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - price
+                - category
+                - image
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                category:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Food added.
+        "403":
+          description: Requires admin role.
+  /api/food/list:
+    get:
+      tags:
+        - Food (Legacy)
+      summary: List legacy food items.
+      responses:
+        "200":
+          description: Food list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Food"
+  /api/food/remove:
+    post:
+      tags:
+        - Food (Legacy)
+      summary: Remove a food item (legacy flow).
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+      responses:
+        "200":
+          description: Food removed.
+        "403":
+          description: Requires admin role.

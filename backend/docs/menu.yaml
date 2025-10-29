@@ -1,0 +1,350 @@
+tags:
+  - name: Menu
+    description: Menu browsing and management endpoints.
+  - name: Categories
+    description: Category management endpoints.
+paths:
+  /api/v2/menu/default:
+    get:
+      tags:
+        - Menu
+      summary: Get default menu data for the storefront.
+      description: >
+        Returns the public menu with available foods, categories, branches, and variants.
+        Use the optional query parameters to filter by branch or include inactive items.
+      parameters:
+        - in: query
+          name: branchId
+          schema:
+            type: string
+          description: Optional branch identifier to filter menu availability.
+        - in: query
+          name: includeInactive
+          schema:
+            type: boolean
+            default: false
+          description: Include foods and variants flagged as inactive.
+      responses:
+        "200":
+          description: Menu loaded successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      foods:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            name:
+                              type: string
+                            description:
+                              type: string
+                            categoryId:
+                              type: string
+                            categoryName:
+                              type: string
+                            imageUrl:
+                              type: string
+                            variants:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  _id:
+                                    type: string
+                                  name:
+                                    type: string
+                                  price:
+                                    type: number
+                                  isActive:
+                                    type: boolean
+                      categories:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            name:
+                              type: string
+                            description:
+                              type: string
+                      branches:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            name:
+                              type: string
+                            address:
+                              type: string
+        "500":
+          description: Failed to load menu data.
+  /api/v2/menu/categories:
+    post:
+      tags:
+        - Categories
+      summary: Create a food category.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: Burgers
+                description:
+                  type: string
+                  example: Classic and premium burgers.
+      responses:
+        "200":
+          description: Category created successfully.
+        "400":
+          description: Validation failed.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+  /api/v2/menu/foods/{foodId}:
+    put:
+      tags:
+        - Menu
+      summary: Update food details.
+      description: >
+        Updates the metadata of an existing food item. Send multipart/form-data if you need to
+        replace the image.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: foodId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                categoryId:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Food updated successfully.
+        "400":
+          description: Invalid payload.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+    delete:
+      tags:
+        - Menu
+      summary: Archive a food item.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: foodId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Food archived successfully.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+  /api/v2/menu/foods/{foodId}/status:
+    put:
+      tags:
+        - Menu
+      summary: Toggle food active status.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: foodId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+      responses:
+        "200":
+          description: Status updated successfully.
+        "400":
+          description: Invalid payload.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+  /api/v2/menu/variants/{variantId}/status:
+    put:
+      tags:
+        - Menu
+      summary: Toggle variant active status.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: variantId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+      responses:
+        "200":
+          description: Variant status updated.
+        "400":
+          description: Invalid payload.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+  /api/v2/menu/variants/{variantId}:
+    put:
+      tags:
+        - Menu
+      summary: Update variant details.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: variantId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price:
+                  type: number
+                  format: double
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Variant updated successfully.
+        "400":
+          description: Invalid payload.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+    delete:
+      tags:
+        - Menu
+      summary: Remove a variant from a food item.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: variantId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Variant removed successfully.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.
+  /api/v2/menu/foods:
+    post:
+      tags:
+        - Menu
+      summary: Create a food item with variants.
+      description: >
+        Uploads a new food item. Accepts multipart/form-data to include an optional image file.
+        The `variants` field must contain a JSON array of objects with `name`, `price`, and `isActive`.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - categoryId
+              properties:
+                name:
+                  type: string
+                  example: Double Beef Burger
+                description:
+                  type: string
+                  example: Two beef patties, cheddar cheese and house sauce.
+                categoryId:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                  description: Optional image file for the food item.
+                variants:
+                  type: string
+                  description: >
+                    JSON stringified array of variants, e.g.
+                    `[{"name":"Regular","price":55000,"isActive":true}]`.
+      responses:
+        "200":
+          description: Food created successfully.
+        "400":
+          description: Invalid payload.
+        "403":
+          description: User is not authorised.
+        "500":
+          description: Unexpected server error.

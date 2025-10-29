@@ -1,0 +1,301 @@
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          description: Optional payload that varies by endpoint.
+    PaginationQuery:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          default: 10
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+      required:
+        - _id
+        - name
+    Branch:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        isActive:
+          type: boolean
+    Restaurant:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        logoUrl:
+          type: string
+        cuisine:
+          type: string
+        policy:
+          type: string
+        isActive:
+          type: boolean
+    FoodVariant:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        isActive:
+          type: boolean
+        inStock:
+          type: boolean
+        quantity:
+          type: integer
+        foodId:
+          type: string
+        foodName:
+          type: string
+        foodDescription:
+          type: string
+        foodImage:
+          type: string
+        categoryId:
+          type: string
+        categoryName:
+          type: string
+    Food:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+        categoryName:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        isActive:
+          type: boolean
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/FoodVariant"
+      required:
+        - _id
+        - name
+        - categoryId
+        - variants
+    CartItem:
+      type: object
+      properties:
+        variantId:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double
+    OrderItem:
+      type: object
+      properties:
+        variantId:
+          type: string
+        variantName:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        totalAmount:
+          type: number
+          format: double
+        status:
+          type: string
+          enum:
+            - pending
+            - confirmed
+            - preparing
+            - delivering
+            - completed
+            - cancelled
+        paymentStatus:
+          type: string
+        paymentMethod:
+          type: string
+        deliveryAddress:
+          type: string
+        branchId:
+          type: string
+        shipperId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    InventoryItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        variantId:
+          type: string
+        branchId:
+          type: string
+        quantity:
+          type: integer
+        lowStockThreshold:
+          type: integer
+        isLowStock:
+          type: boolean
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        type:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    Shipper:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        vehicle:
+          type: string
+        isAvailable:
+          type: boolean
+        branchId:
+          type: string
+    Staff:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        branchId:
+          type: string
+        isActive:
+          type: boolean
+    UserAuthRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+        role:
+          type: string
+        branchId:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        role:
+          type: string
+        branchId:
+          type: string
+        avatarUrl:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
