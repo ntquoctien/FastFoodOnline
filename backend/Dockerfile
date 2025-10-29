@@ -17,4 +17,4 @@ COPY ${SERVICE_DIR}/ ./
 EXPOSE 4000
 
 # Run the backend server
-CMD ["npm", "run", "server"]
+CMD ["npm", "run", "start"]
