@@ -75,6 +75,12 @@ app.use(
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 
+// Allow tooling (Postman, etc.) to fetch the raw OpenAPI document.
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
+
 // DB connection
 connectDB();
 
