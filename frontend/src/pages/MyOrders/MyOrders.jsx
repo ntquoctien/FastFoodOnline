@@ -28,6 +28,8 @@ const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(null);
+  const [cancelForm, setCancelForm] = useState({ orderId: null, reason: "" });
+  const [cancelling, setCancelling] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -74,6 +76,41 @@ const MyOrders = () => {
     }
   };
 
+  const startCancel = (orderId) => {
+    setCancelForm((prev) =>
+      prev.orderId === orderId ? { orderId: null, reason: "" } : { orderId, reason: "" }
+    );
+  };
+
+  const submitCancellation = async () => {
+    if (!cancelForm.orderId) return;
+    const trimmed = cancelForm.reason.trim();
+    if (!trimmed) {
+      toast.error("Please share a short reason for cancelling.");
+      return;
+    }
+    try {
+      setCancelling(cancelForm.orderId);
+      const response = await axios.patch(
+        `${url}/api/v2/orders/${cancelForm.orderId}/cancel`,
+        { reason: trimmed },
+        { headers: { token } }
+      );
+      if (response.data?.success) {
+        toast.success("Order cancelled successfully.");
+        setCancelForm({ orderId: null, reason: "" });
+        fetchOrders();
+      } else {
+        toast.error(response.data?.message || "Unable to cancel this order right now.");
+      }
+    } catch (error) {
+      console.error("Order cancel failed", error);
+      toast.error("Unable to cancel this order right now.");
+    } finally {
+      setCancelling(null);
+    }
+  };
+
   return (
     <div className="my-orders">
       <div className="my-orders-header">
@@ -97,10 +134,16 @@ const MyOrders = () => {
             const statusLabel = (order.status || "Pending").toString();
             const statusKey = buildStatusClass(statusLabel);
             const placedDate = formatDate(order.createdAt);
+            const cancelledDate = order.cancelledAt ? formatDate(order.cancelledAt) : null;
             const canonicalStatus = (order.status || "").toLowerCase();
             const canConfirmArrival = ["in_transit"].includes(canonicalStatus);
             const isDelivered = canonicalStatus === "delivered";
+            const canCancel = ["pending", "confirmed", "preparing"].includes(
+              canonicalStatus
+            );
             const isConfirming = confirming === order._id;
+            const isCancelling = cancelling === order._id;
+            const isFormVisible = cancelForm.orderId === order._id;
 
             return (
               <article key={order._id} className="order-card">
@@ -147,6 +190,16 @@ const MyOrders = () => {
                     <button type="button" className="order-action" onClick={fetchOrders}>
                       Refresh status
                     </button>
+                    {canCancel && (
+                      <button
+                        type="button"
+                        className="order-action order-cancel"
+                        onClick={() => startCancel(order._id)}
+                        disabled={isCancelling}
+                      >
+                        {isFormVisible ? "Close" : "Cancel order"}
+                      </button>
+                    )}
                     {canConfirmArrival && (
                       <button
                         type="button"
@@ -158,10 +211,62 @@ const MyOrders = () => {
                       </button>
                     )}
                   </div>
+                  {isFormVisible && (
+                    <div className="order-cancel-form">
+                      <label htmlFor={`cancel-reason-${order._id}`}>
+                        Tell us why you need to cancel:
+                      </label>
+                      <textarea
+                        id={`cancel-reason-${order._id}`}
+                        className="order-cancel-textarea"
+                        placeholder="Short note for the restaurant..."
+                        value={cancelForm.reason}
+                        onChange={(event) =>
+                          setCancelForm((prev) => ({
+                            ...prev,
+                            reason: event.target.value,
+                          }))
+                        }
+                        maxLength={500}
+                        rows={3}
+                      />
+                      <div className="order-cancel-form-actions">
+                        <button
+                          type="button"
+                          className="order-action order-cancel confirm"
+                          onClick={submitCancellation}
+                          disabled={isCancelling}
+                        >
+                          {isCancelling ? "Cancelling..." : "Confirm cancellation"}
+                        </button>
+                        <button
+                          type="button"
+                          className="order-action neutral"
+                          onClick={() => setCancelForm({ orderId: null, reason: "" })}
+                          disabled={isCancelling}
+                        >
+                          Keep order
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {isDelivered && (
                     <span className="order-delivered-note">
                       Thanks for letting us know this order arrived safely.
                     </span>
+                  )}
+                  {canonicalStatus === "cancelled" && (
+                    <div className="order-cancelled-info">
+                      <p>
+                        <strong>Cancelled</strong>
+                        {cancelledDate ? ` · ${cancelledDate}` : ""}
+                      </p>
+                      {order.cancellationReason && (
+                        <p className="order-cancelled-reason">
+                          Reason: {order.cancellationReason}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </footer>
               </article>

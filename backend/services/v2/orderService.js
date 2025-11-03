@@ -7,6 +7,50 @@ import * as deliveryRepo from "../../repositories/v2/deliveryAssignmentRepositor
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import { createPaymentUrl, verifyReturnParams } from "../../utils/vnpay.js";
+import {
+  createCheckoutSession,
+  retrieveCheckoutSession,
+} from "../../utils/stripe.js";
+import {
+  createPayment as createMomoPayment,
+  queryPaymentStatus as queryMomoPaymentStatus,
+} from "../../utils/momo.js";
+
+const buildUrlWithParams = (base, params) => {
+  if (!base) {
+    return "";
+  }
+  const hasQuery = base.includes("?");
+  const query = Object.entries(params)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+    )
+    .join("&");
+  if (!query) {
+    return base;
+  }
+  return `${base}${hasQuery ? "&" : "?"}${query}`;
+};
+
+const trimTrailingSlash = (value) => {
+  if (!value) {
+    return value;
+  }
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+};
+
+const getFrontendBaseUrl = () => {
+  const fromEnv = process.env.FRONTEND_BASE_URL;
+  if (fromEnv) {
+    return trimTrailingSlash(fromEnv);
+  }
+  return "http://localhost:5173";
+};
+
+const getStripeCurrency = () =>
+  (process.env.STRIPE_CURRENCY || "usd").toLowerCase();
 
 const calculateItems = async (items) => {
   const variantIds = items.map((item) => new mongoose.Types.ObjectId(item.variantId));
@@ -120,15 +164,34 @@ export const confirmPayment = async ({
     return { success: true, message: "Order already paid" };
   }
 
+  const existingPayment = await paymentRepo.findByOrderAndProvider(orderId, provider);
+  const resolvedAmount = Number(
+    amount ??
+      existingPayment?.amount ??
+      order.totalAmount
+  );
+  if (!Number.isFinite(resolvedAmount) || resolvedAmount <= 0) {
+    return { success: false, message: "Invalid payment amount" };
+  }
+  const fallbackTransaction =
+    meta?.paymentIntentId || meta?.sessionId || meta?.transactionId;
+  const resolvedTransactionId =
+    transactionId ||
+    existingPayment?.transactionId ||
+    fallbackTransaction ||
+    null;
+
   const paymentUpdate = {
-    transactionId,
-    amount,
+    transactionId: resolvedTransactionId ? String(resolvedTransactionId) : null,
+    amount: resolvedAmount,
     status: "success",
     paidAt: new Date(),
-    meta: meta || {},
+    meta: {
+      ...(existingPayment?.meta || {}),
+      ...(meta || {}),
+    },
   };
 
-  const existingPayment = await paymentRepo.findByOrderAndProvider(orderId, provider);
   if (existingPayment) {
     await paymentRepo.updateByOrderAndProvider(orderId, provider, paymentUpdate);
   } else {
@@ -158,6 +221,407 @@ export const confirmPayment = async ({
       assignment,
     },
   };
+};
+
+export const initializeStripePayment = async ({ orderId, amount }) => {
+  try {
+    const order = await orderRepo.findById(orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+    if (order.paymentStatus === "paid") {
+      return { success: false, message: "Order already paid" };
+    }
+
+    const paymentAmount = Number(amount || order.totalAmount);
+    if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+      return { success: false, message: "Invalid payment amount" };
+    }
+
+    const currency = getStripeCurrency();
+    const successBase =
+      process.env.STRIPE_SUCCESS_URL ||
+      `${getFrontendBaseUrl()}/verify`;
+    const cancelBase =
+      process.env.STRIPE_CANCEL_URL ||
+      `${getFrontendBaseUrl()}/order`;
+
+    const successUrl = buildUrlWithParams(successBase, {
+      provider: "stripe",
+      orderId: String(orderId),
+      session_id: "{CHECKOUT_SESSION_ID}",
+    });
+    const cancelUrl = buildUrlWithParams(cancelBase, {
+      provider: "stripe",
+      orderId: String(orderId),
+      cancelled: "1",
+    });
+
+    const session = await createCheckoutSession({
+      amount: paymentAmount,
+      currency,
+      successUrl,
+      cancelUrl,
+      customerEmail: order.address?.email,
+      metadata: {
+        orderId: String(orderId),
+        orderName: `Order ${orderId}`,
+      },
+      description: `Payment for order ${orderId}`,
+    });
+
+    const existingPayment = await paymentRepo.findByOrderAndProvider(
+      orderId,
+      "stripe"
+    );
+    const paymentPayload = {
+      transactionId: session.payment_intent
+        ? String(session.payment_intent)
+        : existingPayment?.transactionId || session.id,
+      amount: paymentAmount,
+      status: session.payment_status === "paid" ? "success" : "pending",
+      meta: {
+        ...(existingPayment?.meta || {}),
+        sessionId: session.id,
+        checkoutUrl: session.url,
+        currency,
+        paymentStatus: session.payment_status,
+      },
+    };
+    if (session.payment_status === "paid") {
+      paymentPayload.paidAt = new Date();
+    }
+
+    if (existingPayment) {
+      await paymentRepo.updateByOrderAndProvider(
+        orderId,
+        "stripe",
+        paymentPayload
+      );
+    } else {
+      await paymentRepo.create({
+        orderId,
+        provider: "stripe",
+        ...paymentPayload,
+      });
+    }
+
+    if (session.payment_status === "paid") {
+      return confirmPayment({
+        orderId,
+        provider: "stripe",
+        transactionId: session.payment_intent || session.id,
+        amount: paymentAmount,
+        meta: paymentPayload.meta,
+        order,
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        checkoutUrl: session.url,
+        sessionId: session.id,
+      },
+    };
+  } catch (error) {
+    if (error.message === "STRIPE_CONFIG_INCOMPLETE") {
+      return { success: false, message: "Stripe configuration missing" };
+    }
+    if (error.message === "STRIPE_INVALID_AMOUNT") {
+      return { success: false, message: "Invalid payment amount" };
+    }
+    console.error("Stripe initialise error", error);
+    return { success: false, message: "Failed to initialise Stripe payment" };
+  }
+};
+
+export const verifyStripePayment = async ({ sessionId, orderId }) => {
+  try {
+    if (!sessionId) {
+      return { success: false, message: "Missing Stripe session identifier" };
+    }
+    const session = await retrieveCheckoutSession(sessionId);
+    if (!session) {
+      return { success: false, message: "Stripe session not found" };
+    }
+
+    const derivedOrderId =
+      orderId ||
+      session.metadata?.orderId ||
+      session.client_reference_id;
+    if (!derivedOrderId) {
+      return { success: false, message: "Unable to match session to order" };
+    }
+
+    const order = await orderRepo.findById(derivedOrderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+
+    const existingPayment = await paymentRepo.findByOrderAndProvider(
+      derivedOrderId,
+      "stripe"
+    );
+    const rawAmountTotal = Number(session.amount_total ?? 0);
+    const paymentAmount =
+      rawAmountTotal > 0 ? rawAmountTotal / 100 : undefined;
+
+    const paymentMeta = {
+      ...(existingPayment?.meta || {}),
+      sessionId: session.id,
+      paymentStatus: session.payment_status,
+      customerEmail: session.customer_details?.email,
+      checkoutUrl: existingPayment?.meta?.checkoutUrl || session.url,
+    };
+    const paymentPayload = {
+      transactionId: session.payment_intent
+        ? String(session.payment_intent)
+        : existingPayment?.transactionId || session.id,
+      amount:
+        paymentAmount ??
+        existingPayment?.amount ??
+        order.totalAmount,
+      status: session.payment_status === "paid" ? "success" : "pending",
+      meta: paymentMeta,
+    };
+    if (session.payment_status === "paid") {
+      paymentPayload.paidAt = new Date();
+    }
+
+    if (existingPayment) {
+      await paymentRepo.updateByOrderAndProvider(
+        derivedOrderId,
+        "stripe",
+        paymentPayload
+      );
+    } else {
+      await paymentRepo.create({
+        orderId: derivedOrderId,
+        provider: "stripe",
+        ...paymentPayload,
+      });
+    }
+
+    if (session.payment_status !== "paid") {
+      return {
+        success: false,
+        message: "Stripe payment not completed",
+        data: {
+          orderId: derivedOrderId,
+          paymentStatus: session.payment_status,
+        },
+      };
+    }
+
+    const confirmResult = await confirmPayment({
+      orderId: derivedOrderId,
+      provider: "stripe",
+      transactionId: session.payment_intent || session.id,
+      amount: paymentAmount,
+      meta: {
+        ...paymentMeta,
+        paymentIntentStatus: session.payment_status,
+      },
+      order,
+    });
+
+    return {
+      ...confirmResult,
+      data: {
+        ...(confirmResult.data || {}),
+        orderId: derivedOrderId,
+        paymentStatus: session.payment_status,
+      },
+    };
+  } catch (error) {
+    if (error.message === "STRIPE_CONFIG_INCOMPLETE") {
+      return { success: false, message: "Stripe configuration missing" };
+    }
+    console.error("Stripe verify error", error);
+    return { success: false, message: "Failed to verify Stripe payment" };
+  }
+};
+
+export const initializeMomoPayment = async ({ orderId, amount }) => {
+  try {
+    const order = await orderRepo.findById(orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+    if (order.paymentStatus === "paid") {
+      return { success: false, message: "Order already paid" };
+    }
+
+    const paymentAmount = Number(amount || order.totalAmount);
+    if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+      return { success: false, message: "Invalid payment amount" };
+    }
+
+    const redirectBase =
+      process.env.MOMO_REDIRECT_URL ||
+      `${getFrontendBaseUrl()}/verify`;
+    const redirectUrl = buildUrlWithParams(redirectBase, {
+      provider: "momo",
+      orderId: String(orderId),
+    });
+
+    const momoInit = await createMomoPayment({
+      orderId: String(orderId),
+      amount: paymentAmount,
+      orderInfo: `Payment for order ${orderId}`,
+      redirectUrl,
+      ipnUrl: process.env.MOMO_IPN_URL,
+    });
+
+    const { data } = momoInit;
+    const existingPayment = await paymentRepo.findByOrderAndProvider(
+      orderId,
+      "momo"
+    );
+
+    const paymentMeta = {
+      ...(existingPayment?.meta || {}),
+      requestId: momoInit.requestId,
+      payUrl: data.payUrl,
+      deeplink: data.deeplink,
+      qrCodeUrl: data.qrCodeUrl,
+      signature: data.signature,
+      message: data.message,
+      resultCode: data.resultCode,
+    };
+
+    const paymentPayload = {
+      transactionId: existingPayment?.transactionId || null,
+      amount: paymentAmount,
+      status: "pending",
+      meta: paymentMeta,
+    };
+
+    if (existingPayment) {
+      await paymentRepo.updateByOrderAndProvider(
+        orderId,
+        "momo",
+        paymentPayload
+      );
+    } else {
+      await paymentRepo.create({
+        orderId,
+        provider: "momo",
+        ...paymentPayload,
+      });
+    }
+
+    if (Number(data.resultCode) !== 0 || !data.payUrl) {
+      return {
+        success: false,
+        message: data.message || "Failed to initialise MoMo payment",
+        data,
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        payUrl: data.payUrl,
+        deeplink: data.deeplink,
+        qrCodeUrl: data.qrCodeUrl,
+        requestId: momoInit.requestId,
+      },
+    };
+  } catch (error) {
+    if (error.message === "MOMO_CONFIG_INCOMPLETE") {
+      return { success: false, message: "MoMo configuration missing" };
+    }
+    if (error.message === "MOMO_INVALID_AMOUNT") {
+      return { success: false, message: "Invalid payment amount" };
+    }
+    console.error("MoMo initialise error", error);
+    return { success: false, message: "Failed to initialise MoMo payment" };
+  }
+};
+
+export const verifyMomoPayment = async ({ orderId, requestId }) => {
+  try {
+    if (!orderId) {
+      return { success: false, message: "Missing order identifier" };
+    }
+    const order = await orderRepo.findById(orderId);
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+    const paymentRecord = await paymentRepo.findByOrderAndProvider(
+      orderId,
+      "momo"
+    );
+    if (!paymentRecord) {
+      return { success: false, message: "MoMo payment not initialised" };
+    }
+
+    const effectiveRequestId =
+      requestId || paymentRecord.meta?.requestId;
+    if (!effectiveRequestId) {
+      return { success: false, message: "MoMo request not found" };
+    }
+
+    const queryResult = await queryMomoPaymentStatus({
+      orderId: String(orderId),
+      requestId: effectiveRequestId,
+    });
+
+    const resultCode = Number(queryResult.resultCode);
+    const paymentMeta = {
+      ...(paymentRecord.meta || {}),
+      queryResult,
+    };
+
+    if (resultCode !== 0) {
+      await paymentRepo.updateByOrderAndProvider(orderId, "momo", {
+        status: "failed",
+        meta: paymentMeta,
+      });
+      return {
+        success: false,
+        message: queryResult.message || "MoMo payment not completed",
+        data: {
+          orderId,
+          resultCode,
+        },
+      };
+    }
+
+    const transactionId =
+      queryResult.transId ||
+      queryResult.requestId ||
+      paymentRecord.transactionId;
+    const amount =
+      Number(queryResult.amount || paymentRecord.amount) || order.totalAmount;
+
+    const confirmResult = await confirmPayment({
+      orderId,
+      provider: "momo",
+      transactionId,
+      amount,
+      meta: paymentMeta,
+      order,
+    });
+
+    return {
+      ...confirmResult,
+      data: {
+        ...(confirmResult.data || {}),
+        orderId,
+        resultCode,
+        transId: queryResult.transId,
+      },
+    };
+  } catch (error) {
+    if (error.message === "MOMO_CONFIG_INCOMPLETE") {
+      return { success: false, message: "MoMo configuration missing" };
+    }
+    console.error("MoMo verify error", error);
+    return { success: false, message: "Failed to verify MoMo payment" };
+  }
 };
 
 export const initializeVnpayPayment = async ({ orderId, amount, ipAddress }) => {
@@ -286,7 +750,14 @@ export const listAllOrders = async ({ role, branchId, queryBranchId }) => {
   return { success: true, data: orders };
 };
 
-export const updateStatus = async ({ orderId, status, actorId, role, branchId }) => {
+export const updateStatus = async ({
+  orderId,
+  status,
+  actorId,
+  role,
+  branchId,
+  cancellationReason,
+}) => {
   const existing = await orderRepo.findById(orderId);
   if (!existing) {
     return { success: false, message: "Order not found" };
@@ -299,7 +770,23 @@ export const updateStatus = async ({ orderId, status, actorId, role, branchId })
     }
   }
 
-  const order = await orderRepo.updateById(orderId, { status });
+  const updatePayload = { status };
+  if (status === "cancelled") {
+    updatePayload.cancelledAt = new Date();
+    updatePayload.cancelledBy = actorId || existing.userId;
+    if (typeof cancellationReason === "string") {
+      const trimmed = cancellationReason.trim();
+      if (trimmed) {
+        updatePayload.cancellationReason = trimmed.slice(0, 500);
+      } else {
+        updatePayload.cancellationReason = "";
+      }
+    } else if (!existing.cancellationReason) {
+      updatePayload.cancellationReason = "";
+    }
+  }
+
+  const order = await orderRepo.updateById(orderId, updatePayload);
 
   await orderRepo.pushTimeline(orderId, {
     status,
@@ -327,6 +814,30 @@ export const updateStatus = async ({ orderId, status, actorId, role, branchId })
     }
   }
   return { success: true, data: order };
+};
+
+export const cancelOrder = async ({ orderId, userId, reason }) => {
+  const order = await orderRepo.findById(orderId);
+  if (!order) {
+    return { success: false, message: "Order not found" };
+  }
+  const ownerId = order.userId?._id || order.userId;
+  if (!userId || String(ownerId) !== String(userId)) {
+    throw new Error("NOT_AUTHORISED");
+  }
+
+  const cancellableStatuses = ["pending", "confirmed", "preparing"];
+  if (!cancellableStatuses.includes(order.status)) {
+    return { success: false, message: "Order cannot be cancelled at this stage" };
+  }
+
+  return updateStatus({
+    orderId,
+    status: "cancelled",
+    actorId: userId,
+    role: "admin",
+    cancellationReason: reason,
+  });
 };
 
 export const confirmReceipt = async ({ orderId, userId }) => {
@@ -357,11 +868,16 @@ export const confirmReceipt = async ({ orderId, userId }) => {
 export default {
   createOrder,
   confirmPayment,
+  initializeStripePayment,
+  verifyStripePayment,
+  initializeMomoPayment,
+  verifyMomoPayment,
   initializeVnpayPayment,
   verifyVnpayPayment,
   listUserOrders,
   listAllOrders,
   updateStatus,
+  cancelOrder,
   confirmReceipt,
 };
 

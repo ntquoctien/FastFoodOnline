@@ -1,12 +1,28 @@
-﻿import * as menuService from "../../services/v2/menuService.js";
+import * as menuService from "../../services/v2/menuService.js";
 import * as userRepo from "../../repositories/userRepository.js";
 import * as categoryService from "../../services/v2/categoryService.js";
+
+const BRANCH_MANAGER_ROLES = ["manager", "branch_manager"];
 
 const ensureAdmin = async (userId) => {
   const user = await userRepo.findById(userId);
   if (!user || user.role !== "admin") {
     throw new Error("NOT_AUTHORISED");
   }
+};
+
+const ensureMenuManager = async (userId) => {
+  const user = await userRepo.findById(userId);
+  if (!user) {
+    throw new Error("NOT_AUTHORISED");
+  }
+  if (user.role === "admin") {
+    return { role: "admin" };
+  }
+  if (["manager", "branch_manager"].includes(user.role) && user.branchId) {
+    return { role: "branch_manager", branchId: user.branchId };
+  }
+  throw new Error("NOT_AUTHORISED");
 };
 
 const handleUnauthorised = (res) =>
@@ -136,12 +152,13 @@ export const setFoodStatus = async (req, res) => {
 
 export const setVariantStatus = async (req, res) => {
   try {
-    await ensureAdmin(req.userId || req.body.userId);
+    const context = await ensureMenuManager(req.userId || req.body.userId);
     const { variantId } = req.params;
     const { isActive } = req.body;
     const result = await menuService.setVariantSaleStatus({
       variantId,
       isActive: Boolean(isActive),
+      context,
     });
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
@@ -157,10 +174,14 @@ export const setVariantStatus = async (req, res) => {
 
 export const updateVariant = async (req, res) => {
   try {
-    await ensureAdmin(req.userId || req.body.userId);
+    const context = await ensureMenuManager(req.userId || req.body.userId);
     const { variantId } = req.params;
     const { price } = req.body;
-    const result = await menuService.updateVariantDetails({ variantId, price });
+    const result = await menuService.updateVariantDetails({
+      variantId,
+      price,
+      context,
+    });
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
     if (error.message === "NOT_AUTHORISED") {
@@ -173,9 +194,9 @@ export const updateVariant = async (req, res) => {
 
 export const removeVariant = async (req, res) => {
   try {
-    await ensureAdmin(req.userId || req.body.userId);
+    const context = await ensureMenuManager(req.userId || req.body.userId);
     const { variantId } = req.params;
-    const result = await menuService.deleteVariant({ variantId });
+    const result = await menuService.deleteVariant({ variantId, context });
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
     if (error.message === "NOT_AUTHORISED") {

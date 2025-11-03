@@ -4,7 +4,14 @@ import { assets } from "../../assets/frontend_assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 
 const FoodItem = ({ food }) => {
-  const { cartItems, addToCart, removeFromCart, url, variantMap } =
+  const {
+    cartItems,
+    addToCart,
+    removeFromCart,
+    url,
+    variantMap,
+    selectedBranchId,
+  } =
     useContext(StoreContext);
   const variants = food?.variants || [];
 
@@ -91,11 +98,19 @@ const FoodItem = ({ food }) => {
             value={selectedVariantId || ""}
             onChange={(event) => setSelectedVariantId(event.target.value)}
           >
-            {variants.map((variant) => (
-              <option key={variant._id} value={variant._id}>
-                {variant.size} - ${variant.price.toFixed(2)}
-              </option>
-            ))}
+            {variants.map((variant) => {
+              const sizeLabel = variant.size || "Regular";
+              const priceLabel = `$${variant.price.toFixed(2)}`;
+              const branchLabel =
+                selectedBranchId === "all" && variant.branchName
+                  ? ` (${variant.branchName})`
+                  : "";
+              return (
+                <option key={variant._id} value={variant._id}>
+                  {`${sizeLabel} - ${priceLabel}${branchLabel}`}
+                </option>
+              );
+            })}
           </select>
         )}
         <p className="food-item-price">${price.toFixed(2)}</p>

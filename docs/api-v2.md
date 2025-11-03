@@ -44,6 +44,20 @@ Authentication: Most endpoints require JWT via `Authorization: Bearer <token>` a
 - GET `/pay/vnpay/verify`
   - Desc: Verify VNPAY return payload (query parameters from VNPAY redirect).
   - Auth: Public (HMAC signature is verified server-side).
+- POST `/pay/stripe`
+  - Desc: Initialize Stripe Checkout session and return redirect URL for card payments.
+  - Auth: User.
+  - Body: `{ orderId, amount }`
+- GET `/pay/stripe/verify`
+  - Desc: Verify Stripe checkout session (`session_id` / `sessionId`) and confirm payment.
+  - Auth: Public (server validates the session with Stripe).
+- POST `/pay/momo`
+  - Desc: Initialize MoMo payment request and return the wallet checkout URL.
+  - Auth: User.
+  - Body: `{ orderId, amount }`
+- GET `/pay/momo/verify`
+  - Desc: Verify MoMo payment status using the stored requestId.
+  - Auth: Public.
 - GET `/`
   - Desc: List all orders. If role is admin/branch_manager, can filter by `?branchId=`.
   - Auth: Authenticated.

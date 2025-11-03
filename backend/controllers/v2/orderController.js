@@ -100,6 +100,65 @@ export const verifyVnpayPayment = async (req, res) => {
   }
 };
 
+export const initializeStripePayment = async (req, res) => {
+  try {
+    const { orderId, amount } = req.body;
+    const result = await orderService.initializeStripePayment({
+      orderId,
+      amount,
+    });
+    res.json(result);
+  } catch (error) {
+    console.error("Order v2 init Stripe payment error", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to initialise Stripe payment" });
+  }
+};
+
+export const verifyStripePayment = async (req, res) => {
+  try {
+    const sessionId = req.query.sessionId || req.query.session_id;
+    const { orderId } = req.query;
+    const result = await orderService.verifyStripePayment({
+      sessionId,
+      orderId,
+    });
+    res.json(result);
+  } catch (error) {
+    console.error("Order v2 verify Stripe error", error);
+    res.status(500).json({ success: false, message: "Failed to verify Stripe payment" });
+  }
+};
+
+export const initializeMomoPayment = async (req, res) => {
+  try {
+    const { orderId, amount } = req.body;
+    const result = await orderService.initializeMomoPayment({
+      orderId,
+      amount,
+    });
+    res.json(result);
+  } catch (error) {
+    console.error("Order v2 init MoMo payment error", error);
+    res.status(500).json({ success: false, message: "Failed to initialise MoMo payment" });
+  }
+};
+
+export const verifyMomoPayment = async (req, res) => {
+  try {
+    const { orderId, requestId } = req.query;
+    const result = await orderService.verifyMomoPayment({
+      orderId,
+      requestId,
+    });
+    res.json(result);
+  } catch (error) {
+    console.error("Order v2 verify MoMo error", error);
+    res.status(500).json({ success: false, message: "Failed to verify MoMo payment" });
+  }
+};
+
 export const listUserOrders = async (req, res) => {
   try {
     const userId = req.body.userId || req.userId;
@@ -145,6 +204,22 @@ export const updateStatus = async (req, res) => {
   }
 };
 
+export const cancelOrder = async (req, res) => {
+  try {
+    const userId = req.userId || req.body.userId;
+    const { orderId } = req.params;
+    const { reason } = req.body || {};
+    const result = await orderService.cancelOrder({
+      orderId,
+      userId,
+      reason,
+    });
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    handleCommonError(res, error, "Order v2 cancel error");
+  }
+};
+
 export const confirmReceipt = async (req, res) => {
   try {
     const userId = req.userId || req.body.userId;
@@ -160,9 +235,14 @@ export default {
   createOrder,
   confirmPayment,
   initializeVnpayPayment,
+  initializeStripePayment,
+  initializeMomoPayment,
   verifyVnpayPayment,
+  verifyStripePayment,
+  verifyMomoPayment,
   listUserOrders,
   listAllOrders,
   updateStatus,
+  cancelOrder,
   confirmReceipt,
 };

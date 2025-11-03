@@ -137,6 +137,125 @@ paths:
       responses:
         "200":
           description: Payment confirmation processed.
+  /api/v2/orders/pay/stripe:
+    post:
+      tags:
+        - Orders
+      summary: Initiate a Stripe Checkout session.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orderId
+              properties:
+                orderId:
+                  type: string
+                amount:
+                  type: number
+                  format: double
+                  description: Optional override of order total.
+      responses:
+        "200":
+          description: Stripe Checkout session created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      checkoutUrl:
+                        type: string
+                        format: uri
+                      sessionId:
+                        type: string
+  /api/v2/orders/pay/stripe/verify:
+    get:
+      tags:
+        - Orders
+      summary: Verify Stripe Checkout session result.
+      parameters:
+        - in: query
+          name: sessionId
+          schema:
+            type: string
+          description: Stripe Checkout Session identifier (session_id).
+        - in: query
+          name: orderId
+          schema:
+            type: string
+          description: Optional order identifier; metadata is used as a fallback.
+      responses:
+        "200":
+          description: Verification outcome.
+  /api/v2/orders/pay/momo:
+    post:
+      tags:
+        - Orders
+      summary: Initiate a MoMo payment session.
+      security:
+        - TokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orderId
+              properties:
+                orderId:
+                  type: string
+                amount:
+                  type: number
+                  format: double
+                  description: Optional override of order total.
+      responses:
+        "200":
+          description: MoMo payment link generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      payUrl:
+                        type: string
+                        format: uri
+                      requestId:
+                        type: string
+  /api/v2/orders/pay/momo/verify:
+    get:
+      tags:
+        - Orders
+      summary: Verify MoMo payment result.
+      parameters:
+        - in: query
+          name: orderId
+          schema:
+            type: string
+          required: true
+          description: Original order identifier used during payment creation.
+        - in: query
+          name: requestId
+          schema:
+            type: string
+          description: Optional MoMo requestId; stored value is used if omitted.
+      responses:
+        "200":
+          description: Verification outcome.
   /api/v2/orders/pay/vnpay:
     post:
       tags:

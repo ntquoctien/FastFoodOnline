@@ -45,6 +45,18 @@ const PlaceOrder = () => {
       badge: "CA",
     },
     {
+      id: "stripe",
+      title: "Credit / Debit Card (Stripe)",
+      description: "Pay securely using international cards processed by Stripe.",
+      badge: "CC",
+    },
+    {
+      id: "momo",
+      title: "MoMo E-wallet",
+      description: "Fast checkout with the MoMo wallet and QR support.",
+      badge: "MO",
+    },
+    {
       id: "vnpay",
       title: "VNPAY QR",
       description: "Pay instantly via VNPAY QR / mobile app.",
@@ -169,6 +181,50 @@ const PlaceOrder = () => {
         } else {
           toast.error(paymentResponse.data.message || "Unable to confirm payment");
         }
+      } else if (paymentMethod === "stripe") {
+        const initResponse = await axios.post(
+          `${url}/api/v2/orders/pay/stripe`,
+          {
+            orderId,
+            amount,
+          },
+          { headers: { token } }
+        );
+        if (!initResponse.data.success) {
+          toast.error(initResponse.data.message || "Unable to initiate Stripe payment");
+          return;
+        }
+        const checkoutUrl = initResponse.data.data?.checkoutUrl;
+        if (!checkoutUrl) {
+          toast.error("Stripe checkout URL not received");
+          return;
+        }
+        sessionStorage.setItem("pendingOrderId", orderId);
+        toast.info("Redirecting to Stripe...", { autoClose: 1500 });
+        window.location.href = checkoutUrl;
+        return;
+      } else if (paymentMethod === "momo") {
+        const initResponse = await axios.post(
+          `${url}/api/v2/orders/pay/momo`,
+          {
+            orderId,
+            amount,
+          },
+          { headers: { token } }
+        );
+        if (!initResponse.data.success) {
+          toast.error(initResponse.data.message || "Unable to initiate MoMo payment");
+          return;
+        }
+        const payUrl = initResponse.data.data?.payUrl;
+        if (!payUrl) {
+          toast.error("MoMo payment URL not received");
+          return;
+        }
+        sessionStorage.setItem("pendingOrderId", orderId);
+        toast.info("Redirecting to MoMo...", { autoClose: 1500 });
+        window.location.href = payUrl;
+        return;
       } else {
         const initResponse = await axios.post(
           `${url}/api/v2/orders/pay/vnpay`,
