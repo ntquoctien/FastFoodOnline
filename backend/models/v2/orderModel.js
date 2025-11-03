@@ -51,6 +51,9 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "confirmed", "preparing", "in_transit", "delivered", "cancelled"],
       default: "pending",
     },
+    cancellationReason: { type: String, maxlength: 500 },
+    cancelledAt: { type: Date },
+    cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "paid", "refunded"],

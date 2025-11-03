@@ -14,6 +14,8 @@ This repository hosts the source code for TOMATO, a dynamic food ordering websit
 - JWT Authentication
 - Password Hashing with Bcrypt
 - VNPAY Payment Integration
+- Stripe Payment Integration
+- MoMo Payment Integration
 - Login/Signup
 - Logout
 - Add to Cart
@@ -97,6 +99,20 @@ Setup Environment Vaiables
   VNPAY_HASH_SECRET=YOUR_HASH_SECRET
   VNPAY_RETURN_URL=http://localhost:5173/verify
   VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  STRIPE_SECRET_KEY=YOUR_STRIPE_SECRET_KEY
+  STRIPE_SUCCESS_URL=http://localhost:5173/verify
+  STRIPE_CANCEL_URL=http://localhost:5173/order
+  STRIPE_CURRENCY=usd
+  FRONTEND_BASE_URL=http://localhost:5173
+  MOMO_PARTNER_CODE=YOUR_MOMO_PARTNER_CODE
+  MOMO_ACCESS_KEY=YOUR_MOMO_ACCESS_KEY
+  MOMO_SECRET_KEY=YOUR_MOMO_SECRET_KEY
+  MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+  MOMO_QUERY_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/query
+  MOMO_REDIRECT_URL=http://localhost:5173/verify
+  MOMO_IPN_URL=
+  MOMO_REQUEST_TYPE=captureWallet
+  MOMO_LANG=vi
  ```
 
 Setup the Frontend and Backend URL
@@ -143,6 +159,8 @@ The script uses `backend/.env` for connection settings and updates/creates the s
 * [Express.js](https://expressjs.com/)
 * [Mongodb](https://www.mongodb.com/)
 * [VNPAY Sandbox](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html)
+* [Stripe](https://stripe.com/)
+* [MoMo](https://developers.momo.vn/)
 * [JWT-Authentication](https://jwt.io/introduction)
 * [Multer](https://www.npmjs.com/package/multer)
 

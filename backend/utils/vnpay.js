@@ -39,15 +39,30 @@ const toVnpayAmount = (amount) => {
   return Math.round(numericAmount * 100);
 };
 
+const VNPAY_TIMEZONE = "Asia/Ho_Chi_Minh";
+
 const formatDate = (date) => {
-  const pad = (value) => String(value).padStart(2, "0");
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  // VNPAY expects timestamps in GMT+7 regardless of server locale
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: VNPAY_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date).reduce((acc, part) => {
+    if (part.type !== "literal") {
+      acc[part.type] = part.value;
+    }
+    return acc;
+  }, {});
+
+  const { year, month, day, hour, minute, second } = parts;
+  return `${year}${month}${day}${hour}${minute}${second}`;
 };
 
 const buildSignData = (params) => {

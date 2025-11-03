@@ -125,18 +125,17 @@ export const createStaff = async ({
   branchId,
 }) => {
   const context = await getRequesterContext(userId);
-  if (context.type !== "admin") {
-    const error = new Error("NOT_AUTHORISED");
-    throw error;
-  }
-
-  if (!name?.trim()) {
+  const trimmedName = name?.trim();
+  if (!trimmedName) {
     return { success: false, message: "Name is required" };
   }
-  if (!validator.isEmail(email || "")) {
+  const normalisedEmail = (email || "").trim().toLowerCase();
+  if (!validator.isEmail(normalisedEmail)) {
     return { success: false, message: "Please enter a valid email" };
   }
-  if (!STAFF_ROLES.includes(role)) {
+  const allowedRoles =
+    context.type === "branch_manager" ? MANAGEABLE_STAFF_ROLES : STAFF_ROLES;
+  if (!allowedRoles.includes(role)) {
     return { success: false, message: "Invalid staff role" };
   }
   if (!password || password.length < 8) {
@@ -146,13 +145,20 @@ export const createStaff = async ({
     };
   }
 
-  const existing = await userRepo.findOneByEmail(email);
+  const existing = await userRepo.findOneByEmail(normalisedEmail);
   if (existing) {
     return { success: false, message: "Email is already in use" };
   }
 
   let branch = null;
-  if (branchId) {
+  if (context.type === "branch_manager") {
+    const managerBranchId = context.requester.branchId;
+    if (!managerBranchId) {
+      const error = new Error("NOT_AUTHORISED");
+      throw error;
+    }
+    branch = await ensureBranch(managerBranchId);
+  } else if (branchId) {
     branch = await ensureBranch(branchId);
   }
 
@@ -160,8 +166,8 @@ export const createStaff = async ({
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const created = await userRepo.createUser({
-    name: name.trim(),
-    email: email.toLowerCase(),
+    name: trimmedName,
+    email: normalisedEmail,
     password: hashedPassword,
     role,
     branchId: branch?._id,

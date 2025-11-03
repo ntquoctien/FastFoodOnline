@@ -5,6 +5,20 @@ import * as foodRepo from "../../repositories/v2/foodRepository.js";
 import * as foodVariantRepo from "../../repositories/v2/foodVariantRepository.js";
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 
+const normaliseId = (value) =>
+  value && typeof value.toString === "function" ? value.toString() : value ?? null;
+
+const ensureVariantAccess = (context, variant) => {
+  if (!context || context.role === "admin") {
+    return;
+  }
+  const managerBranchId = normaliseId(context.branchId);
+  const variantBranchId = normaliseId(variant.branchId);
+  if (!managerBranchId || !variantBranchId || managerBranchId !== variantBranchId) {
+    throw new Error("NOT_AUTHORISED");
+  }
+};
+
 export const getDefaultMenu = async ({ branchId, includeInactive = false } = {}) => {
   const restaurant =
     (await restaurantRepo.findOne({ isActive: true })) ||
@@ -247,11 +261,12 @@ export const setFoodSaleStatus = async ({ foodId, isActive }) => {
   return { success: true };
 };
 
-export const setVariantSaleStatus = async ({ variantId, isActive }) => {
+export const setVariantSaleStatus = async ({ variantId, isActive, context }) => {
   const variant = await foodVariantRepo.findById(variantId);
   if (!variant) {
     return { success: false, message: "Variant not found" };
   }
+  ensureVariantAccess(context, variant);
 
   if (!isActive) {
     await foodVariantRepo.updateById(variantId, {
@@ -276,11 +291,12 @@ export const setVariantSaleStatus = async ({ variantId, isActive }) => {
   return { success: true, data: { quantity } };
 };
 
-export const updateVariantDetails = async ({ variantId, price }) => {
+export const updateVariantDetails = async ({ variantId, price, context }) => {
   const variant = await foodVariantRepo.findById(variantId);
   if (!variant) {
     return { success: false, message: "Variant not found" };
   }
+  ensureVariantAccess(context, variant);
   const update = {};
   if (price !== undefined) {
     const parsed = Number(price);
@@ -296,11 +312,12 @@ export const updateVariantDetails = async ({ variantId, price }) => {
   return { success: true, data: updated };
 };
 
-export const deleteVariant = async ({ variantId }) => {
+export const deleteVariant = async ({ variantId, context }) => {
   const variant = await foodVariantRepo.findById(variantId);
   if (!variant) {
     return { success: false, message: "Variant not found" };
   }
+  ensureVariantAccess(context, variant);
   await foodVariantRepo.deleteById(variantId);
   await inventoryRepo.deleteByVariantIds([variantId]);
   return { success: true };

@@ -9,7 +9,7 @@ const paymentSchema = new mongoose.Schema(
     },
     provider: {
       type: String,
-      enum: ["vnpay", "momo", "zalopay", "cash", "card"],
+      enum: ["vnpay", "stripe", "momo", "zalopay", "cash", "card"],
       required: true,
     },
     transactionId: { type: String },
