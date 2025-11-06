@@ -22,10 +22,26 @@ const port =process.env.PORT || 4000;
 //middlewares
 app.use(express.json());
 app.use(cors());
+<<<<<<< Updated upstream
+=======
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, { explorer: true })
+);
+>>>>>>> Stashed changes
 
 // DB connection
 connectDB();
 
+<<<<<<< Updated upstream
+=======
+// Allow tooling (Postman, etc.) to fetch the raw OpenAPI document.
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
+>>>>>>> Stashed changes
 // api endpoints
 app.use("/api/food", foodRouter);
 app.use("/images", express.static("uploads"));
