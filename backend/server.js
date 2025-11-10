@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
-import "dotenv/config";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import menuV2Router from "./routes/menuV2Route.js";
@@ -23,6 +22,7 @@ import restaurantV2Router from "./routes/restaurantV2Route.js";
 // app config
 const app = express();
 const port = process.env.PORT || 4000;
+<<<<<<< Updated upstream
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -65,10 +65,13 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+=======
+>>>>>>> Stashed changes
 
-//middlewares
+// middlewares
 app.use(express.json());
 app.use(cors());
+<<<<<<< Updated upstream
 app.use(
   "/api-docs",
   swaggerUi.serve,
@@ -81,6 +84,9 @@ app.get("/api-docs.json", (req, res) => {
   res.send(swaggerSpec);
 });
 
+=======
+
+>>>>>>> Stashed changes
 // DB connection
 connectDB();
 

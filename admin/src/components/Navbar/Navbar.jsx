@@ -27,7 +27,7 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const apiBaseUrl =
-    import.meta.env.VITE_API_URL || "https://food-delivery-backend-5b6g.onrender.com";
+    import.meta.env.VITE_API_URL || "http://localhost:4000";
 
   const roleLabel = useMemo(() => {
     if (!role) return "Guest";

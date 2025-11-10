@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import validator from "validator";
 import fs from "fs/promises";
 import path from "path";
@@ -181,4 +181,3 @@ export const updateProfile = async ({
 };
 
 export default { login, register, getProfile, updateProfile };
-

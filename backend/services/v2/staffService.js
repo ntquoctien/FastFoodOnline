@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import validator from "validator";
 import * as userRepo from "../../repositories/userRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";

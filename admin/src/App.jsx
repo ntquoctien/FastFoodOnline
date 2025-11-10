@@ -22,7 +22,7 @@ import { StoreContext } from "./context/StoreContext";
 
 const App = () => {
   const apiBaseUrl =
-    import.meta.env.VITE_API_URL || "https://food-delivery-backend-5b6g.onrender.com";
+    import.meta.env.VITE_API_URL || "http://localhost:4000";
   const { token, role } = useContext(StoreContext);
 
   if (!token) {

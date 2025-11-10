@@ -20,17 +20,15 @@ services:
       args:
         SERVICE_DIR: .
     restart: unless-stopped
-    depends_on:
-      mongo:
-        condition: service_healthy
     env_file:
       - ./backend/.env
-    environment:
-      MONGO_URL: mongodb://mongo:27017/fooddeliverydb
     ports:
       - "4000:4000"
     volumes:
       - ./backend/uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
 
   frontend:
     build:

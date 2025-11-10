@@ -59,14 +59,6 @@ Ngày cập nhật: 2025-10-21
   - PUT `/:branchId`: Cập nhật chi nhánh.
   - DELETE `/:branchId`: Xóa chi nhánh.
 
-### 3.3 Seed dữ liệu & tài khoản mặc định
-- Script: `backend/scripts/seedV2.js`.
-- Tạo 1 Restaurant "Tomato Express", 2 Branch (Central Kitchen, Downtown Hub), 2 Category (Pizza, Beverages), 3 Food (Margherita, Pepperoni, Lemonade) và nhiều FoodVariant.
-- Tài khoản mặc định:
-  - Admin: email `admin@example.com`, mật khẩu `admin1234`.
-  - Quản lý chi nhánh: `branch.manager@example.com`, mật khẩu `branch1234`, gắn `Central Kitchen`.
-  - Khách hàng: `user@example.com`, mật khẩu `user1234`.
-
 ## 4. Frontend & Admin
 - Công nghệ: React 18, Vite 5, react-router-dom, axios, react-toastify.
 - Frontend: cổng 5173. Admin: cổng 5174. Cấu hình qua biến `VITE_API_URL`.
@@ -78,13 +70,10 @@ Ngày cập nhật: 2025-10-21
 - Yêu cầu: Docker Desktop.
 - Tại thư mục gốc dự án, chạy: `docker compose up -d --build`.
 - Truy cập: Backend http://localhost:4000, Frontend http://localhost:5173, Admin http://localhost:5174, MongoDB cổng 27017.
-- Seed dữ liệu (tuỳ chọn, khi chạy local Node): dùng script seedV2 (xem 5.2).
-
 ### 5.2 Chạy local bằng Node.js
 - Yêu cầu: Node 18+, MongoDB đang chạy (hoặc dùng Docker service `mongo`).
 - Backend: đặt `.env` với `MONGO_URL`, `PORT`, `SALT`. Chạy `npm i` rồi `npm run server` trong thư mục `backend/`.
 - Frontend/Admin: trong mỗi thư mục `frontend/` và `admin/`, chạy `npm i` rồi `npm run dev`.
-- Seed: trong `backend/`, đảm bảo `.env` hợp lệ, chạy `node scripts/seedV2.js`.
 
 ## 6. Bảo mật & phân quyền (tóm tắt)
 - Xác thực: JWT qua middleware `auth.js` cho các router v2.
@@ -94,4 +83,3 @@ Ngày cập nhật: 2025-10-21
 ## 7. Phụ lục
 - Danh mục dependencies Backend: bcrypt, body-parser, cors, dotenv, express, jsonwebtoken, mongoose, multer, nodemon, validator.
 - Cổng dịch vụ mặc định: 4000 (API), 5173 (frontend), 5174 (admin), 27017 (MongoDB).
-

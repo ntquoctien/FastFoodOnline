@@ -23,7 +23,7 @@ const Categories = ({ url }) => {
     () =>
       url ||
       import.meta.env.VITE_API_URL ||
-      "https://food-delivery-backend-5b6g.onrender.com",
+      "http://localhost:4000",
     [url]
   );
   const [categories, setCategories] = useState([]);

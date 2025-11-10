@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import validator from "validator";
 import * as shipperRepo from "../../repositories/v2/shipperRepository.js";
 import * as userRepo from "../../repositories/userRepository.js";

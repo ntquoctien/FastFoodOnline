@@ -55,7 +55,7 @@ Xem sơ đồ tổng quan và ERD trong `docs/diagrams.md` (Mermaid: kiến trú
 5. Tồn kho theo chi nhánh và biến thể; cập nhật và kiểm soát số lượng thực tế.
 6. Thanh toán VNPAY: tạo intent, xác nhận; lưu Payment liên kết Order.
 7. Quản trị chi nhánh, danh mục, món ăn, nhân sự/shipper; xem danh sách và cập nhật trạng thái.
-8. Docker Compose khởi chạy đầy đủ stack; script seed dữ liệu mẫu.
+8. Docker Compose khởi chạy đầy đủ stack; MongoDB Atlas hoặc container nội bộ làm nguồn dữ liệu.
 
 Future considerations:
 
@@ -112,7 +112,7 @@ Future considerations:
 
 | TARGET DATE | MILESTONE | DESCRIPTION |
 | --- | --- | --- |
-| Tuần 1 | Hoàn thiện setup & Docker | Chạy đủ 4 dịch vụ; cấu hình env; seed dữ liệu mẫu |
+| Tuần 1 | Hoàn thiện setup & Docker | Chạy đủ 4 dịch vụ; cấu hình env; kiểm tra kết nối MongoDB |
 | Tuần 2 | Menu + Đơn hàng cơ bản | Duyệt menu, tạo đơn, theo dõi trạng thái; upload ảnh |
 | Tuần 3 | Thanh toán VNPAY | Tạo/confirm payment intent; cập nhật Payment/Order |
 | Tuần 4 | Tồn kho + Shipper | Cập nhật inventory; phân công shipper; báo cáo cơ bản |
@@ -155,7 +155,6 @@ Triển khai chuẩn bằng Docker Compose (4 services). Có thể mở rộng l
 ## Data
 
 - Dùng bộ model trong `backend/models/v2`: restaurant, branch, category, food, foodVariant, inventory, order, payment, shipperProfile, deliveryAssignment...
-- Seed dữ liệu: `backend/scripts/seedV2.js`.
 - Upload ảnh: thư mục `backend/uploads/`, đường dẫn public `/images/...`.
 
 ## APIs (trích yếu)
@@ -181,4 +180,3 @@ Xem Mermaid ERD trong `docs/diagrams.md` mục “Mo hinh du lieu (chi tiet)”.
 
 - Docker: `docker compose up -d --build` → Frontend 5173, Admin 5174, API 4000, Mongo 27017; tắt bằng `docker compose down -v`.
 - Local: cấu hình `backend/.env`, chạy `npm install` và `npm run server` (backend), `npm run dev` (frontend/admin).
-- Seed dữ liệu: `node backend/scripts/seedV2.js`.

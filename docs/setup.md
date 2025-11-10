@@ -52,18 +52,11 @@ npm run dev
 ```
 - Truy cập http://localhost:5174
 
-## 4. Seed dữ liệu mẫu
-```
-cd backend
-# đảm bảo .env trỏ đúng MONGO_URL
-node scripts/seedV2.js
-```
-
-## 5. Upload ảnh
+## 4. Upload ảnh
 - API nhận multipart ở `POST /api/v2/menu/foods` với field `image`.
 - Ảnh lưu vào `backend/uploads/` và truy cập qua đường dẫn `/images/<filename>`.
 
-## 6. Lỗi thường gặp
+## 5. Lỗi thường gặp
 - Kết nối Mongo thất bại: kiểm tra `MONGO_URL` và Mongo đang chạy.
 - Ảnh không hiển thị: kiểm tra đã mount volume `backend/uploads` và truy cập đúng URL `/images/...`.
 - 401/403 khi gọi API: đảm bảo gửi `Authorization: Bearer <token>` và tài khoản có quyền phù hợp.
