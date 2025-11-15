@@ -3,7 +3,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Branches from "../Branches/Branches";
 import { StoreContext } from "../../context/StoreContext";
-import "./Restaurant.css";
 
 const defaultFormValues = {
   name: "",
@@ -132,161 +131,164 @@ const RestaurantSettings = ({ url }) => {
   };
 
   return (
-    <div className="restaurant-page">
-      <div className="restaurant-header">
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-          <h2>Restaurant Settings</h2>
-          <p>Manage the brand profile and branch network.</p>
+          <h3 className="mb-1">Restaurant Settings</h3>
+          <p className="text-muted mb-0">Manage the brand profile and branch network.</p>
         </div>
         {formValues.logoUrl ? (
-          <div className="restaurant-logo">
-            <img src={formValues.logoUrl} alt={formValues.name || "Restaurant logo"} />
+          <div className="rounded-4 border bg-white p-2" style={{ width: 96, height: 96 }}>
+            <img
+              src={formValues.logoUrl}
+              alt={formValues.name || "Restaurant logo"}
+              className="img-fluid w-100 h-100 object-fit-contain"
+            />
           </div>
         ) : null}
       </div>
 
-      <div className="restaurant-tabs">
+      <ul className="nav nav-pills gap-2 mb-4">
         {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`restaurant-tab${
-              activeTab === tab.id ? " is-active" : ""
-            }`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
+          <li className="nav-item" key={tab.id}>
+            <button
+              type="button"
+              className={`nav-link${activeTab === tab.id ? " active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      <div className="restaurant-content">
-        {activeTab === "overview" ? (
-          <div className="restaurant-panel">
-            {loading ? (
-              <div className="restaurant-status">Loading settings...</div>
-            ) : (
-              <form className="restaurant-form" onSubmit={handleSubmit}>
-                <div className="restaurant-form-grid">
-                  <div className="restaurant-form-row">
-                    <label htmlFor="restaurant-name">Restaurant name *</label>
+      {activeTab === "overview" ? (
+        <div className="card border rounded-4">
+          {loading ? (
+            <div className="card-body text-center py-5">
+              <div className="spinner-border text-primary mb-3" role="status" />
+              <p className="text-muted mb-0">Loading settings...</p>
+            </div>
+          ) : (
+            <form className="card-body d-flex flex-column gap-4" onSubmit={handleSubmit}>
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Restaurant name *</label>
+                  <input
+                    className="form-control"
+                    name="name"
+                    type="text"
+                    value={formValues.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Email</label>
+                  <input
+                    className="form-control"
+                    name="email"
+                    type="email"
+                    value={formValues.email}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Phone</label>
+                  <input
+                    className="form-control"
+                    name="phone"
+                    type="text"
+                    value={formValues.phone}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Logo URL</label>
+                  <input
+                    className="form-control"
+                    name="logoUrl"
+                    type="url"
+                    value={formValues.logoUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Cuisine</label>
+                  <input
+                    className="form-control"
+                    name="cuisine"
+                    type="text"
+                    value={formValues.cuisine}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="col-12 col-md-6 d-flex align-items-center">
+                  <div className="form-check form-switch mt-4">
                     <input
-                      id="restaurant-name"
-                      name="name"
-                      type="text"
-                      value={formValues.name}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div className="restaurant-form-row">
-                    <label htmlFor="restaurant-email">Email</label>
-                    <input
-                      id="restaurant-email"
-                      name="email"
-                      type="email"
-                      value={formValues.email}
+                      className="form-check-input"
+                      type="checkbox"
+                      name="isActive"
+                      id="restaurant-active"
+                      checked={Boolean(formValues.isActive)}
                       onChange={handleInputChange}
                     />
-                  </div>
-                  <div className="restaurant-form-row">
-                    <label htmlFor="restaurant-phone">Phone</label>
-                    <input
-                      id="restaurant-phone"
-                      name="phone"
-                      type="text"
-                      value={formValues.phone}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="restaurant-form-row">
-                    <label htmlFor="restaurant-logo">Logo URL</label>
-                    <input
-                      id="restaurant-logo"
-                      name="logoUrl"
-                      type="url"
-                      value={formValues.logoUrl}
-                      onChange={handleInputChange}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="restaurant-form-row">
-                    <label htmlFor="restaurant-cuisine">Cuisine</label>
-                    <input
-                      id="restaurant-cuisine"
-                      name="cuisine"
-                      type="text"
-                      value={formValues.cuisine}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="restaurant-form-row">
-                    <label className="restaurant-checkbox">
-                      <input
-                        type="checkbox"
-                        name="isActive"
-                        checked={Boolean(formValues.isActive)}
-                        onChange={handleInputChange}
-                      />
+                    <label className="form-check-label" htmlFor="restaurant-active">
                       Active
                     </label>
                   </div>
                 </div>
+              </div>
 
-                <div className="restaurant-form-row">
-                  <label htmlFor="restaurant-description">Description</label>
-                  <textarea
-                    id="restaurant-description"
-                    name="description"
-                    value={formValues.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                  />
-                </div>
+              <div>
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-control"
+                  name="description"
+                  value={formValues.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                />
+              </div>
 
-                <div className="restaurant-form-row">
-                  <label htmlFor="restaurant-policy">Policies</label>
-                  <textarea
-                    id="restaurant-policy"
-                    name="policy"
-                    value={formValues.policy}
-                    onChange={handleInputChange}
-                    rows={4}
-                    placeholder="Refund policy, delivery commitments, etc."
-                  />
-                </div>
+              <div>
+                <label className="form-label">Policies</label>
+                <textarea
+                  className="form-control"
+                  name="policy"
+                  value={formValues.policy}
+                  onChange={handleInputChange}
+                  rows={4}
+                  placeholder="Refund policy, delivery commitments, etc."
+                />
+              </div>
 
-                <div className="restaurant-meta">
-                  <span>
-                    Created at: <strong>{formatTimestamp(restaurant?.createdAt)}</strong>
-                  </span>
-                  <span>
-                    Updated at: <strong>{formatTimestamp(restaurant?.updatedAt)}</strong>
-                  </span>
-                </div>
+              <div className="d-flex flex-column flex-lg-row gap-3 justify-content-between text-muted small">
+                <span>
+                  Created at: <strong>{formatTimestamp(restaurant?.createdAt)}</strong>
+                </span>
+                <span>
+                  Updated at: <strong>{formatTimestamp(restaurant?.updatedAt)}</strong>
+                </span>
+              </div>
 
-                <div className="restaurant-actions">
-                  <button type="submit" disabled={saving}>
-                    {saving ? "Saving..." : "Save changes"}
-                  </button>
-                  <button
-                    type="button"
-                    className="restaurant-secondary"
-                    onClick={handleReset}
-                    disabled={saving}
-                  >
-                    Reset
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        ) : (
-          <div className="restaurant-panel">
-            <Branches url={url} />
-          </div>
-        )}
-      </div>
+              <div className="d-flex gap-2 justify-content-end">
+                <button type="button" className="btn btn-light" onClick={handleReset} disabled={saving}>
+                  Reset
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? "Saving..." : "Save changes"}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      ) : (
+        <div className="mt-4">
+          <Branches url={url} />
+        </div>
+      )}
     </div>
   );
 };

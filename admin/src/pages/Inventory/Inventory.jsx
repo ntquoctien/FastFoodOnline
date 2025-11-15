@@ -1,8 +1,7 @@
-﻿import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
-import "./Inventory.css";
 import { useLocation } from "react-router-dom";
 
 const Inventory = ({ url }) => {
@@ -151,20 +150,24 @@ const Inventory = ({ url }) => {
   };
 
   return (
-    <div className="inventory-page">
-      <div className="inventory-header">
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-          <h2>Inventory</h2>
-          <p>Monitor stock levels by branch and variant.</p>
+          <h3 className="mb-1">Inventory</h3>
+          <p className="text-muted mb-0">
+            Monitor stock levels by branch and variant.
+          </p>
         </div>
-        <div className="inventory-controls">
+        <div className="d-flex flex-column flex-md-row gap-2 w-100 w-lg-auto">
           <input
             type="search"
+            className="form-control"
             placeholder="Search dishes or branches"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
           <select
+            className="form-select"
             value={branchFilter}
             onChange={(event) => setBranchFilter(event.target.value)}
           >
@@ -177,68 +180,76 @@ const Inventory = ({ url }) => {
           </select>
         </div>
       </div>
+
       {loading ? (
-        <div className="inventory-empty">Loading inventory...</div>
+        <div className="card border rounded-4">
+          <div className="card-body text-center py-5">
+            <div className="spinner-border text-primary mb-3" role="status" />
+            <p className="text-muted mb-0">Loading inventory...</p>
+          </div>
+        </div>
       ) : groupedInventory.length === 0 ? (
-        <div className="inventory-empty">
-          No inventory entries match the current filters.
+        <div className="card border rounded-4">
+          <div className="card-body text-center py-5 text-muted">
+            No inventory entries match the current filters.
+          </div>
         </div>
       ) : (
-        <div className="inventory-group-list">
-          {groupedInventory.map((group) => (
-            <article key={group.foodId} className="inventory-group-card">
-              <header className="inventory-group-header">
-                <div className="inventory-group-title">
-                  <h3>{group.foodName}</h3>
-                  {group.categoryName && (
-                    <span className="inventory-group-category">
-                      {group.categoryName}
-                    </span>
-                  )}
-                </div>
-                <span className="inventory-group-count">
-                  {group.variants.length} variants
-                </span>
-              </header>
-              <div className="inventory-variant-table">
-                <div className="inventory-variant-table-head">
-                  <span>Branch</span>
-                  <span>Size</span>
-                  <span>Quantity</span>
-                  <span>Updated</span>
-                  <span />
-                </div>
-                {group.variants.map((variant) => (
-                  <div
-                    key={variant.id}
-                    className="inventory-variant-table-row"
-                  >
-                    <span className="inventory-variant-branch">
-                      {variant.branchName}
-                    </span>
-                    <span>{variant.size}</span>
-                    <span className="inventory-variant-quantity">
-                      {variant.quantity}
-                    </span>
-                    <span className="inventory-variant-updated">
-                      {variant.updatedAt
-                        ? new Date(variant.updatedAt).toLocaleString()
-                        : "Never updated"}
-                    </span>
-                    <span>
-                      <button
-                        type="button"
-                        onClick={() => handleUpdate(variant.raw)}
-                      >
-                        Adjust
-                      </button>
-                    </span>
-                  </div>
-                ))}
+        groupedInventory.map((group) => (
+          <div key={group.foodId} className="card border rounded-4 mb-4">
+            <div className="card-header border-0 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-2">
+              <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-2">
+                <h5 className="mb-0">{group.foodName}</h5>
+                {group.categoryName && (
+                  <span className="badge bg-primary-subtle text-primary">
+                    {group.categoryName}
+                  </span>
+                )}
               </div>
-            </article>
-          ))}
-        </div>
+              <small className="text-muted">
+                {group.variants.length} {group.variants.length === 1 ? "variant" : "variants"}
+              </small>
+            </div>
+            <div className="card-body pt-0">
+              <div className="table-responsive">
+                <table className="table align-middle mb-0">
+                  <thead className="text-muted small text-uppercase">
+                    <tr>
+                      <th>Branch</th>
+                      <th>Size</th>
+                      <th>Quantity</th>
+                      <th>Updated</th>
+                      <th className="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.variants.map((variant) => (
+                      <tr key={variant.id}>
+                        <td className="fw-semibold">{variant.branchName}</td>
+                        <td>{variant.size}</td>
+                        <td className="text-success fw-bold">{variant.quantity}</td>
+                        <td className="text-muted">
+                          {variant.updatedAt
+                            ? new Date(variant.updatedAt).toLocaleString()
+                            : "Never updated"}
+                        </td>
+                        <td className="text-end">
+                          <button
+                            type="button"
+                            className="btn btn-outline-primary btn-sm"
+                            onClick={() => handleUpdate(variant.raw)}
+                          >
+                            Adjust
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ))
       )}
     </div>
   );

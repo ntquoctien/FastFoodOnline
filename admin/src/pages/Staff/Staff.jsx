@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import "./Staff.css";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
@@ -18,6 +17,12 @@ const statusOptions = [
 ];
 
 const MANAGEABLE_ROLES = ["staff", "chef", "support"];
+
+const statusBadgeMap = {
+  active: "badge bg-success-subtle text-success",
+  inactive: "badge bg-secondary-subtle text-secondary",
+  on_leave: "badge bg-warning-subtle text-warning",
+};
 
 const Staff = ({ url }) => {
   const { token, role: currentRole, branchId: currentBranchId } =
@@ -368,28 +373,156 @@ const Staff = ({ url }) => {
     }
   };
 
+  const renderEditModal = () => {
+    if (!editingStaff) return null;
+    return (
+      <>
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="dialog"
+          onClick={closeEditProfile}
+        >
+          <div
+            className="modal-dialog modal-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-content border-0 rounded-4">
+              <div className="modal-header border-0">
+                <div>
+                  <h5 className="mb-1">Edit profile</h5>
+                  <small className="text-muted">
+                    Update details for{" "}
+                    <strong>{editingStaff.name || editingStaff.email}</strong>
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={closeEditProfile}
+                />
+              </div>
+              <form onSubmit={submitEditProfile}>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Full name</label>
+                    <input
+                      className="form-control"
+                      name="name"
+                      value={editForm.name}
+                      onChange={updateEditForm}
+                      required
+                      disabled={editSaving}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Role</label>
+                    <select
+                      className="form-select"
+                      name="role"
+                      value={editForm.role}
+                      onChange={updateEditForm}
+                      disabled={editSaving || editRoleOptions.length === 0}
+                    >
+                      {editRoleOptions.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {isAdmin ? (
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold">Branch</label>
+                      <select
+                        className="form-select"
+                        name="branchId"
+                        value={editForm.branchId || ""}
+                        onChange={updateEditForm}
+                        disabled={editSaving}
+                      >
+                        <option value="">Unassigned</option>
+                        {branches.map((branch) => (
+                          <option key={branch._id} value={branch._id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold">Branch</label>
+                      <input
+                        className="form-control"
+                        value={
+                          branchNameMap.get(normaliseId(editingStaff.branchId)) ||
+                          editingStaff.branchName ||
+                          "Unassigned"
+                        }
+                        readOnly
+                      />
+                    </div>
+                  )}
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Phone</label>
+                    <input
+                      className="form-control"
+                      name="phone"
+                      value={editForm.phone}
+                      onChange={updateEditForm}
+                      placeholder="Optional contact number"
+                      disabled={editSaving}
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer border-0">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={closeEditProfile}
+                    disabled={editSaving}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={editSaving}>
+                    {editSaving ? "Saving..." : "Save changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div className="modal-backdrop fade show" />
+      </>
+    );
+  };
+
   if (!canManageStaff) {
     return (
-      <div className="staff-page">
-        <header className="staff-header">
-          <div>
-            <h2>Staff Management</h2>
-            <p>You do not have permission to manage staff.</p>
-          </div>
-        </header>
+      <div className="page-heading">
+        <div className="page-title-headings">
+          <h3>Staff Management</h3>
+          <p className="text-muted mb-0">
+            You do not have permission to manage staff.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="staff-page">
-      <header className="staff-header">
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-          <h2>Staff Management</h2>
-          <p>Invite and manage team members for each branch.</p>
+          <h3 className="mb-1">Staff Management</h3>
+          <p className="text-muted mb-0">
+            Invite and manage team members for each branch.
+          </p>
         </div>
-        <div className="staff-filters">
+        <div className="d-flex flex-column flex-lg-row gap-2 w-100 w-lg-auto">
           <select
+            className="form-select"
             value={filterBranch}
             onChange={(event) => setFilterBranch(event.target.value)}
           >
@@ -401,6 +534,7 @@ const Staff = ({ url }) => {
             ))}
           </select>
           <select
+            className="form-select"
             value={filterRole}
             onChange={(event) => setFilterRole(event.target.value)}
           >
@@ -412,252 +546,207 @@ const Staff = ({ url }) => {
             ))}
           </select>
         </div>
-      </header>
+      </div>
 
       {endpointUnavailable ? (
-        <div className="staff-banner">
+        <div className="alert alert-warning rounded-4" role="alert">
           Staff API is temporarily unavailable. Changes are stored locally for preview.
         </div>
       ) : null}
 
-      <div className={`staff-layout${isAdmin ? "" : " staff-layout-single"}`}>
+      <div className="row g-4">
         {isAdmin ? (
-          <section className="staff-form-card">
-            <h3>Invite new staff</h3>
-            <form onSubmit={handleCreate}>
-            <label>
-              <span>Full name</span>
-              <input
-                name="name"
-                value={form.name}
-                onChange={updateForm}
-                placeholder="Eg. Sarah Tran"
-                required
-              />
-            </label>
-            <label>
-              <span>Email</span>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={updateForm}
-                placeholder="staff@example.com"
-                required
-              />
-            </label>
-            <label>
-              <span>Role</span>
-              <select name="role" value={form.role} onChange={updateForm}>
-                {roleOptions.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Branch</span>
-              <select
-                name="branchId"
-                value={form.branchId}
-                onChange={updateForm}
-                required
-              >
-                {branches.map((branch) => (
-                  <option key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Temporary password</span>
-              <input
-                name="password"
-                value={form.password}
-                onChange={updateForm}
-                placeholder="Generate or set a password"
-                required={!endpointUnavailable}
-              />
-            </label>
-            <button type="submit" disabled={saving}>
-              {saving ? "Creating..." : "Invite team member"}
-            </button>
-          </form>
-        </section>
+          <div className="col-12 col-xl-4">
+            <div className="card border rounded-4 h-100">
+              <div className="card-header border-0">
+                <h5 className="mb-1">Invite new staff</h5>
+                <small className="text-muted">
+                  Create accounts for new team members.
+                </small>
+              </div>
+              <div className="card-body">
+                <form onSubmit={handleCreate} className="d-flex flex-column gap-3">
+                  <div>
+                    <label className="form-label">Full name</label>
+                    <input
+                      className="form-control"
+                      name="name"
+                      value={form.name}
+                      onChange={updateForm}
+                      placeholder="Eg. Sarah Tran"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Email</label>
+                    <input
+                      className="form-control"
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={updateForm}
+                      placeholder="staff@example.com"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Role</label>
+                    <select
+                      className="form-select"
+                      name="role"
+                      value={form.role}
+                      onChange={updateForm}
+                    >
+                      {roleOptions.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Branch</label>
+                    <select
+                      className="form-select"
+                      name="branchId"
+                      value={form.branchId}
+                      onChange={updateForm}
+                      required
+                    >
+                      {branches.map((branch) => (
+                        <option key={branch._id} value={branch._id}>
+                          {branch.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Temporary password</label>
+                    <input
+                      className="form-control"
+                      name="password"
+                      value={form.password}
+                      onChange={updateForm}
+                      placeholder="Generate or set a password"
+                      required={!endpointUnavailable}
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? "Creating..." : "Invite team member"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
         ) : null}
 
-        <section className="staff-list">
-          {loading ? (
-            <div className="staff-empty">Loading staff members...</div>
-          ) : filteredStaff.length === 0 ? (
-            <div className="staff-empty">
-              No staff members match the current filters.
+        <div className={`col-12 ${isAdmin ? "col-xl-8" : ""}`}>
+          <div className="card border rounded-4 h-100">
+            <div className="card-header border-0">
+              <h5 className="mb-0">Team members</h5>
             </div>
-          ) : (
-            filteredStaff.map((member) => (
-              <article key={member._id} className="staff-card">
-                <div className="staff-card-main">
-                  <div className="staff-avatar">
-                    {member.name?.[0]?.toUpperCase() || "S"}
-                  </div>
-                  <div className="staff-card-info">
-                    <h4>{member.name || "Unnamed"}</h4>
-                    <p>{member.email}</p>
-                    <span className="staff-badge">
-                      {roleOptions.find((role) => role.value === member.role)?.label ||
-                        member.role ||
-                        "Role"}
-                    </span>
-                  </div>
+            <div className="card-body">
+              {loading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary mb-3" role="status" />
+                  <p className="text-muted mb-0">Loading staff members...</p>
                 </div>
-                <div className="staff-card-meta">
-                  <p>
-                    <strong>Branch:</strong>{" "}
-                    {branchNameMap.get(member.branchId) ||
-                      member.branchName ||
-                      "Unassigned"}
-                  </p>
-                  <p>
-                    <strong>Status:</strong>{" "}
-                    <span className={`staff-status staff-status-${member.status || "active"}`}>
-                      {statusOptions.find((status) => status.value === member.status)?.label ||
-                        member.status ||
-                        "Active"}
-                    </span>
-                  </p>
-                </div>
-                <div className="staff-card-actions">
-                  <select
-                    value={member.status || "active"}
-                    onChange={(event) =>
-                      updateStatus(member, event.target.value)
-                    }
-                    disabled={!canManageMember(member)}
-                  >
-                    {statusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                  {canManageMember(member) ? (
-                    <button
-                      type="button"
-                      onClick={() => openEditProfile(member)}
-                    >
-                      Edit profile
-                    </button>
-                  ) : null}
-                  {isAdmin ? (
-                    <button
-                      type="button"
-                      onClick={() => resetPassword(member._id)}
-                    >
-                      Reset password
-                    </button>
-                  ) : null}
-                </div>
-              </article>
-            ))
-          )}
-        </section>
-      </div>
-      {editingStaff ? (
-        <div className="staff-edit-modal" role="dialog" aria-modal="true">
-          <div
-            className="staff-edit-modal-backdrop"
-            onClick={closeEditProfile}
-          />
-          <div className="staff-edit-modal-card">
-            <h3>Edit profile</h3>
-            <p className="staff-edit-subtitle">
-              Update details for{" "}
-              <strong>{editingStaff.name || editingStaff.email}</strong>
-            </p>
-            <form onSubmit={submitEditProfile}>
-              <label>
-                <span>Full name</span>
-                <input
-                  name="name"
-                  value={editForm.name}
-                  onChange={updateEditForm}
-                  required
-                  disabled={editSaving}
-                />
-              </label>
-              <label>
-                <span>Role</span>
-                <select
-                  name="role"
-                  value={editForm.role}
-                  onChange={updateEditForm}
-                  disabled={editSaving || editRoleOptions.length === 0}
-                >
-                  {editRoleOptions.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {isAdmin ? (
-                <label>
-                  <span>Branch</span>
-                  <select
-                    name="branchId"
-                    value={editForm.branchId || ""}
-                    onChange={updateEditForm}
-                    disabled={editSaving}
-                  >
-                    <option value="">Unassigned</option>
-                    {branches.map((branch) => (
-                      <option key={branch._id} value={branch._id}>
-                        {branch.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+              ) : filteredStaff.length === 0 ? (
+                <p className="text-muted mb-0">
+                  No staff members match the current filters.
+                </p>
               ) : (
-                <label>
-                  <span>Branch</span>
-                  <input
-                    value={
-                      branchNameMap.get(normaliseId(editingStaff.branchId)) ||
-                      editingStaff.branchName ||
-                      "Unassigned"
-                    }
-                    readOnly
-                  />
-                </label>
+                <div className="table-responsive">
+                  <table className="table align-middle">
+                    <thead className="text-muted small text-uppercase">
+                      <tr>
+                        <th>Name</th>
+                        <th>Branch</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th className="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredStaff.map((member) => {
+                        const roleLabel =
+                          roleOptions.find((role) => role.value === member.role)?.label ||
+                          member.role ||
+                          "Role";
+                        const statusClass =
+                          statusBadgeMap[member.status] || statusBadgeMap.active;
+                        return (
+                          <tr key={member._id}>
+                            <td>
+                              <div className="fw-semibold">{member.name || "Unnamed"}</div>
+                              <small className="text-muted">{member.email}</small>
+                            </td>
+                            <td className="text-muted">
+                              {branchNameMap.get(member.branchId) ||
+                                member.branchName ||
+                                "Unassigned"}
+                            </td>
+                            <td>
+                              <span className="badge bg-primary-subtle text-primary">
+                                {roleLabel}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={statusClass}>
+                                {statusOptions.find(
+                                  (status) => status.value === member.status
+                                )?.label || member.status || "Active"}
+                              </span>
+                            </td>
+                            <td className="text-end">
+                              <div className="d-flex flex-column flex-lg-row gap-2 justify-content-end">
+                                <select
+                                  className="form-select form-select-sm"
+                                  value={member.status || "active"}
+                                  onChange={(event) =>
+                                    updateStatus(member, event.target.value)
+                                  }
+                                  disabled={!canManageMember(member)}
+                                >
+                                  {statusOptions.map((status) => (
+                                    <option key={status.value} value={status.value}>
+                                      {status.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                {canManageMember(member) ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={() => openEditProfile(member)}
+                                  >
+                                    Edit profile
+                                  </button>
+                                ) : null}
+                                {isAdmin ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-primary btn-sm"
+                                    onClick={() => resetPassword(member._id)}
+                                  >
+                                    Reset password
+                                  </button>
+                                ) : null}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
-              <label>
-                <span>Phone</span>
-                <input
-                  name="phone"
-                  value={editForm.phone}
-                  onChange={updateEditForm}
-                  placeholder="Optional contact number"
-                  disabled={editSaving}
-                />
-              </label>
-              <div className="staff-edit-actions">
-                <button
-                  type="button"
-                  onClick={closeEditProfile}
-                  disabled={editSaving}
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={editSaving}>
-                  {editSaving ? "Saving..." : "Save changes"}
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
-      ) : null}
+      </div>
+
+      {renderEditModal()}
     </div>
   );
 };

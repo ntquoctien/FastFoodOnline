@@ -5,12 +5,11 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import "./Add.css";
-import { assets } from "../../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
+import { assets } from "../../assets/assets";
+import { StoreContext } from "../../context/StoreContext";
 
 const DEFAULT_VARIANT = { size: "", price: "", isDefault: true };
 
@@ -25,11 +24,7 @@ const Add = ({ url }) => {
   const { token, role } = useContext(StoreContext);
 
   const [image, setImage] = useState(null);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    categoryId: "",
-  });
+  const [form, setForm] = useState({ name: "", description: "", categoryId: "" });
   const [categories, setCategories] = useState([]);
   const [branches, setBranches] = useState([]);
   const [variants, setVariants] = useState([DEFAULT_VARIANT]);
@@ -38,13 +33,24 @@ const Add = ({ url }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewBranch, setPreviewBranch] = useState("all");
-  const [branchScope, setBranchScope] = useState({
-    mode: "all",
-    selected: [],
-  });
+  const [branchScope, setBranchScope] = useState({ mode: "all", selected: [] });
   const [inventoryModal, setInventoryModal] = useState(null);
   const [inventoryValues, setInventoryValues] = useState({});
   const [inventorySaving, setInventorySaving] = useState(false);
+
+  const imagePreviewUrl = useMemo(() => {
+    if (!image) return null;
+    return URL.createObjectURL(image);
+  }, [image]);
+
+  useEffect(
+    () => () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    },
+    [imagePreviewUrl]
+  );
 
   const resetForm = useCallback(() => {
     setForm({
@@ -54,7 +60,11 @@ const Add = ({ url }) => {
     });
     setVariants([DEFAULT_VARIANT]);
     setImage(null);
-  }, [categories]);
+    setBranchScope({
+      mode: "all",
+      selected: branches.map((branch) => branch._id),
+    });
+  }, [categories, branches]);
 
   const fetchMeta = useCallback(async () => {
     if (!token) return;
@@ -67,40 +77,32 @@ const Add = ({ url }) => {
         toast.error(response.data?.message || "Failed to load menu data");
         return;
       }
-      const { categories = [], branches = [], foods = [] } = response.data.data || {};
-      setCategories(categories);
-      setBranches(branches);
+      const payload = response.data.data || {};
+      const nextCategories = payload.categories || [];
+      const nextBranches = payload.branches || [];
+      const foods = payload.foods || [];
+
+      setCategories(nextCategories);
+      setBranches(nextBranches);
       setMenuPreview(Array.isArray(foods) ? foods : []);
       setBranchScope((prev) => {
-        const nextSelected =
-          prev.mode === "custom"
-            ? prev.selected.filter((id) =>
-                branches.some((branch) => branch._id === id)
-              )
-            : branches.map((branch) => branch._id);
-
-        const sameLength = nextSelected.length === prev.selected.length;
-        const sameContent =
-          sameLength &&
-          nextSelected.every((id, index) => id === prev.selected[index]);
-
-        if (sameContent) {
-          return prev;
+        const availableIds = nextBranches.map((branch) => branch._id);
+        if (prev.mode === "custom") {
+          const filtered = prev.selected.filter((id) => availableIds.includes(id));
+          return {
+            mode: "custom",
+            selected: filtered,
+          };
         }
-
         return {
-          ...prev,
-          selected: nextSelected,
+          mode: "all",
+          selected: availableIds,
         };
       });
-      const firstCategory = categories[0]?._id || "";
-      setForm({
-        name: "",
-        description: "",
-        categoryId: firstCategory,
-      });
-      setVariants([DEFAULT_VARIANT]);
-      setImage(null);
+      setForm((current) => ({
+        ...current,
+        categoryId: nextCategories[0]?._id || "",
+      }));
     } catch (error) {
       console.error("Menu metadata fetch failed", error);
       toast.error("Unable to load menu data");
@@ -126,26 +128,13 @@ const Add = ({ url }) => {
   const updateVariant = (index, field, value) => {
     setVariants((prev) =>
       prev.map((variant, i) =>
-        i === index
-          ? {
-              ...variant,
-              [field]:
-                field === "price" ? value.replace(/[^0-9.]/g, "") : value,
-            }
-          : variant
+        i === index ? { ...variant, [field]: value } : variant
       )
     );
   };
 
   const addVariantRow = () => {
-    setVariants((prev) => [
-      ...prev,
-      {
-        size: "",
-        price: "",
-        isDefault: false,
-      },
-    ]);
+    setVariants((prev) => [...prev, { ...DEFAULT_VARIANT, isDefault: false }]);
   };
 
   const removeVariantRow = (index) => {
@@ -153,7 +142,7 @@ const Add = ({ url }) => {
       if (prev.length === 1) return prev;
       const next = prev.filter((_, i) => i !== index);
       if (!next.some((variant) => variant.isDefault)) {
-        next[0] = { ...next[0], isDefault: true };
+        next[0].isDefault = true;
       }
       return next;
     });
@@ -169,13 +158,17 @@ const Add = ({ url }) => {
   };
 
   const handleScopeModeChange = (mode) => {
-    setBranchScope({
-      mode,
-      selected:
-        mode === "custom"
-          ? []
-          : branches.map((branch) => branch._id),
-    });
+    if (mode === "all") {
+      setBranchScope({
+        mode: "all",
+        selected: branches.map((branch) => branch._id),
+      });
+      return;
+    }
+    setBranchScope((prev) => ({
+      mode: "custom",
+      selected: prev.selected.length ? prev.selected : branches.map((branch) => branch._id),
+    }));
   };
 
   const toggleBranchSelection = (branchId) => {
@@ -201,9 +194,7 @@ const Add = ({ url }) => {
   const previewItems = useMemo(() => {
     if (previewBranch === "all") return menuPreview;
     return menuPreview.filter((food) =>
-      (food.variants || []).some(
-        (variant) => variant.branchId === previewBranch
-      )
+      (food.variants || []).some((variant) => variant.branchId === previewBranch)
     );
   }, [menuPreview, previewBranch]);
 
@@ -310,180 +301,17 @@ const Add = ({ url }) => {
       .join(" | ");
   };
 
-  return (
-    <div className="catalog-page">
-      <header className="catalog-header">
-        <div>
-          <h2>Menu Builder</h2>
-          <p>Launch new dishes and assign them to specific branches.</p>
-        </div>
-        <button type="button" onClick={() => setModalOpen(true)}>
-          + New Item
-        </button>
-      </header>
-
-      <section className="catalog-feature-callout">
-        <span className="catalog-badge">New</span>
-        <div>
-          <h3>Multi-branch publishing</h3>
-          <p>
-            Create a dish once and deploy it across selected branches or all
-            locations in a single click.
-          </p>
-        </div>
-      </section>
-
-      <section className="catalog-preview">
-        <div className="catalog-preview-header">
-          <h3>Menu Overview</h3>
-          <select
-            value={previewBranch}
-            onChange={(event) => setPreviewBranch(event.target.value)}
-          >
-            <option value="all">All branches</option>
-            {branches.map((branch) => (
-              <option key={branch._id} value={branch._id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        {loadingPreview ? (
-          <div className="catalog-preview-empty">Loading menu...</div>
-        ) : previewItems.length === 0 ? (
-          <div className="catalog-preview-empty">
-            No menu items for this view yet. Add your first dish!
-          </div>
-        ) : (
-          <div className="catalog-preview-grid">
-            {previewItems.map((food) => (
-              <article key={food._id} className="catalog-preview-card">
-                <div className="catalog-preview-card-header">
-                  <h4>{food.name}</h4>
-                  <span className="catalog-chip">{food.categoryName || "—"}</span>
-                </div>
-                <p className="catalog-preview-description">
-                  {food.description || "No description available."}
-                </p>
-                <p className="catalog-preview-variants">
-                  {renderVariantSummary(food.variants)}
-                </p>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {modalOpen ? (
-        <div className="add-modal-overlay">
-          <div className="add-modal">
-            <header className="add-modal-header">
-              <h3>Create Food Item</h3>
-              <button
-                type="button"
-                className="add-modal-close"
-                onClick={() => {
-                  setModalOpen(false);
-                  resetForm();
-                }}
-              >
-                &times;
-              </button>
-            </header>
-            <form className="add-modal-form" onSubmit={onSubmitHandler}>
-              <div className="add-modal-grid">
-                <div className="add-modal-section">
-                  <label htmlFor="upload-image" className="add-upload-label">
-                    <span>Feature image</span>
-                    <img
-                      src={image ? URL.createObjectURL(image) : assets.upload_area}
-                      alt="Upload"
-                    />
-                  </label>
-                  <input
-                    id="upload-image"
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={(event) => setImage(event.target.files?.[0] || null)}
-                  />
-                  <p className="add-upload-hint">
-                    Recommended size: 1200x800px, JPG or PNG up to 3MB.
-                  </p>
-                </div>
-
-                <div className="add-modal-section add-modal-fields">
-                  <label>
-                    <span>Product name</span>
-                    <input
-                      name="name"
-                      value={form.name}
-                      onChange={updateForm}
-                      placeholder="Eg. Spicy garlic ramen"
-                      required
-                    />
-                  </label>
-                  <label>
-                    <span>Description</span>
-                    <textarea
-                      name="description"
-                      value={form.description}
-                      onChange={updateForm}
-                      rows={4}
-                      placeholder="Describe the dish and highlight ingredients."
-                      required
-                    />
-                  </label>
-                  <label className="add-category-label">
-                    <span>Category</span>
-                    <select
-                      name="categoryId"
-                      value={form.categoryId}
-                      onChange={updateForm}
-                      required
-                    >
-                      {categories.map((category) => (
-                        <option key={category._id} value={category._id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </div>
-
-              <div className="add-branch-scope">
-                <p>Branch availability</p>
-                <div className="add-branch-options">
-                  <label>
-                    <input
-                      type="radio"
-                      name="branch-scope"
-                      value="all"
-                      checked={branchScope.mode === "all"}
-                      onChange={() => handleScopeModeChange("all")}
-                    />
-                    Apply to all branches
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="branch-scope"
-                      value="custom"
-                      checked={branchScope.mode === "custom"}
-                      onChange={() => handleScopeModeChange("custom")}
-                    />
-                    Choose branches
-                  </label>
-                </div>
-                {branchScope.mode === "custom" ? (
-                  <div className="add-branch-checkboxes">
-                    {branches.map((branch) => {
-                      const checked = branchScope.selected.includes(branch._id);  const handleInventoryChange = (variantId, value) => {
+  const handleInventoryChange = (variantId, value) => {
     setInventoryValues((prev) => ({
       ...prev,
       [variantId]: value,
     }));
+  };
+
+  const closeInventoryModal = () => {
+    setInventoryModal(null);
+    setInventoryValues({});
+    setInventorySaving(false);
   };
 
   const handleInventorySave = async () => {
@@ -493,9 +321,8 @@ const Add = ({ url }) => {
     const entries = Object.entries(inventoryValues || {}).filter(
       ([, value]) => value !== "" && !Number.isNaN(Number(value))
     );
-    if (entries.length === 0) {
-      setInventoryModal(null);
-      setInventoryValues({});
+    if (!entries.length) {
+      closeInventoryModal();
       return;
     }
     setInventorySaving(true);
@@ -506,7 +333,8 @@ const Add = ({ url }) => {
             (item) => item._id === variantId
           );
           if (!variant) return null;
-          return axios.post(`${url}/api/v2/inventory`,
+          return axios.post(
+            `${url}/api/v2/inventory`,
             {
               branchId: variant.branchId,
               foodVariantId: variant._id,
@@ -517,114 +345,470 @@ const Add = ({ url }) => {
         })
       );
       toast.success("Inventory updated");
-      setInventoryModal(null);
-      setInventoryValues({});
+      closeInventoryModal();
       await fetchMeta();
     } catch (error) {
       console.error("Inventory update failed", error);
       toast.error("Unable to set inventory");
-    } finally {
       setInventorySaving(false);
     }
   };
-  return (
-                        <label key={branch._id}>
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleBranchSelection(branch._id)}
-                          />
-                          {branch.name}
-                        </label>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
 
-              <div className="variant-section">
-                <div className="variant-header">
-                  <div>
-                    <h4>Variants &amp; pricing</h4>
-                    <p>Add sizes or portion options along with pricing.</p>
-                  </div>
-                  <button type="button" onClick={addVariantRow}>
-                    + Add variant
-                  </button>
+  const renderCreationModal = () => {
+    if (!modalOpen) return null;
+    return (
+      <>
+        <div className="modal fade show d-block" tabIndex={-1} role="dialog">
+          <div className="modal-dialog modal-xl modal-dialog-scrollable">
+            <div className="modal-content border-0 rounded-4">
+              <div className="modal-header border-0">
+                <div>
+                  <h5 className="mb-0">Create Food Item</h5>
+                  <small className="text-muted">
+                    Configure the dish, variants, and branch availability.
+                  </small>
                 </div>
-                {variants.map((variant, index) => (
-                  <div key={`variant-${index}`} className="variant-row">
-                    <input
-                      type="text"
-                      placeholder="Size / label"
-                      value={variant.size}
-                      onChange={(event) =>
-                        updateVariant(index, "size", event.target.value)
-                      }
-                      required
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Price"
-                      value={variant.price}
-                      onChange={(event) =>
-                        updateVariant(index, "price", event.target.value)
-                      }
-                      required
-                    />
-                    <label className="variant-default">
-                      <input
-                        type="radio"
-                        name="defaultVariant"
-                        checked={variant.isDefault}
-                        onChange={() => setDefaultVariant(index)}
-                      />
-                      Default
-                    </label>
-                    <button
-                      type="button"
-                      className="variant-remove"
-                      onClick={() => removeVariantRow(index)}
-                      disabled={variants.length === 1}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <footer className="add-modal-footer">
                 <button
                   type="button"
-                  className="add-secondary"
+                  className="btn-close"
+                  aria-label="Close"
                   onClick={() => {
                     setModalOpen(false);
                     resetForm();
                   }}
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="add-primary" disabled={submitting}>
-                  {submitting ? "Publishing..." : "Publish item"}
-                </button>
-              </footer>
-            </form>
+                />
+              </div>
+              <form onSubmit={onSubmitHandler}>
+                <div className="modal-body">
+                  <div className="row g-4">
+                    <div className="col-12 col-lg-4">
+                      <div className="border rounded-4 p-3 h-100">
+                        <p className="text-uppercase text-muted small mb-2">
+                          Feature image
+                        </p>
+                        <label
+                          htmlFor="upload-image"
+                          className="ratio ratio-4x3 border border-2 border-primary rounded-4 d-flex align-items-center justify-content-center bg-light text-center cursor-pointer"
+                          style={{ minHeight: 180 }}
+                        >
+                          <img
+                            src={imagePreviewUrl || assets.upload_area}
+                            alt="Upload"
+                            className="img-fluid object-fit-cover rounded-4"
+                          />
+                        </label>
+                        <input
+                          id="upload-image"
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onChange={(event) =>
+                            setImage(event.target.files?.[0] || null)
+                          }
+                        />
+                        <small className="text-muted d-block mt-2">
+                          Recommended 1200×800px, JPG or PNG up to 3MB.
+                        </small>
+                      </div>
+                    </div>
+                    <div className="col-12 col-lg-8">
+                      <div className="border rounded-4 p-3">
+                        <div className="mb-3">
+                          <label className="form-label fw-semibold">
+                            Product name
+                          </label>
+                          <input
+                            className="form-control"
+                            name="name"
+                            value={form.name}
+                            onChange={updateForm}
+                            placeholder="Eg. Spicy garlic ramen"
+                            required
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="form-label fw-semibold">
+                            Description
+                          </label>
+                          <textarea
+                            className="form-control"
+                            name="description"
+                            value={form.description}
+                            onChange={updateForm}
+                            rows={4}
+                            placeholder="Describe the dish and highlight ingredients."
+                            required
+                          />
+                        </div>
+                        <div className="mb-0">
+                          <label className="form-label fw-semibold">
+                            Category
+                          </label>
+                          <select
+                            className="form-select"
+                            name="categoryId"
+                            value={form.categoryId}
+                            onChange={updateForm}
+                            required
+                          >
+                            {categories.map((category) => (
+                              <option key={category._id} value={category._id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card border rounded-4 my-4">
+                    <div className="card-body">
+                      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div>
+                          <h6 className="mb-1">Branch availability</h6>
+                          <small className="text-muted">
+                            Publish everywhere or target selected locations.
+                          </small>
+                        </div>
+                        <div className="d-flex gap-3">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name="branch-scope"
+                              id="branch-scope-all"
+                              value="all"
+                              checked={branchScope.mode === "all"}
+                              onChange={() => handleScopeModeChange("all")}
+                            />
+                            <label
+                              htmlFor="branch-scope-all"
+                              className="form-check-label"
+                            >
+                              All branches
+                            </label>
+                          </div>
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name="branch-scope"
+                              id="branch-scope-custom"
+                              value="custom"
+                              checked={branchScope.mode === "custom"}
+                              onChange={() => handleScopeModeChange("custom")}
+                            />
+                            <label
+                              htmlFor="branch-scope-custom"
+                              className="form-check-label"
+                            >
+                              Custom selection
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      {branchScope.mode === "custom" ? (
+                        <div className="row row-cols-1 row-cols-md-2 g-2 mt-3">
+                          {branches.map((branch) => (
+                            <div key={branch._id} className="col">
+                              <label className="form-check form-switch border rounded-3 px-3 py-2 d-flex align-items-center justify-content-between">
+                                <span className="fw-semibold">{branch.name}</span>
+                                <input
+                                  className="form-check-input"
+                                  type="checkbox"
+                                  checked={branchScope.selected.includes(branch._id)}
+                                  onChange={() => toggleBranchSelection(branch._id)}
+                                />
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="card border rounded-4">
+                    <div className="card-body">
+                      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                        <div>
+                          <h6 className="mb-1">Variants &amp; pricing</h6>
+                          <small className="text-muted">
+                            Add sizes or portion options along with pricing.
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary"
+                          onClick={addVariantRow}
+                        >
+                          + Add variant
+                        </button>
+                      </div>
+                      <div className="d-flex flex-column gap-3">
+                        {variants.map((variant, index) => (
+                          <div
+                            key={`variant-${index}`}
+                            className="row g-3 align-items-end border rounded-4 p-3"
+                          >
+                            <div className="col-12 col-md-4">
+                              <label className="form-label fw-semibold">
+                                Size / label
+                              </label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                placeholder="Large, Combo, …"
+                                value={variant.size}
+                                onChange={(event) =>
+                                  updateVariant(index, "size", event.target.value)
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="col-12 col-md-3">
+                              <label className="form-label fw-semibold">
+                                Price
+                              </label>
+                              <input
+                                className="form-control"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="15.00"
+                                value={variant.price}
+                                onChange={(event) =>
+                                  updateVariant(index, "price", event.target.value)
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="col-12 col-md-3">
+                              <div className="form-check mt-4">
+                                <input
+                                  className="form-check-input"
+                                  type="radio"
+                                  name="defaultVariant"
+                                  id={`variant-default-${index}`}
+                                  checked={variant.isDefault}
+                                  onChange={() => setDefaultVariant(index)}
+                                />
+                                <label
+                                  className="form-check-label"
+                                  htmlFor={`variant-default-${index}`}
+                                >
+                                  Default option
+                                </label>
+                              </div>
+                            </div>
+                            <div className="col-12 col-md-2 text-md-end">
+                              <button
+                                type="button"
+                                className="btn btn-outline-danger mt-md-4 w-100"
+                                onClick={() => removeVariantRow(index)}
+                                disabled={variants.length === 1}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer border-0 justify-content-between flex-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={() => {
+                      setModalOpen(false);
+                      resetForm();
+                    }}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                    {submitting ? "Publishing..." : "Publish item"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
-      ) : null}    </div>
+        <div className="modal-backdrop fade show"></div>
+      </>
+    );
+  };
+
+  const renderInventoryModal = () => {
+    if (!inventoryModal) return null;
+    return (
+      <>
+        <div className="modal fade show d-block" tabIndex={-1} role="dialog">
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content border-0 rounded-4">
+              <div className="modal-header border-0">
+                <div>
+                  <h5 className="mb-0">Set initial inventory</h5>
+                  <small className="text-muted">
+                    {inventoryModal.food?.name || "New item"}
+                  </small>
+                </div>
+                <button type="button" className="btn-close" onClick={closeInventoryModal} />
+              </div>
+              <div className="modal-body">
+                {inventoryModal.variants.map((variant) => (
+                  <div key={variant._id} className="border rounded-4 p-3 mb-3">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 className="mb-1">{variant.size}</h6>
+                        <small className="text-muted">
+                          {branchNameMap.get(variant.branchId) || "Branch"} ·{" "}
+                          {formatCurrency(variant.price)}
+                        </small>
+                      </div>
+                      <div className="ms-3" style={{ minWidth: 140 }}>
+                        <label className="form-label fw-semibold mb-1">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          className="form-control"
+                          value={inventoryValues[variant._id] ?? ""}
+                          onChange={(event) =>
+                            handleInventoryChange(variant._id, event.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="modal-footer border-0">
+                <button
+                  type="button"
+                  className="btn btn-light"
+                  onClick={closeInventoryModal}
+                  disabled={inventorySaving}
+                >
+                  Skip
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleInventorySave}
+                  disabled={inventorySaving}
+                >
+                  {inventorySaving ? "Saving..." : "Save inventory"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="modal-backdrop fade show"></div>
+      </>
+    );
+  };
+
+  return (
+    <>
+      <div className="page-heading">
+        <div className="page-title-headings mb-3">
+          <div>
+            <h3 className="mb-1">Menu Builder</h3>
+            <p className="text-muted mb-0">
+              Launch new dishes and assign them to specific branches.
+            </p>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={() => setModalOpen(true)}>
+            + New Item
+          </button>
+        </div>
+
+        <div className="alert alert-primary d-flex align-items-center gap-3 rounded-4">
+          <div className="avatar avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center">
+            <i className="bi bi-stars"></i>
+          </div>
+          <div>
+            <h6 className="mb-1">Multi-branch publishing</h6>
+            <p className="mb-0 text-muted">
+              Create a dish once and deploy it across selected branches or all locations in a
+              single click.
+            </p>
+          </div>
+        </div>
+
+        <section className="card border rounded-4">
+          <div className="card-header border-0 d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between">
+            <div>
+              <h5 className="mb-1">Menu overview</h5>
+              <small className="text-muted">Filter by branch to review assignments.</small>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <select
+                className="form-select"
+                value={previewBranch}
+                onChange={(event) => setPreviewBranch(event.target.value)}
+              >
+                <option value="all">All branches</option>
+                {branches.map((branch) => (
+                  <option key={branch._id} value={branch._id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn btn-light"
+                onClick={fetchMeta}
+                disabled={loadingPreview}
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div className="card-body">
+            {loadingPreview ? (
+              <div className="text-center py-5">
+                <div className="spinner-border text-primary mb-3" role="status" />
+                <p className="text-muted mb-0">Loading menu…</p>
+              </div>
+            ) : previewItems.length === 0 ? (
+              <div className="text-center py-5 text-muted">
+                No menu items for this view yet. Add your first dish!
+              </div>
+            ) : (
+              <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                {previewItems.map((food) => (
+                  <div key={food._id} className="col">
+                    <article className="border rounded-4 h-100 p-3">
+                      <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <h5 className="mb-0">{food.name}</h5>
+                        <span className="badge bg-light text-primary">
+                          {food.categoryName || "Uncategorized"}
+                        </span>
+                      </div>
+                      <p className="text-muted mb-3">
+                        {food.description || "No description available."}
+                      </p>
+                      <div className="small fw-semibold text-primary">
+                        {renderVariantSummary(food.variants)}
+                      </div>
+                    </article>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+      {renderCreationModal()}
+      {renderInventoryModal()}
+    </>
   );
 };
 
 export default Add;
-
-
-
-
-
-
-
-
-

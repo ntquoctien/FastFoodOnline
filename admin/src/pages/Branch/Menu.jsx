@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
-import "./branch.css";
 
 const BranchMenu = ({ url }) => {
   const { token, branchId } = useContext(StoreContext);
@@ -36,30 +35,55 @@ const BranchMenu = ({ url }) => {
   }, [token, branchId]);
 
   return (
-    <div className="branch-page">
-      <h2>Branch Menu</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="branch-table">
-          <div className="branch-row branch-header-row">
-            <span>Food</span>
-            <span>Description</span>
-            <span>Variants</span>
+    <div className="page-heading">
+      <div className="page-title-headings mb-4">
+        <h3 className="mb-1">Branch menu</h3>
+        <p className="text-muted mb-0">
+          Overview of dishes published to this location.
+        </p>
+      </div>
+      <div className="card border rounded-4">
+        {loading ? (
+          <div className="card-body text-center py-5">
+            <div className="spinner-border text-primary mb-3" role="status" />
+            <p className="text-muted mb-0">Loading menu...</p>
           </div>
-          {foods.map((food) => (
-            <div key={food._id} className="branch-row">
-              <span>{food.name}</span>
-              <span className="branch-desc">{food.description}</span>
-              <span>
-                {(food.variants || [])
-                  .map((variant) => `${variant.size} - $${variant.price?.toFixed(2) ?? "0.00"}`)
-                  .join(", ") || "No variants"}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+        ) : foods.length === 0 ? (
+          <div className="card-body text-center py-5 text-muted">
+            No menu items published for this branch.
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table align-middle mb-0">
+              <thead className="text-muted small text-uppercase">
+                <tr>
+                  <th>Food</th>
+                  <th>Description</th>
+                  <th>Variants</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foods.map((food) => (
+                  <tr key={food._id}>
+                    <td className="fw-semibold">{food.name}</td>
+                    <td className="text-muted">{food.description || "—"}</td>
+                    <td className="text-muted">
+                      {(food.variants || [])
+                        .map(
+                          (variant) =>
+                            `${variant.size} - $${
+                              variant.price?.toFixed(2) ?? "0.00"
+                            }`
+                        )
+                        .join(", ") || "No variants"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

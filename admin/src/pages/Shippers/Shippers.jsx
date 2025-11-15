@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
-import "./Shippers.css";
 
 const statusOptions = ["available", "busy", "inactive"];
 const vehicleOptions = [
@@ -10,6 +9,12 @@ const vehicleOptions = [
   { value: "bike", label: "Bike" },
   { value: "scooter", label: "Scooter" },
 ];
+
+const statusBadgeMap = {
+  available: "badge bg-success-subtle text-success",
+  busy: "badge bg-warning-subtle text-warning",
+  inactive: "badge bg-secondary-subtle text-secondary",
+};
 
 const Shippers = ({ url }) => {
   const { token } = useContext(StoreContext);
@@ -189,13 +194,16 @@ const Shippers = ({ url }) => {
   };
 
   return (
-    <div className="shippers-page">
-      <header className="shippers-header">
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-          <h2>Delivery Fleet</h2>
-          <p>Manage drone pilots and assign them to the right branches.</p>
+          <h3 className="mb-1">Drone Fleet</h3>
+          <p className="text-muted mb-0">
+            Monitor delivery pilots by branch and update their availability.
+          </p>
         </div>
         <select
+          className="form-select w-100 w-lg-auto"
           value={branchFilter}
           onChange={(event) => setBranchFilter(event.target.value)}
         >
@@ -206,121 +214,149 @@ const Shippers = ({ url }) => {
             </option>
           ))}
         </select>
-      </header>
+      </div>
 
       {!endpointAvailable ? (
-        <div className="shippers-banner">
-          Creating shippers requires backend support. Entries added here are stored
-          temporarily for UI preview.
+        <div className="alert alert-warning rounded-4" role="alert">
+          Creating shippers requires backend support. Entries added here are stored temporarily for UI preview.
         </div>
       ) : null}
 
-      <div className="shippers-layout">
-        <section className="shippers-form-card">
-          <h3>Add drone shipper</h3>
-          <form onSubmit={handleCreate}>
-            <label>
-              <span>Name</span>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleFormChange}
-                placeholder="Eg. Alex Nguyen"
-                required
-              />
-            </label>
-            <label>
-              <span>Email</span>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleFormChange}
-                placeholder="pilot@example.com"
-                required
-              />
-            </label>
-            <label>
-              <span>Branch</span>
-              <select
-                name="branchId"
-                value={form.branchId}
-                onChange={handleFormChange}
-              >
-                {branches.map((branch) => (
-                  <option key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Vehicle</span>
-              <select
-                name="vehicleType"
-                value={form.vehicleType}
-                onChange={handleFormChange}
-              >
-                {vehicleOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="submit" disabled={saving}>
-              {saving ? "Creating..." : "Add shipper"}
-            </button>
-          </form>
-        </section>
-
-        <section className="shippers-list">
-          {loading ? (
-            <div className="shippers-empty">Loading fleet...</div>
-          ) : filteredShippers.length === 0 ? (
-            <div className="shippers-empty">No shippers for this branch yet.</div>
-          ) : (
-            filteredShippers.map((shipper) => (
-              <article key={shipper._id} className="shippers-card">
-                <div className="shippers-card-main">
-                  <div className="shippers-avatar">
-                    {shipper.userId?.name?.[0]?.toUpperCase() || "D"}
-                  </div>
-                  <div>
-                    <h4>{shipper.userId?.name || "Unnamed pilot"}</h4>
-                    <p>{shipper.userId?.email}</p>
-                  </div>
+      <div className="row g-4">
+        <div className="col-12 col-xl-4">
+          <div className="card border rounded-4 h-100">
+            <div className="card-header border-0">
+              <h5 className="mb-1">Add drone shipper</h5>
+              <small className="text-muted">
+                Register a new delivery pilot for a branch.
+              </small>
+            </div>
+            <div className="card-body">
+              <form onSubmit={handleCreate} className="d-flex flex-column gap-3">
+                <div>
+                  <label className="form-label">Name</label>
+                  <input
+                    className="form-control"
+                    name="name"
+                    value={form.name}
+                    onChange={handleFormChange}
+                    placeholder="Eg. Alex Nguyen"
+                    required
+                  />
                 </div>
-                <div className="shippers-card-info">
-                  <p>
-                    <strong>Branch:</strong>{" "}
-                    {shipper.branchId?.name ||
-                      branches.find((branch) => branch._id === shipper.branchId)?.name ||
-                      "Unassigned"}
-                  </p>
-                  <p>
-                    <strong>Vehicle:</strong> {shipper.vehicleType || "—"}
-                  </p>
+                <div>
+                  <label className="form-label">Email</label>
+                  <input
+                    className="form-control"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleFormChange}
+                    placeholder="pilot@example.com"
+                    required
+                  />
                 </div>
-                <div className="shippers-card-actions">
-                  <span className={`shippers-status status-${shipper.status}`}>
-                    {shipper.status}
-                  </span>
+                <div>
+                  <label className="form-label">Branch</label>
                   <select
-                    value={shipper.status}
-                    onChange={(event) => updateStatus(shipper._id, event.target.value)}
+                    className="form-select"
+                    name="branchId"
+                    value={form.branchId}
+                    onChange={handleFormChange}
                   >
-                    {statusOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
+                    {branches.map((branch) => (
+                      <option key={branch._id} value={branch._id}>
+                        {branch.name}
                       </option>
                     ))}
                   </select>
                 </div>
-              </article>
-            ))
-          )}
-        </section>
+                <div>
+                  <label className="form-label">Vehicle</label>
+                  <select
+                    className="form-select"
+                    name="vehicleType"
+                    value={form.vehicleType}
+                    onChange={handleFormChange}
+                  >
+                    {vehicleOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? "Creating..." : "Add shipper"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-12 col-xl-8">
+          <div className="card border rounded-4 h-100">
+            <div className="card-header border-0">
+              <h5 className="mb-0">Fleet</h5>
+            </div>
+            <div className="card-body">
+              {loading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary mb-3" role="status" />
+                  <p className="text-muted mb-0">Loading fleet...</p>
+                </div>
+              ) : filteredShippers.length === 0 ? (
+                <p className="text-muted mb-0">No shippers for this branch yet.</p>
+              ) : (
+                <div className="list-group list-group-flush">
+                  {filteredShippers.map((shipper) => (
+                    <div
+                      key={shipper._id}
+                      className="list-group-item px-0 py-3 d-flex flex-column flex-lg-row gap-3 justify-content-between"
+                    >
+                      <div className="d-flex gap-3">
+                        <div className="avatar bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
+                          {shipper.userId?.name?.[0]?.toUpperCase() || "D"}
+                        </div>
+                        <div>
+                          <h6 className="mb-1">{shipper.userId?.name || "Unnamed pilot"}</h6>
+                          <small className="text-muted">{shipper.userId?.email || "No email"}</small>
+                        </div>
+                      </div>
+                      <div className="text-muted small">
+                        <div>
+                          <strong>Branch:</strong>{" "}
+                          {shipper.branchId?.name ||
+                            branches.find((branch) => branch._id === shipper.branchId)?.name ||
+                            "Unassigned"}
+                        </div>
+                        <div>
+                          <strong>Vehicle:</strong> {shipper.vehicleType || "—"}
+                        </div>
+                      </div>
+                      <div className="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
+                        <span className={statusBadgeMap[shipper.status] || statusBadgeMap.available}>
+                          {shipper.status}
+                        </span>
+                        <select
+                          className="form-select form-select-sm"
+                          value={shipper.status}
+                          onChange={(event) => updateStatus(shipper._id, event.target.value)}
+                        >
+                          {statusOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

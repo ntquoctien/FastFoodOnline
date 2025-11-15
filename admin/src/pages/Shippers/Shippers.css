@@ -17,18 +17,17 @@
     margin:0;
     font-size:26px;
     font-weight:600;
-    color:#0f172a;
+    color: var(--muted);
 }
 .shippers-header p{
     margin:6px 0 0;
-    color:#64748b;
+    color: var(--muted-subtle);
     font-size:14px;
 }
 .shippers-header select{
     padding:10px 16px;
     border-radius:999px;
     border:1px solid #cbd5f5;
-    background:#f8fafc;
     font-size:14px;
 }
 .shippers-banner{
@@ -69,7 +68,7 @@
     flex-direction:column;
     gap:6px;
     font-size:14px;
-    color:#334155;
+    color:#0b0b0c;
 }
 .shippers-form-card input,
 .shippers-form-card select{
@@ -108,7 +107,7 @@
     border:1px dashed #e2e8f0;
     border-radius:20px;
     background:#ffffff;
-    color:#94a3b8;
+    color: var(--muted-faint);
 }
 .shippers-card{
     background:#ffffff;
@@ -144,17 +143,17 @@
 .shippers-card-main p{
     margin:4px 0 0;
     font-size:12px;
-    color:#64748b;
+    color: var(--muted-subtle);
 }
 .shippers-card-info{
     display:flex;
     flex-direction:column;
     gap:4px;
     font-size:13px;
-    color:#475569;
+    color: var(--muted-subtle);
 }
 .shippers-card-info strong{
-    color:#0f172a;
+    color: var(--muted);
 }
 .shippers-card-actions{
     display:flex;
@@ -179,22 +178,19 @@
 }
 .shippers-status.status-inactive{
     background:#e2e8f0;
-    color:#475569;
+    color: var(--muted-subtle);
 }
 .shippers-card-actions select{
     padding:8px 12px;
     border-radius:10px;
     border:1px solid #dbeafe;
-    background:#f8fafc;
     font-size:13px;
 }
-
 @media (max-width: 960px){
     .shippers-layout{
         grid-template-columns:1fr;
     }
 }
-
 @media (max-width: 640px){
     .shippers-page{
         padding:24px 3%;

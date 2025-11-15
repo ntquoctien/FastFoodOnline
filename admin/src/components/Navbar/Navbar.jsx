@@ -7,13 +7,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import "./Navbar.css";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const {
     token,
@@ -137,103 +136,121 @@ const Navbar = () => {
   }, [token]);
 
   return (
-    <header className="navbar">
-      <div className="navbar-left">
-        <img className="logo" src={assets.logo} alt="Tomato admin" />
-        <div className="navbar-title">
-          <h1>Admin Console</h1>
-          <p>
-            {user?.name ? `Welcome back, ${user.name}` : "Manage branches and operations"}
-          </p>
-        </div>
-      </div>
-      <div className="navbar-actions">
-        {token ? (
-          <>
-            <button
-              type="button"
-              className={`navbar-icon-button ${notificationsOpen ? "is-active" : ""}`}
-              onClick={() => setNotificationsOpen((prev) => !prev)}
-              aria-label="Notifications"
-              ref={notificationsAnchorRef}
-            >
-              {renderBellIcon()}
-              {unreadCount > 0 ? <span className="navbar-badge">{unreadCount}</span> : null}
-            </button>
-            {notificationsOpen ? (
-              <div className="navbar-notifications" ref={notificationsPanelRef}>
-                <div className="navbar-notifications-header">
-                  <p>Notifications</p>
-                  <button
-                    type="button"
-                    disabled={notificationsLoading || notifications.length === 0}
-                    onClick={markAllRead}
-                  >
-                    Mark as read
-                  </button>
-                </div>
-                <div className="navbar-notifications-body">
-                  {notificationsLoading ? (
-                    <p className="navbar-notifications-empty">Loading...</p>
-                  ) : notifications.length === 0 ? (
-                    <p className="navbar-notifications-empty">
-                      You're all caught up!
-                    </p>
-                  ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification._id || notification.id}
-                        className={`navbar-notification ${
-                          notification.read ? "" : "navbar-notification-unread"
-                        }`}
-                      >
-                        <p className="navbar-notification-title">
-                          {notification.title || "System update"}
-                        </p>
-                        {notification.message ? (
-                          <p className="navbar-notification-message">
-                            {notification.message}
-                          </p>
-                        ) : null}
-                        {notification.createdAt ? (
-                          <span className="navbar-notification-meta">
-                            {new Date(notification.createdAt).toLocaleString()}
-                          </span>
-                        ) : null}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            ) : null}
-            <div className="navbar-divider" />
-            <div className="navbar-profile">
-              <div className="navbar-avatar">
-                <img
-                  src={user?.avatarUrl || assets.profile_image}
-                  alt={user?.name || "Profile"}
-                  onError={(event) => {
-                    event.currentTarget.src = assets.profile_image;
-                  }}
-                />
-                <span className="navbar-status-indicator" />
-              </div>
-              <div className="navbar-profile-copy">
-                <span className="navbar-profile-name">
-                  {user?.name || "Administrator"}
-                </span>
-                <span className="navbar-profile-role">{roleLabel}</span>
-              </div>
-              <button type="button" className="navbar-logout" onClick={logout}>
-                Logout
-              </button>
-            </div>
-          </>
-        ) : (
-          <button type="button" className="navbar-logout" onClick={() => navigate("/")}>
-            Login
+    <header className="mb-4">
+      <div className="navbar navbar-expand rounded-4 shadow-sm bg-white px-3 py-2 align-items-center">
+        <div className="d-flex align-items-center gap-3">
+          <button
+            type="button"
+            className="btn btn-outline-primary d-xl-none"
+            onClick={onToggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            <i className="bi bi-list fs-4" />
           </button>
-        )}
+          <div>
+            <h3 className="mb-0">Admin Console</h3>
+            <small className="text-muted">
+              {user?.name ? `Welcome back, ${user.name}` : "Manage branches and operations"}
+            </small>
+          </div>
+        </div>
+        <div className="ms-auto d-flex align-items-center gap-3 position-relative">
+          {token ? (
+            <>
+              <div className="dropdown">
+                <button
+                  type="button"
+                  className={`btn btn-light rounded-circle p-2 position-relative ${notificationsOpen ? "active" : ""}`}
+                  onClick={() => setNotificationsOpen((prev) => !prev)}
+                  aria-label="Notifications"
+                  ref={notificationsAnchorRef}
+                >
+                  {renderBellIcon()}
+                  {unreadCount > 0 ? (
+                    <span className="badge bg-danger position-absolute top-0 end-0 translate-middle rounded-pill">
+                      {unreadCount}
+                    </span>
+                  ) : null}
+                </button>
+                {notificationsOpen ? (
+                  <div
+                    className="dropdown-menu dropdown-menu-end show shadow border-0 rounded-4 p-0"
+                    ref={notificationsPanelRef}
+                  >
+                    <div className="card border-0 mb-0 rounded-4">
+                      <div className="card-header d-flex justify-content-between align-items-center">
+                        <h6 className="mb-0">Notifications</h6>
+                        <button
+                          type="button"
+                          className="btn btn-link btn-sm text-decoration-none"
+                          onClick={markAllRead}
+                          disabled={notificationsLoading || notifications.length === 0}
+                        >
+                          Mark as read
+                        </button>
+                      </div>
+                      <div className="card-body p-0">
+                        {notificationsLoading ? (
+                          <p className="text-center text-muted py-4 mb-0">Loading...</p>
+                        ) : notifications.length === 0 ? (
+                          <p className="text-center text-muted py-4 mb-0">
+                            You're all caught up!
+                          </p>
+                        ) : (
+                          <ul className="list-group list-group-flush">
+                            {notifications.map((notification) => (
+                              <li
+                                key={notification._id || notification.id}
+                                className={`list-group-item ${notification.read ? "" : "bg-light"} `}
+                              >
+                                <p className="mb-1 fw-semibold">
+                                  {notification.title || "System update"}
+                                </p>
+                                {notification.message ? (
+                                  <small className="text-muted d-block">
+                                    {notification.message}
+                                  </small>
+                                ) : null}
+                                {notification.createdAt ? (
+                                  <small className="text-muted">
+                                    {new Date(notification.createdAt).toLocaleString()}
+                                  </small>
+                                ) : null}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              <div className="d-flex align-items-center gap-3">
+                <div className="avatar avatar-xl position-relative">
+                  <img
+                    src={user?.avatarUrl || assets.profile_image}
+                    alt={user?.name || "Profile"}
+                    onError={(event) => {
+                      event.currentTarget.src = assets.profile_image;
+                    }}
+                  />
+                  <span className="avatar-status bg-success"></span>
+                </div>
+                <div>
+                  <p className="mb-0 fw-semibold">{user?.name || "Administrator"}</p>
+                  <small className="text-muted text-capitalize">{roleLabel}</small>
+                </div>
+                <button type="button" className="btn btn-danger" onClick={logout}>
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={() => navigate("/")}>
+              Login
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import "./Profile.css";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import { assets } from "../../assets/assets";
@@ -193,147 +192,169 @@ const Profile = () => {
     : "Remove photo";
 
   return (
-    <div className="profile-page">
-      <header className="profile-header">
-        <div>
-          <h2>My Profile</h2>
-          <p>Manage your personal information and dashboard access.</p>
-        </div>
-        <div className="profile-avatar">
-          <div className="profile-avatar-preview">
-            <img
-              src={avatarSrc}
-              alt={form.name || "Profile avatar"}
-              onError={(event) => {
-                event.currentTarget.src = assets.profile_image;
-              }}
-            />
+    <div className="page-heading">
+      <div className="row g-4">
+        <div className="col-12 col-lg-4">
+          <div className="card border rounded-4 h-100">
+            <div className="card-header border-0">
+              <h5 className="mb-1">Account profile</h5>
+              <small className="text-muted">
+                Update your basic information and avatar.
+              </small>
+            </div>
+            <div className="card-body d-flex flex-column align-items-center gap-3">
+              <div className="rounded-circle overflow-hidden" style={{ width: 140, height: 140 }}>
+                <img
+                  src={avatarSrc}
+                  alt={form.name || "Profile avatar"}
+                  className="img-fluid w-100 h-100 object-fit-cover"
+                  onError={(event) => {
+                    event.currentTarget.src = assets.profile_image;
+                  }}
+                />
+              </div>
+              <div className="d-flex flex-column gap-2 w-100">
+                <label className="btn btn-outline-primary w-100">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    disabled={profileLoading || saving}
+                    hidden
+                  />
+                  Change photo
+                </label>
+                {showRemoveButton ? (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={handleRemoveAvatar}
+                    disabled={profileLoading || saving}
+                  >
+                    {removeButtonLabel}
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </div>
-          <div className="profile-avatar-actions">
-            <label
-              className="profile-avatar-upload"
-              data-disabled={profileLoading || saving ? "true" : "false"}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                disabled={profileLoading || saving}
-              />
-              Change photo
-            </label>
-            {showRemoveButton ? (
-              <button
-                type="button"
-                className="profile-avatar-remove"
-                onClick={handleRemoveAvatar}
-                disabled={profileLoading || saving}
-              >
-                {removeButtonLabel}
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </header>
-      <form className="profile-form" onSubmit={handleSubmit}>
-        <div className="profile-grid">
-          <label className="profile-field">
-            <span>Full name</span>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              disabled={profileLoading || saving}
-              required
-            />
-          </label>
-          <label className="profile-field">
-            <span>Email</span>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={onChange}
-              disabled={profileLoading || saving}
-              />
-          </label>
-          <label className="profile-field">
-            <span>Phone</span>
-            <input
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={onChange}
-              disabled={profileLoading || saving}
-            />
-          </label>
         </div>
 
-        <section className="profile-password">
-          <div className="profile-password-header">
-            <div>
-              <h3>Update password</h3>
-              <p>Only change your password when you really need to.</p>
+        <div className="col-12 col-lg-8">
+          <div className="card border rounded-4">
+            <div className="card-header border-0">
+              <h5 className="mb-0">Account details</h5>
             </div>
-            <button
-              type="button"
-              className="profile-password-toggle"
-              onClick={togglePasswordChange}
-              disabled={profileLoading || saving}
-            >
-              {changePassword ? "Cancel" : "Change password"}
-            </button>
-          </div>
-          {changePassword ? (
-            <div className="profile-grid profile-password-grid">
-              <label className="profile-field">
-                <span>Current password</span>
-                <input
-                  type="password"
-                  name="currentPassword"
-                  value={form.currentPassword}
-                  onChange={onChange}
-                  disabled={profileLoading || saving}
-                  placeholder="Enter current password"
-                />
-              </label>
-              <label className="profile-field">
-                <span>New password</span>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={form.newPassword}
-                  onChange={onChange}
-                  disabled={profileLoading || saving}
-                  placeholder="Enter new password"
-                />
-              </label>
-              <label className="profile-field">
-                <span>Confirm new password</span>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={form.confirmPassword}
-                  onChange={onChange}
-                  disabled={profileLoading || saving}
-                  placeholder="Confirm new password"
-                />
-              </label>
-            </div>
-          ) : (
-            <p className="profile-password-hint">
-              You can update your password whenever you need extra security.
-            </p>
-          )}
-        </section>
+            <form onSubmit={handleSubmit} className="card-body d-flex flex-column gap-3">
+              <div className="row g-3">
+                <div className="col-12">
+                  <label className="form-label">Full name</label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={onChange}
+                    disabled={profileLoading || saving}
+                    required
+                  />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Email</label>
+                  <input
+                    className="form-control"
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={onChange}
+                    disabled={profileLoading || saving}
+                  />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Phone</label>
+                  <input
+                    className="form-control"
+                    type="tel"
+                    name="phone"
+                    value={form.phone}
+                    onChange={onChange}
+                    disabled={profileLoading || saving}
+                    placeholder="Optional"
+                  />
+                </div>
+              </div>
 
-        <footer className="profile-actions">
-          <button type="submit" disabled={saving || profileLoading}>
-            {saving ? "Saving..." : "Save changes"}
-          </button>
-        </footer>
-      </form>
+              <div className="border rounded-4 p-3 bg-body-tertiary">
+                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2">
+                  <div>
+                    <h6 className="mb-0">Update password</h6>
+                    <small className="text-muted">
+                      Only change your password when you really need to.
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={togglePasswordChange}
+                    disabled={profileLoading || saving}
+                  >
+                    {changePassword ? "Cancel" : "Change password"}
+                  </button>
+                </div>
+                {changePassword ? (
+                  <div className="row g-3 mt-0 pt-3">
+                    <div className="col-12">
+                      <label className="form-label">Current password</label>
+                      <input
+                        className="form-control"
+                        type="password"
+                        name="currentPassword"
+                        value={form.currentPassword}
+                        onChange={onChange}
+                        disabled={profileLoading || saving}
+                        placeholder="Enter current password"
+                      />
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label">New password</label>
+                      <input
+                        className="form-control"
+                        type="password"
+                        name="newPassword"
+                        value={form.newPassword}
+                        onChange={onChange}
+                        disabled={profileLoading || saving}
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label">Confirm new password</label>
+                      <input
+                        className="form-control"
+                        type="password"
+                        name="confirmPassword"
+                        value={form.confirmPassword}
+                        onChange={onChange}
+                        disabled={profileLoading || saving}
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-muted small mb-0 pt-3">
+                    You can update your password whenever you need extra security.
+                  </p>
+                )}
+              </div>
+
+              <div className="d-flex justify-content-end">
+                <button type="submit" className="btn btn-primary" disabled={saving || profileLoading}>
+                  {saving ? "Saving..." : "Save changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

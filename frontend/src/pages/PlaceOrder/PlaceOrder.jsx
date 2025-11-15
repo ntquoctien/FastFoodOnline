@@ -46,7 +46,7 @@ const PlaceOrder = () => {
     },
     {
       id: "stripe",
-      title: "Credit / Debit Card (Stripe)",
+      title: "Credit / Debit Card",
       description: "Pay securely using international cards processed by Stripe.",
       badge: "CC",
     },

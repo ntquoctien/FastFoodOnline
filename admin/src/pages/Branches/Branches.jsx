@@ -1,8 +1,7 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { StoreContext } from "../../context/StoreContext";
-import "./Branches.css";
 
 const initialFormValues = {
   name: "",
@@ -260,259 +259,364 @@ const Branches = ({ url }) => {
     setEditingBranchId(null);
   };
 
-  return (
-    <div className="branches-page">
-      <div className="branches-header">
-        <div>
-          <h2>Branches</h2>
-          {restaurantName ? <p className="branches-restaurant">{restaurantName}</p> : null}
+  const renderBranchFormModal = () => {
+    if (!showForm) return null;
+    return (
+      <>
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="dialog"
+          onClick={handleCancelForm}
+        >
+          <div
+            className="modal-dialog modal-lg modal-dialog-scrollable"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-content border-0 rounded-4">
+              <div className="modal-header border-0">
+                <div>
+                  <h5 className="mb-1">
+                    {editingBranchId ? "Edit branch" : "Add branch"}
+                  </h5>
+                  <small className="text-muted">
+                    Configure branch details and manager access.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={handleCancelForm}
+                />
+              </div>
+              <form onSubmit={handleFormSubmit}>
+                <div className="modal-body">
+                  <div className="row g-3">
+                    <div className="col-12">
+                      <label className="form-label">Name *</label>
+                      <input
+                        className="form-control"
+                        name="name"
+                        value={formValues.name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Street</label>
+                      <input
+                        className="form-control"
+                        name="street"
+                        value={formValues.street}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">District</label>
+                      <input
+                        className="form-control"
+                        name="district"
+                        value={formValues.district}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">City</label>
+                      <input
+                        className="form-control"
+                        name="city"
+                        value={formValues.city}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Phone</label>
+                      <input
+                        className="form-control"
+                        name="phone"
+                        value={formValues.phone}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-3">
+                      <label className="form-label">Latitude</label>
+                      <input
+                        className="form-control"
+                        name="latitude"
+                        type="number"
+                        step="any"
+                        value={formValues.latitude}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-3">
+                      <label className="form-label">Longitude</label>
+                      <input
+                        className="form-control"
+                        name="longitude"
+                        type="number"
+                        step="any"
+                        value={formValues.longitude}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+                  <hr className="my-4" />
+                  <h6 className="mb-3">Branch access</h6>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Manager name</label>
+                      <input
+                        className="form-control"
+                        name="managerName"
+                        value={formValues.managerName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Manager email</label>
+                      <input
+                        className="form-control"
+                        name="managerEmail"
+                        type="email"
+                        value={formValues.managerEmail}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Temporary password</label>
+                      <input
+                        className="form-control"
+                        name="managerPassword"
+                        type="text"
+                        value={formValues.managerPassword}
+                        onChange={handleInputChange}
+                        placeholder={
+                          editingBranchId
+                            ? "Leave blank to keep current password"
+                            : ""
+                        }
+                      />
+                      <small className="text-muted">
+                        Password is required for new accounts. Leave empty when editing to keep the existing password.
+                      </small>
+                    </div>
+                    <div className="col-12">
+                      <div className="form-check form-switch">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          name="isPrimary"
+                          id="branch-is-primary"
+                          checked={formValues.isPrimary}
+                          onChange={handleInputChange}
+                        />
+                        <label className="form-check-label" htmlFor="branch-is-primary">
+                          Primary branch
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer border-0">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={handleCancelForm}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving
+                      ? "Saving..."
+                      : editingBranchId
+                      ? "Update branch"
+                      : "Create branch"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <button className="branches-add-btn" onClick={handleAddClick}>
-          Add Branch
+        <div className="modal-backdrop fade show" />
+      </>
+    );
+  };
+
+
+  return (
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+        <div>
+          <h3 className="mb-1">Branches</h3>
+          {restaurantName ? (
+            <p className="text-muted mb-0">{restaurantName}</p>
+          ) : (
+            <p className="text-muted mb-0">
+              Manage operating locations and branch access.
+            </p>
+          )}
+        </div>
+        <button type="button" className="btn btn-primary" onClick={handleAddClick}>
+          + Add branch
         </button>
       </div>
 
-      <div className="branches-grid">
-        <div className="branches-panel">
-          <div className="branches-panel-header">
-            <h3>Branch List</h3>
-            {loading ? <span className="branches-status">Loading...</span> : null}
-          </div>
-
-          {showForm ? (
-            <form className="branches-form" onSubmit={handleFormSubmit}>
-              <div className="branches-form-row">
-                <label htmlFor="branch-name">Name *</label>
-                <input
-                  id="branch-name"
-                  name="name"
-                  type="text"
-                  value={formValues.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="branches-form-row">
-                <label htmlFor="branch-street">Street</label>
-                <input
-                  id="branch-street"
-                  name="street"
-                  type="text"
-                  value={formValues.street}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="branches-form-grid">
-                <div className="branches-form-row">
-                  <label htmlFor="branch-district">District</label>
-                  <input
-                    id="branch-district"
-                    name="district"
-                    type="text"
-                    value={formValues.district}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="branches-form-row">
-                  <label htmlFor="branch-city">City</label>
-                  <input
-                    id="branch-city"
-                    name="city"
-                    type="text"
-                    value={formValues.city}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-              <div className="branches-form-row">
-                <label htmlFor="branch-phone">Phone</label>
-                <input
-                  id="branch-phone"
-                  name="phone"
-                  type="text"
-                  value={formValues.phone}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="branches-form-grid">
-                <div className="branches-form-row">
-                  <label htmlFor="branch-latitude">Latitude</label>
-                  <input
-                    id="branch-latitude"
-                    name="latitude"
-                    type="number"
-                    step="any"
-                    value={formValues.latitude}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="branches-form-row">
-                  <label htmlFor="branch-longitude">Longitude</label>
-                  <input
-                    id="branch-longitude"
-                    name="longitude"
-                    type="number"
-                    step="any"
-                    value={formValues.longitude}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-              <div className="branches-form-divider" />
-              <div className="branches-form-section">
-                <h4>Branch access</h4>
-                <p>Provide credentials for the branch manager account.</p>
-              </div>
-              <div className="branches-form-grid">
-                <div className="branches-form-row">
-                  <label htmlFor="branch-manager-name">Manager name</label>
-                  <input
-                    id="branch-manager-name"
-                    name="managerName"
-                    type="text"
-                    value={formValues.managerName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="branches-form-row">
-                  <label htmlFor="branch-manager-email">Manager email</label>
-                  <input
-                    id="branch-manager-email"
-                    name="managerEmail"
-                    type="email"
-                    value={formValues.managerEmail}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-              <div className="branches-form-row">
-                <label htmlFor="branch-manager-password">Temporary password</label>
-                <input
-                  id="branch-manager-password"
-                  name="managerPassword"
-                  type="text"
-                  value={formValues.managerPassword}
-                  onChange={handleInputChange}
-                  placeholder={editingBranchId ? "Leave blank to keep current password" : ""}
-                />
-                <span className="branches-form-hint">
-                  Password is required for new accounts. Leave empty when editing to keep the existing password.
-                </span>
-              </div>
-              <label className="branches-form-checkbox">
-                <input
-                  type="checkbox"
-                  name="isPrimary"
-                  checked={formValues.isPrimary}
-                  onChange={handleInputChange}
-                />
-                Primary branch
-              </label>
-              <div className="branches-form-actions">
-                <button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
-                </button>
-                <button type="button" onClick={handleCancelForm}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : null}
-
-          <div className="branches-table">
-            <div className="branches-row branches-row-head">
-              <span>Name</span>
-              <span>Address</span>
-              <span>Phone</span>
-              <span>Status</span>
-              <span>Actions</span>
+      <div className="row g-4">
+        <div className="col-12 col-xl-6">
+          <div className="card border rounded-4 h-100">
+            <div className="card-header border-0 d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">Branch list</h5>
+              {loading ? (
+                <div className="spinner-border spinner-border-sm text-primary" role="status" />
+              ) : null}
             </div>
-            {!loading && branches.length === 0 ? (
-              <div className="branches-empty">No branches yet</div>
-            ) : (
-              branches.map((branch) => (
-                <div
-                  key={branch._id}
-                  className={`branches-row ${
-                    branch._id === selectedBranchId ? "branches-row-selected" : ""
-                  }`}
-                  onClick={() => setSelectedBranchId(branch._id)}
-                >
-                  <span className="branches-row-name">
-                    {branch.name}
-                    {branch.isPrimary ? <span className="branches-badge">Primary</span> : null}
-                  </span>
-                  <span className="branches-row-address">
-                    {formatAddress(branch) || "-"}
-                  </span>
-                  <span>{branch.phone || "-"}</span>
-                  <span>{branch.isActive === false ? "Inactive" : "Active"}</span>
-                  <span className="branches-row-actions">
-                    <button
-                      type="button"
-                      onClick={(event) => handleEditClick(event, branch)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(event) => handleDeleteClick(event, branch)}
-                      disabled={deletingId === branch._id}
-                    >
-                      {deletingId === branch._id ? "Removing..." : "Delete"}
-                    </button>
-                  </span>
-                </div>
-              ))
-            )}
+            <div className="table-responsive">
+              <table className="table align-middle mb-0">
+                <thead className="text-muted small text-uppercase">
+                  <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th className="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!loading && branches.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center text-muted py-4">
+                        No branches yet
+                      </td>
+                    </tr>
+                  ) : (
+                    branches.map((branch) => (
+                      <tr
+                        key={branch._id}
+                        className={
+                          branch._id === selectedBranchId ? "table-active" : ""
+                        }
+                        onClick={() => setSelectedBranchId(branch._id)}
+                        role="button"
+                      >
+                        <td className="fw-semibold">
+                          {branch.name}{" "}
+                          {branch.isPrimary ? (
+                            <span className="badge bg-primary-subtle text-primary ms-2">
+                              Primary
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="text-muted">
+                          {formatAddress(branch) || "-"}
+                        </td>
+                        <td className="text-muted">{branch.phone || "-"}</td>
+                        <td>
+                          <span
+                            className={
+                              branch.isActive === false
+                                ? "badge bg-danger-subtle text-danger"
+                                : "badge bg-success-subtle text-success"
+                            }
+                          >
+                            {branch.isActive === false ? "Inactive" : "Active"}
+                          </span>
+                        </td>
+                        <td className="text-end">
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary"
+                              onClick={(event) => handleEditClick(event, branch)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger"
+                              onClick={(event) => handleDeleteClick(event, branch)}
+                              disabled={deletingId === branch._id}
+                            >
+                              {deletingId === branch._id ? "Removing..." : "Delete"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div className="branches-panel">
-          <div className="branches-panel-header">
-            <h3>
-              {selectedBranch ? `Menu - ${selectedBranch.name}` : "Menu Preview"}
-            </h3>
-            {menuLoading ? <span className="branches-status">Loading...</span> : null}
-          </div>
-          {!selectedBranch ? (
-            <p className="branches-empty">Select a branch to view its menu</p>
-          ) : menuFoods.length === 0 && !menuLoading ? (
-            <p className="branches-empty">No menu items for this branch</p>
-          ) : (
-            <div className="branches-menu-table">
-              <div className="branches-menu-row branches-menu-head">
-                <span>Category</span>
-                <span>Food</span>
-                <span>Variants</span>
-              </div>
-              {menuFoods.map((food) => (
-                <div key={food._id} className="branches-menu-row">
-                  <span>{food.categoryName || "-"}</span>
-                  <span className="branches-menu-name">{food.name}</span>
-                  <span className="branches-menu-variants">
-                    {(food.variants || []).length === 0
-                      ? "No variants"
-                      : food.variants
-                          .map((variant) => {
-                            const price = Number(variant.price);
-                            const formattedPrice = Number.isFinite(price)
-                              ? `$${price.toFixed(2)}`
-                              : "";
-                            return [variant.size, formattedPrice]
-                              .filter(Boolean)
-                              .join(" - ");
-                          })
-                          .join(", ")}
-                  </span>
-                </div>
-              ))}
+        <div className="col-12 col-xl-6">
+          <div className="card border rounded-4 h-100">
+            <div className="card-header border-0 d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                {selectedBranch ? `Menu · ${selectedBranch.name}` : "Menu preview"}
+              </h5>
+              {menuLoading ? (
+                <div className="spinner-border spinner-border-sm text-primary" role="status" />
+              ) : null}
             </div>
-          )}
+            <div className="card-body">
+              {!selectedBranch ? (
+                <p className="text-muted mb-0">
+                  Select a branch to view its assigned menu.
+                </p>
+              ) : menuFoods.length === 0 && !menuLoading ? (
+                <p className="text-muted mb-0">
+                  No menu items published for this branch.
+                </p>
+              ) : (
+                <div className="list-group list-group-flush">
+                  {menuFoods.map((food) => (
+                    <div key={food._id} className="list-group-item px-0">
+                      <div className="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                          <h6 className="mb-1">{food.name}</h6>
+                          <small className="text-muted">
+                            {food.categoryName || "Uncategorised"}
+                          </small>
+                        </div>
+                        <div className="text-muted small text-end">
+                          {(food.variants || []).length} variant
+                          {(food.variants || []).length === 1 ? "" : "s"}
+                        </div>
+                      </div>
+                      <p className="mb-0 text-muted small">
+                        {(food.variants || []).length === 0
+                          ? "No variants"
+                          : food.variants
+                              .map((variant) => {
+                                const price = Number(variant.price);
+                                const formattedPrice = Number.isFinite(price)
+                                  ? `$${price.toFixed(2)}`
+                                  : "";
+                                return [variant.size, formattedPrice]
+                                  .filter(Boolean)
+                                  .join(" · ");
+                              })
+                              .join(", ")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {renderBranchFormModal()}
     </div>
   );
+
+
 };
 
 export default Branches;
+

@@ -1,4 +1,4 @@
-﻿import React, {
+import React, {
   useCallback,
   useContext,
   useEffect,
@@ -6,16 +6,33 @@
   useState,
   useRef,
 } from "react";
-import "./List.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
-import { assets } from "../../assets/assets";
 
 const FALLBACK_IMAGE =
   "https://via.placeholder.com/120x80.png?text=Menu+Item";
 const UNASSIGNED_BRANCH_ID = "unassigned";
+
+const STATUS_BADGES = {
+  active: {
+    label: "Active",
+    className: "badge bg-light-success text-success",
+  },
+  "sold-out": {
+    label: "Sold out",
+    className: "badge bg-light-danger text-danger",
+  },
+  paused: {
+    label: "Paused",
+    className: "badge bg-light-secondary text-secondary",
+  },
+  default: {
+    label: "Status",
+    className: "badge bg-light text-body-secondary",
+  },
+};
 
 const formatPrice = (value) => {
   const number = Number(value);
@@ -490,289 +507,251 @@ const List = ({ url }) => {
     return hasActiveVariant ? "active" : "sold-out";
   };
 
-  return (
-    <div className="list-page">
-      <header className="list-header">
-        <div>
-          <h2>Menu library</h2>
-          <p>Manage dishes per branch, prices, stock, and availability.</p>
-        </div>
-        <div className="list-header-actions">
-          <input
-            type="search"
-            placeholder="Search dishes, categories, or sizes"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-          <select
-            value={branchFilter}
-            onChange={(event) => setBranchFilter(event.target.value)}
-          >
-            <option value="all">All branches</option>
-            {branches.map((branch) => (
-              <option key={String(branch._id)} value={String(branch._id)}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="list-refresh-btn"
-            onClick={() => fetchList()}
-          >
-            Refresh
-          </button>
-        </div>
-      </header>
+  const getStatusBadge = (status) => {
+    const config = STATUS_BADGES[status] || STATUS_BADGES.default;
+    return <span className={config.className}>{config.label}</span>;
+  };
 
-      {loading ? (
-        <div className="list-empty">Loading menu items...</div>
-      ) : branchSections.length === 0 ? (
-        <div className="list-empty">
-          No menu items match the current filters. Try changing the search or branch.
-        </div>
-      ) : (
-        <div className="list-branch-container">
-          {branchSections.map((section) => {
-            const branchId = section.branch._id;
-            const branchOpen = expandedBranches[branchId];
-            return (
-              <section key={branchId} className="list-branch-section">
-                <header className="list-branch-header">
-                  <div className="list-branch-meta">
-                    <button
-                      type="button"
-                      className={`list-branch-toggle${
-                        branchOpen ? " is-open" : ""
-                      }`}
-                      onClick={() => toggleBranch(branchId)}
-                      aria-label={`Toggle ${section.branch.name}`}
-                    >
-                      <img src={assets.chevron_right} alt="" aria-hidden="true" />
-                    </button>
-                    <div>
-                      <h3>{section.branch.name}</h3>
-                      <span>
-                        {section.foods.length}{" "}
-                        {section.foods.length === 1 ? "dish" : "dishes"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="list-branch-actions">
-                    <button
-                      type="button"
-                      onClick={() => handleNavigateInventory(branchId)}
-                    >
-                      Open inventory
-                    </button>
-                  </div>
-                </header>
+  const toggleIconClass = (isOpen) =>
+    isOpen ? "bi-chevron-down" : "bi-chevron-right";
 
-                {branchOpen ? (
-                  <div className="list-branch-body">
-                    {section.foods.map((food) => {
-                      const foodStatus = resolveFoodStatus(
-                        food,
-                        food.variants
-                      );
-                      const foodPaused = foodStatus === "paused";
-                      const foodSoldOut = foodStatus === "sold-out";
-                      const actionLabel = foodPaused
-                        ? "Resume dish"
-                        : "Pause dish";
-                      return (
-                        <article key={food._id} className="list-food-card">
-                          <div className="list-food-header">
-                            <div className="list-food-info">
-                              <img
-                                src={resolveFoodImageSrc(food.imageUrl)}
-                                alt={food.name}
-                                onError={(event) => {
-                                  event.currentTarget.onerror = null;
-                                  event.currentTarget.src = FALLBACK_IMAGE;
-                                }}
-                              />
-                              <div>
-                                <div className="list-food-title">
-                                  <h4>{food.name}</h4>
-                                  <span className={`list-status ${foodStatus}`}>
-                                    {foodStatus === "active" && "Active"}
-                                    {foodStatus === "sold-out" && "Sold out"}
-                                    {foodStatus === "paused" && "Paused"}
-                                  </span>
-                                </div>
-                                <p>{food.description || "No description"}</p>
-                                <span className="list-food-category">
-                                  {food.categoryName || "Uncategorised"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="list-food-controls">
-                              <input
-                                ref={(element) => {
-                                  if (element) {
-                                    fileInputRefs.current[food._id] = element;
-                                  } else {
-                                    delete fileInputRefs.current[food._id];
-                                  }
-                                }}
-                                type="file"
-                                accept="image/*"
-                                className="list-hidden-input"
-                                onChange={(event) =>
-                                  handleFoodImageSelect(food, event)
-                                }
-                                disabled={imageUploading === food._id}
-                              />
-                              <button
-                                type="button"
-                                className="list-secondary"
-                                onClick={() =>
-                                  handleFoodImageButtonClick(food._id)
-                                }
-                                disabled={imageUploading === food._id}
-                              >
-                                {imageUploading === food._id
-                                  ? "Uploading..."
-                                  : "Change image"}
-                              </button>
-                              <button
-                                type="button"
-                                className="list-secondary"
-                                onClick={() =>
-                                  handleFoodStatusToggle(food, foodPaused)
-                                }
-                                disabled={foodUpdating === food._id}
-                              >
-                                {foodUpdating === food._id
-                                  ? "Updating..."
-                                  : actionLabel}
-                              </button>
-                              <button
-                                type="button"
-                                className="list-danger"
-                                onClick={() => removeFood(food._id)}
-                              >
-                                Remove dish
-                              </button>
-                            </div>
+  const renderBranchSections = () => {
+    if (loading) {
+      return (
+        <div className="card border rounded-4 mb-4">
+          <div className="card-body text-center py-5">
+            <div className="spinner-border text-primary mb-3" role="status" />
+            <p className="text-muted mb-0">Loading menu items...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (branchSections.length === 0) {
+      return (
+        <div className="card border rounded-4">
+          <div className="card-body text-center py-5 text-muted">
+            No menu items match the current filters. Try adjusting the search or branch selection.
+          </div>
+        </div>
+      );
+    }
+
+    return branchSections.map((section) => {
+      const branchId = section.branch._id;
+      const branchOpen = expandedBranches[branchId];
+      return (
+        <div key={branchId} className="card border rounded-4 mb-4">
+          <div className="card-header border-0 py-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            <div className="d-flex align-items-center gap-3">
+              <button
+                type="button"
+                className="btn btn-light btn-sm rounded-circle"
+                onClick={() => toggleBranch(branchId)}
+                aria-label={`Toggle ${section.branch.name}`}
+              >
+                <i className={`bi ${toggleIconClass(branchOpen)}`} />
+              </button>
+              <div>
+                <h5 className="mb-0">{section.branch.name}</h5>
+                <small className="text-muted">
+                  {section.foods.length}{" "}
+                  {section.foods.length === 1 ? "dish" : "dishes"}
+                </small>
+              </div>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <button
+                type="button"
+                className="btn btn-outline-primary btn-sm"
+                onClick={() => handleNavigateInventory(branchId)}
+              >
+                Open inventory
+              </button>
+            </div>
+          </div>
+          {branchOpen ? (
+            <div className="card-body pt-0">
+              {section.foods.map((food) => {
+                const foodStatus = resolveFoodStatus(food, food.variants);
+                const foodPaused = foodStatus === "paused";
+                const actionLabel = foodPaused ? "Resume dish" : "Pause dish";
+
+                return (
+                  <div key={food._id} className="border rounded-4 p-3 mb-3">
+                    <div className="d-flex flex-column flex-lg-row gap-3">
+                      <div className="d-flex gap-3 flex-grow-1">
+                        <img
+                          src={resolveFoodImageSrc(food.imageUrl)}
+                          alt={food.name}
+                          className="rounded-4"
+                          style={{
+                            width: 110,
+                            height: 90,
+                            objectFit: "cover",
+                            flexShrink: 0,
+                          }}
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = FALLBACK_IMAGE;
+                          }}
+                        />
+                        <div>
+                          <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                            <h5 className="mb-0">{food.name}</h5>
+                            {getStatusBadge(foodStatus)}
                           </div>
+                          <p className="text-muted mb-2">
+                            {food.description || "No description"}
+                          </p>
+                          <span className="badge bg-primary-subtle text-primary">
+                            {food.categoryName || "Uncategorised"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+                        <input
+                          ref={(element) => {
+                            if (element) {
+                              fileInputRefs.current[food._id] = element;
+                            } else {
+                              delete fileInputRefs.current[food._id];
+                            }
+                          }}
+                          type="file"
+                          accept="image/*"
+                          className="d-none"
+                          onChange={(event) => handleFoodImageSelect(food, event)}
+                          disabled={imageUploading === food._id}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => handleFoodImageButtonClick(food._id)}
+                          disabled={imageUploading === food._id}
+                        >
+                          {imageUploading === food._id ? "Uploading..." : "Change image"}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => handleFoodStatusToggle(food, foodPaused)}
+                          disabled={foodUpdating === food._id}
+                        >
+                          {foodUpdating === food._id ? "Updating..." : actionLabel}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => removeFood(food._id)}
+                        >
+                          Remove dish
+                        </button>
+                      </div>
+                    </div>
+                    <div className="table-responsive mt-4">
+                      <table className="table align-middle mb-0">
+                        <thead className="text-muted small text-uppercase">
+                          <tr>
+                            <th className="fw-semibold">Size</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Inventory</th>
+                            <th className="text-end">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {food.variants.map((variant) => {
+                            const variantId = variant._id;
+                            const variantStatus = resolveVariantStatus(variant);
+                            const quantity = getVariantQuantity(variant);
+                            const draftValue = priceDrafts[variantId] ?? "";
+                            const inventoryValue = resolveQuantityValue(
+                              variantId,
+                              quantity
+                            );
+                            let variantActionLabel = "Pause";
+                            let nextVariantState = false;
+                            let actionDisabled =
+                              variantUpdating === variantId ||
+                              variantStatus === "sold-out";
 
-                          <div className="list-variant-table">
-                            <div className="list-variant-head">
-                              <span>Size</span>
-                              <span>Price</span>
-                              <span>Status</span>
-                              <span>Inventory</span>
-                              <span />
-                            </div>
-                            {food.variants.map((variant) => {
-                              const variantId = variant._id;
-                              const variantStatus =
-                                resolveVariantStatus(variant);
-                              const quantity = getVariantQuantity(variant);
-                              const draftValue = priceDrafts[variantId] ?? "";
-                              const inventoryValue = resolveQuantityValue(
-                                variantId,
-                                quantity
-                              );
-                              let variantActionLabel = "Pause";
-                              let nextVariantState = false;
-                              let actionDisabled =
-                                variantUpdating === variantId ||
-                                variantStatus === "sold-out";
+                            if (variantStatus === "paused") {
+                              variantActionLabel = "Resume";
+                              nextVariantState = true;
+                            } else if (variantStatus === "sold-out") {
+                              variantActionLabel = "Sold out";
+                            }
 
-                              if (variantStatus === "paused") {
-                                variantActionLabel = "Resume";
-                                nextVariantState = true;
-                              } else if (variantStatus === "sold-out") {
-                                variantActionLabel = "Sold out";
-                              }
-                              return (
-                                <div
-                                  key={variantId}
-                                  className="list-variant-row"
-                                >
-                                  <span className="list-variant-size">
-                                    {variant.size || "Variant"}
-                                  </span>
-                                  <span className="list-variant-price">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={draftValue}
-                                      onChange={(event) =>
-                                        handleVariantPriceChange(
-                                          variantId,
-                                          event.target.value
-                                        )
-                                      }
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleVariantPriceSave(variant)
-                                      }
-                                      disabled={priceSaving === variantId}
-                                    >
-                                      {priceSaving === variantId
-                                        ? "Saving..."
-                                        : "Save"}
-                                    </button>
-                                  </span>
-                                  <span className="list-variant-status">
-                                    <span
-                                      className={`list-status ${variantStatus}`}
-                                    >
-                                      {variantStatus === "active" && "Active"}
-                                      {variantStatus === "sold-out" &&
-                                        "Sold out"}
-                                      {variantStatus === "paused" && "Paused"}
-                                    </span>
-                                  </span>
-                                  <span className="list-variant-inventory">
-                                    <div className="list-quantity-controls">
+                            return (
+                              <tr key={variantId}>
+                                <td className="fw-semibold">
+                                  {variant.size || "Variant"}
+                                </td>
+                                <td>
+                                  <div className="d-flex flex-column flex-lg-row gap-2">
+                                    <div className="input-group input-group-sm">
+                                      <span className="input-group-text">$</span>
                                       <input
                                         type="number"
                                         min="0"
-                                        value={inventoryValue}
+                                        step="0.01"
+                                        value={draftValue}
+                                        className="form-control"
                                         onChange={(event) =>
-                                          handleInventoryChange(
+                                          handleVariantPriceChange(
                                             variantId,
                                             event.target.value
                                           )
                                         }
-                                        onKeyDown={(event) =>
-                                          handleInventoryKeyDown(
-                                            event,
-                                            variant
-                                          )
-                                        }
-                                        placeholder="Set quantity"
                                       />
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleInventorySubmit(variant)
-                                        }
-                                        disabled={savingVariant === variantId}
-                                      >
-                                        {savingVariant === variantId
-                                          ? "Updating..."
-                                          : "Update"}
-                                      </button>
                                     </div>
-                                    <small>
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-primary btn-sm"
+                                      onClick={() => handleVariantPriceSave(variant)}
+                                      disabled={priceSaving === variantId}
+                                    >
+                                      {priceSaving === variantId ? "Saving..." : "Save"}
+                                    </button>
+                                  </div>
+                                </td>
+                                <td>{getStatusBadge(variantStatus)}</td>
+                                <td>
+                                  <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-2">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={inventoryValue}
+                                      className="form-control form-control-sm"
+                                      placeholder="Set quantity"
+                                      onChange={(event) =>
+                                        handleInventoryChange(variantId, event.target.value)
+                                      }
+                                      onKeyDown={(event) =>
+                                        handleInventoryKeyDown(event, variant)
+                                      }
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-primary btn-sm"
+                                      onClick={() => handleInventorySubmit(variant)}
+                                      disabled={savingVariant === variantId}
+                                    >
+                                      {savingVariant === variantId ? "Updating..." : "Update"}
+                                    </button>
+                                    <small className="text-muted">
                                       {quantity > 0
                                         ? `In stock: ${quantity}`
                                         : "Out of stock"}
                                     </small>
-                                  </span>
-                                  <span className="list-variant-actions">
+                                  </div>
+                                </td>
+                                <td className="text-end">
+                                  <div className="d-flex flex-column flex-lg-row gap-2 justify-content-end">
                                     <button
                                       type="button"
-                                      className="list-secondary"
+                                      className="btn btn-outline-secondary btn-sm"
                                       onClick={() => {
                                         if (!actionDisabled) {
                                           handleVariantStatusToggle(
@@ -789,29 +768,70 @@ const List = ({ url }) => {
                                     </button>
                                     <button
                                       type="button"
-                                      className="list-danger"
-                                      onClick={() =>
-                                        handleVariantDelete(variant)
-                                      }
+                                      className="btn btn-outline-danger btn-sm"
+                                      onClick={() => handleVariantDelete(variant)}
                                       disabled={variantUpdating === variantId}
                                     >
                                       Delete
                                     </button>
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </article>
-                      );
-                    })}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                ) : null}
-              </section>
-            );
-          })}
+                );
+              })}
+            </div>
+          ) : null}
         </div>
-      )}
+      );
+    });
+  };
+
+  return (
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+        <div>
+          <h3 className="mb-1">Menu library</h3>
+          <p className="text-muted mb-0">
+            Manage dishes per branch, prices, stock, and availability.
+          </p>
+        </div>
+        <div className="d-flex flex-column flex-lg-row gap-2 w-100 w-lg-auto">
+          <input
+            type="search"
+            className="form-control"
+            placeholder="Search dishes, categories, or sizes"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <select
+            className="form-select"
+            value={branchFilter}
+            onChange={(event) => setBranchFilter(event.target.value)}
+          >
+            <option value="all">All branches</option>
+            {branches.map((branch) => (
+              <option key={String(branch._id)} value={String(branch._id)}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={() => fetchList()}
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {renderBranchSections()}
     </div>
   );
 };

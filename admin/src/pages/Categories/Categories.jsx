@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import "./Categories.css";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
@@ -159,6 +158,149 @@ const Categories = ({ url }) => {
   const confirmDelete = (category) => setDeleteTarget(category);
   const cancelDelete = () => setDeleteTarget(null);
 
+  const renderFormModal = () => {
+    if (!formOpen) return null;
+    return (
+      <>
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="dialog"
+          onClick={closeForm}
+        >
+          <div
+            className="modal-dialog modal-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-content border-0 rounded-4">
+              <div className="modal-header border-0">
+                <div>
+                  <h5 className="mb-1">
+                    {editingCategory ? "Edit category" : "New category"}
+                  </h5>
+                  <small className="text-muted">
+                    Group related dishes and control availability.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={closeForm}
+                />
+              </div>
+              <form onSubmit={submitForm}>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Name</label>
+                    <input
+                      className="form-control"
+                      name="name"
+                      value={form.name}
+                      onChange={updateForm}
+                      placeholder="Eg. Signature pizzas"
+                      required
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Description</label>
+                    <textarea
+                      className="form-control"
+                      name="description"
+                      value={form.description}
+                      onChange={updateForm}
+                      rows={4}
+                      placeholder="Explain what makes this category unique"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="category-active"
+                      name="isActive"
+                      checked={form.isActive}
+                      onChange={updateForm}
+                      disabled={saving}
+                    />
+                    <label className="form-check-label" htmlFor="category-active">
+                      Available for sale
+                    </label>
+                  </div>
+                </div>
+                <div className="modal-footer border-0">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={closeForm}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div className="modal-backdrop fade show" />
+      </>
+    );
+  };
+
+  const renderDeleteModal = () => {
+    if (!deleteTarget) return null;
+    return (
+      <>
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="alertdialog"
+          onClick={cancelDelete}
+        >
+          <div
+            className="modal-dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-content border-0 rounded-4">
+              <div className="modal-header border-0">
+                <h5 className="mb-0">Delete category</h5>
+              </div>
+              <div className="modal-body">
+                <p className="mb-0">
+                  Are you sure you want to remove{" "}
+                  <strong>{deleteTarget.name}</strong>? This action cannot be
+                  undone.
+                </p>
+              </div>
+              <div className="modal-footer border-0">
+                <button type="button" className="btn btn-light" onClick={cancelDelete}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={deleteCategory}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="modal-backdrop fade show" />
+      </>
+    );
+  };
+
   const deleteCategory = async () => {
     if (!deleteTarget || !token) return;
     try {
@@ -183,174 +325,120 @@ const Categories = ({ url }) => {
 
   if (!isAdmin) {
     return (
-      <div className="categories-page">
-        <header className="categories-header">
-          <div>
-            <h2>Categories</h2>
-            <p>You do not have permission to manage categories.</p>
-          </div>
-        </header>
+      <div className="page-heading">
+        <div className="page-title-headings">
+          <h3>Categories</h3>
+          <p className="text-muted mb-0">
+            You do not have permission to manage categories.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="categories-page">
-      <header className="categories-header">
+    <div className="page-heading">
+      <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-          <h2>Categories</h2>
-          <p>Organise the menu into clear groups and control availability.</p>
+          <h3 className="mb-1">Categories</h3>
+          <p className="text-muted mb-0">
+            Organise the menu into clear groups and control availability.
+          </p>
         </div>
-        <div className="categories-header-actions">
-          <label className="categories-filter">
+        <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-2">
+          <div className="form-check form-switch mb-0">
             <input
+              className="form-check-input"
               type="checkbox"
+              id="categories-show-inactive"
               checked={showInactive}
               onChange={(event) => setShowInactive(event.target.checked)}
             />
-            <span>Show archived</span>
-          </label>
-          <button type="button" onClick={openCreate}>
+            <label className="form-check-label" htmlFor="categories-show-inactive">
+              Show archived
+            </label>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={openCreate}>
             + New category
           </button>
         </div>
-      </header>
+      </div>
 
-      <section className="categories-panel">
+      <div className="card border rounded-4">
         {loading ? (
-          <div className="categories-empty">Loading categories...</div>
+          <div className="card-body text-center py-5">
+            <div className="spinner-border text-primary mb-3" role="status" />
+            <p className="text-muted mb-0">Loading categories...</p>
+          </div>
         ) : filteredCategories.length === 0 ? (
-          <div className="categories-empty">
+          <div className="card-body text-center py-5 text-muted">
             {showInactive
               ? "No categories have been created yet."
               : "No active categories available."}
           </div>
         ) : (
-          <table className="categories-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategories.map((category) => (
-                <tr key={category._id}>
-                  <td>
-                    <div className="categories-name">
-                      <strong>{category.name}</strong>
-                      <span className="categories-id">{category._id}</span>
-                    </div>
-                  </td>
-                  <td>{category.description || "—"}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className={`categories-status ${
-                        category.isActive ? "is-active" : "is-inactive"
-                      }`}
-                      onClick={() => toggleStatus(category)}
-                    >
-                      {category.isActive ? "Selling" : "Not for sale"}
-                    </button>
-                  </td>
-                  <td className="categories-actions">
-                    <button type="button" onClick={() => openEdit(category)}>
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="is-danger"
-                      onClick={() => confirmDelete(category)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+          <div className="table-responsive">
+            <table className="table align-middle mb-0">
+              <thead className="text-muted small text-uppercase">
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th className="text-end">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredCategories.map((category) => (
+                  <tr key={category._id}>
+                    <td>
+                      <div className="fw-semibold">{category.name}</div>
+                      <small className="text-muted">{category._id}</small>
+                    </td>
+                    <td className="text-muted">{category.description || "—"}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${
+                          category.isActive
+                            ? "btn-outline-success"
+                            : "btn-outline-secondary"
+                        }`}
+                        onClick={() => toggleStatus(category)}
+                      >
+                        {category.isActive ? "Selling" : "Not for sale"}
+                      </button>
+                    </td>
+                    <td className="text-end">
+                      <div className="btn-group btn-group-sm">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => openEdit(category)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger"
+                          onClick={() => confirmDelete(category)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </section>
+      </div>
 
-      {formOpen ? (
-        <div className="categories-modal" role="dialog" aria-modal="true">
-          <div className="categories-backdrop" onClick={closeForm} />
-          <div className="categories-modal-card">
-            <header>
-              <h3>{editingCategory ? "Edit category" : "New category"}</h3>
-            </header>
-            <form onSubmit={submitForm}>
-              <label>
-                <span>Name</span>
-                <input
-                  name="name"
-                  value={form.name}
-                  onChange={updateForm}
-                  placeholder="Eg. Signature pizzas"
-                  required
-                  disabled={saving}
-                />
-              </label>
-              <label>
-                <span>Description</span>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={updateForm}
-                  rows={4}
-                  placeholder="Explain what makes this category unique"
-                  disabled={saving}
-                />
-              </label>
-              <label className="categories-checkbox">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={updateForm}
-                  disabled={saving}
-                />
-                <span>Available for sale</span>
-              </label>
-              <div className="categories-modal-actions">
-                <button type="button" onClick={closeForm} disabled={saving}>
-                  Cancel
-                </button>
-                <button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : "Save changes"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
-      {deleteTarget ? (
-        <div className="categories-modal" role="alertdialog" aria-modal="true">
-          <div className="categories-backdrop" onClick={cancelDelete} />
-          <div className="categories-modal-card categories-modal-danger">
-            <h3>Delete category</h3>
-            <p>
-              Are you sure you want to remove{" "}
-              <strong>{deleteTarget.name}</strong>? This action cannot be
-              undone.
-            </p>
-            <div className="categories-modal-actions">
-              <button type="button" onClick={cancelDelete}>
-                Cancel
-              </button>
-              <button type="button" className="is-danger" onClick={deleteCategory}>
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {renderFormModal()}
+      {renderDeleteModal()}
     </div>
   );
+
 };
 
 export default Categories;
