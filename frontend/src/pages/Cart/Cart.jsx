@@ -3,6 +3,7 @@ import "./Cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
+import { formatCurrency } from "../../utils/currency";
 
 const Cart = () => {
   const {
@@ -72,7 +73,7 @@ const Cart = () => {
                       <header className="cart-item-header">
                         <h3>{variant.foodName}</h3>
                         <span className="cart-item-price">
-                          ${price.toFixed(2)}
+                          {formatCurrency(price)}
                         </span>
                       </header>
                       <div className="cart-item-meta">
@@ -100,7 +101,7 @@ const Cart = () => {
                           </button>
                         </div>
                         <span className="cart-item-total">
-                          ${total.toFixed(2)}
+                          {formatCurrency(total)}
                         </span>
                         <button
                           type="button"
@@ -123,16 +124,16 @@ const Cart = () => {
             <h2>Order summary</h2>
             <div className="cart-summary-row">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="cart-summary-row">
               <span>Delivery fee</span>
-              <span>${deliveryFee.toFixed(2)}</span>
+              <span>{formatCurrency(deliveryFee)}</span>
             </div>
             <div className="cart-summary-divider" />
             <div className="cart-summary-row cart-summary-total">
               <span>Total</span>
-              <span>${grandTotal.toFixed(2)}</span>
+              <span>{formatCurrency(grandTotal)}</span>
             </div>
             <button
               type="button"

@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
+import { formatCurrency } from "../../utils/currency";
 import { useNavigate } from "react-router-dom";
 
 const statusLabels = {
@@ -374,7 +375,7 @@ const Orders = ({ url }) => {
                   <div className="d-flex justify-content-between">
                     <span className="text-muted">Total</span>
                     <span className="fw-semibold">
-                      ${order.totalAmount?.toFixed(2) || "0.00"}
+                      {formatCurrency(order.totalAmount)}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between">
@@ -496,7 +497,7 @@ const Orders = ({ url }) => {
                         Totals
                       </p>
                       <p className="display-6 mb-0">
-                        ${detailOrder.totalAmount?.toFixed(2) || "0.00"}
+                        {formatCurrency(detailOrder.totalAmount)}
                       </p>
                       <p className="text-muted mb-0">
                         {detailOrder.items?.length || 0} items
@@ -518,7 +519,7 @@ const Orders = ({ url }) => {
                           ×{item.quantity}
                         </span>
                         <span className="fw-semibold">
-                          ${item.totalPrice?.toFixed(2)}
+                          {formatCurrency(item.totalPrice)}
                         </span>
                       </li>
                     ))}

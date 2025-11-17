@@ -30,6 +30,36 @@ a{
     overflow-y: auto;
     background: linear-gradient(180deg,#f7f9fc 0%,#ffffff 60%);
 }
+.create-food-modal{
+    padding: clamp(16px, 3vw, 32px);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+.create-food-modal__dialog{
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex: 1;
+}
+.create-food-modal__content{
+    width: 100%;
+    max-height: calc(100vh - clamp(32px, 6vh, 96px));
+    display: flex;
+    flex-direction: column;
+}
+.create-food-modal__body{
+    overflow-y: auto;
+}
+@media (max-width: 768px){
+    .create-food-modal{
+        padding: 12px;
+    }
+    .create-food-modal__content{
+        max-height: calc(100vh - 24px);
+    }
+}
 .flex-col{
     display: flex;
     flex-direction: column;

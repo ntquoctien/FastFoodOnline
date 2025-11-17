@@ -2,6 +2,7 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 import { StoreContext } from "../../context/StoreContext";
+import { formatCurrency } from "../../utils/currency";
 
 const initialFormValues = {
   name: "",
@@ -594,7 +595,7 @@ const Branches = ({ url }) => {
                               .map((variant) => {
                                 const price = Number(variant.price);
                                 const formattedPrice = Number.isFinite(price)
-                                  ? `$${price.toFixed(2)}`
+                                  ? formatCurrency(price)
                                   : "";
                                 return [variant.size, formattedPrice]
                                   .filter(Boolean)

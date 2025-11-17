@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import "./FoodItem.css";
 import { assets } from "../../assets/frontend_assets/assets";
 import { StoreContext } from "../../context/StoreContext";
+import { formatCurrency } from "../../utils/currency";
 
 const FoodItem = ({ food }) => {
   const {
@@ -100,7 +101,7 @@ const FoodItem = ({ food }) => {
           >
             {variants.map((variant) => {
               const sizeLabel = variant.size || "Regular";
-              const priceLabel = `$${variant.price.toFixed(2)}`;
+              const priceLabel = formatCurrency(variant.price);
               const branchLabel =
                 selectedBranchId === "all" && variant.branchName
                   ? ` (${variant.branchName})`
@@ -113,7 +114,7 @@ const FoodItem = ({ food }) => {
             })}
           </select>
         )}
-        <p className="food-item-price">${price.toFixed(2)}</p>
+        <p className="food-item-price">{formatCurrency(price)}</p>
       </div>
     </div>
   );

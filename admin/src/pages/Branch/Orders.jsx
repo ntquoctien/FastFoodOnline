@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
+import { formatCurrency } from "../../utils/currency";
 import { toast } from "react-toastify";
 
 const BranchOrders = ({ url }) => {
@@ -77,7 +78,7 @@ const BranchOrders = ({ url }) => {
                         .join(", ")}
                     </td>
                     <td className="fw-semibold">
-                      ${order.totalAmount?.toFixed(2) || "0.00"}
+                      {formatCurrency(order.totalAmount)}
                     </td>
                     <td className="text-muted text-capitalize">
                       {order.status}

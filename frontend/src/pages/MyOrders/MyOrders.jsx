@@ -4,6 +4,7 @@ import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { assets } from "../../assets/frontend_assets/assets";
+import { formatCurrency } from "../../utils/currency";
 
 const formatOrderCode = (id) => {
   if (!id || typeof id !== "string") return "Order";
@@ -177,7 +178,7 @@ const MyOrders = () => {
                   <div className="order-summary">
                     <p className="order-total-label">Total Paid</p>
                     <p className="order-total-amount">
-                      ${order.totalAmount?.toFixed(2) || "0.00"}
+                      {formatCurrency(order.totalAmount)}
                     </p>
                     <p className="order-items-count">
                       {order.items?.length || 0}{" "}

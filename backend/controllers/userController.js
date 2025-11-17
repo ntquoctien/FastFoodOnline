@@ -1,4 +1,6 @@
 import * as userService from "../services/userService.js";
+import * as userRepo from "../repositories/userRepository.js";
+import * as notificationService from "../services/v2/notificationService.js";
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -33,9 +35,12 @@ export const getProfile = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
+  const actorId = req.userId || req.body.userId;
+  let actor = null;
   try {
+    actor = actorId ? await userRepo.findById(actorId) : null;
     const result = await userService.updateProfile({
-      userId: req.userId || req.body.userId,
+      userId: actorId,
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
@@ -44,9 +49,44 @@ export const updateProfile = async (req, res) => {
       avatarFileName: req.file?.filename,
       removeAvatar: req.body.removeAvatar === "true",
     });
+    if (result.success) {
+      await notificationService.publishNotification({
+        title: "Hồ sơ được cập nhật",
+        message: `${result.user?.name || actor?.name || "Một tài khoản"} vừa cập nhật thông tin cá nhân`,
+        action: "update",
+        entityType: "user",
+        entityId: actorId,
+        actor,
+        targetRoles: ["admin"],
+        status: "success",
+      });
+    } else {
+      await notificationService.publishNotification({
+        title: "Thay đổi hồ sơ không thành công",
+        message: result.message || "Yêu cầu cập nhật hồ sơ bị từ chối",
+        action: "update",
+        level: "warning",
+        status: "failed",
+        entityType: "user",
+        entityId: actorId,
+        actor,
+        targetRoles: ["admin"],
+      });
+    }
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
     console.log(error);
+    await notificationService.publishNotification({
+      title: "Lỗi cập nhật hồ sơ",
+      message: error.message || "Không thể cập nhật hồ sơ người dùng",
+      action: "update",
+      level: "error",
+      status: "failed",
+      entityType: "user",
+      entityId: actorId,
+      actor,
+      targetRoles: ["admin"],
+    });
     res.status(500).json({ success: false, message: "Error" });
   }
 };

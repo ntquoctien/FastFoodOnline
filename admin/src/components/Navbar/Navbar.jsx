@@ -12,6 +12,13 @@ import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
+const NOTIFICATION_LEVELS = {
+  success: { className: "bg-success-subtle text-success", label: "Thành công" },
+  warning: { className: "bg-warning-subtle text-warning", label: "Cảnh báo" },
+  error: { className: "bg-danger-subtle text-danger", label: "Lỗi" },
+  info: { className: "bg-primary-subtle text-primary", label: "Thông báo" },
+};
+
 const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const {
@@ -58,8 +65,21 @@ const Navbar = ({ onToggleSidebar }) => {
         headers: { token },
       });
       if (response.data?.success) {
-        const list = response.data.notifications || response.data.data || [];
-        setNotifications(Array.isArray(list) ? list : []);
+        const list =
+          response.data.data ||
+          response.data.notifications ||
+          response.data.notification ||
+          [];
+        const parsed = Array.isArray(list) ? list : [];
+        setNotifications(
+          parsed.map((item) => ({
+            ...item,
+            id: item._id || item.id,
+            level: item.level || "info",
+            status: item.status || "success",
+            read: Boolean(item.read),
+          }))
+        );
       } else {
         setNotifications([]);
       }
@@ -80,19 +100,22 @@ const Navbar = ({ onToggleSidebar }) => {
 
   const markAllRead = useCallback(async () => {
     if (notifications.length === 0) return;
+    const ids = notifications
+      .map((notification) => notification._id || notification.id)
+      .filter(Boolean);
     setNotifications((prev) =>
       prev.map((notification) => ({ ...notification, read: true }))
     );
     try {
       await axios.post(
         `${apiBaseUrl}/api/v2/notifications/mark-read`,
-        {},
+        { ids },
         { headers: { token } }
       );
     } catch (error) {
       console.warn("Failed to mark notifications read", error);
     }
-  }, [apiBaseUrl, token, notifications.length]);
+  }, [apiBaseUrl, token, notifications]);
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification?.read).length,
@@ -198,26 +221,63 @@ const Navbar = ({ onToggleSidebar }) => {
                           </p>
                         ) : (
                           <ul className="list-group list-group-flush">
-                            {notifications.map((notification) => (
+                          {notifications.map((notification) => {
+                            const levelKey = notification.level || "info";
+                            const levelStyle =
+                              NOTIFICATION_LEVELS[levelKey] ||
+                              NOTIFICATION_LEVELS.info;
+                            const statusLabel =
+                              notification.status === "failed"
+                                ? "Thất bại"
+                                : notification.status === "pending"
+                                ? "Đang xử lý"
+                                : notification.status === "success"
+                                ? "Hoàn tất"
+                                : "";
+                            const metaParts = [];
+                            if (notification.actor?.name) {
+                              metaParts.push(`Bởi ${notification.actor.name}`);
+                            }
+                            if (notification.createdAt) {
+                              metaParts.push(
+                                new Date(notification.createdAt).toLocaleString()
+                              );
+                            }
+                            return (
                               <li
                                 key={notification._id || notification.id}
-                                className={`list-group-item ${notification.read ? "" : "bg-light"} `}
+                                className={`list-group-item ${
+                                  notification.read ? "" : "bg-light"
+                                } `}
                               >
-                                <p className="mb-1 fw-semibold">
-                                  {notification.title || "System update"}
-                                </p>
+                                <div className="d-flex justify-content-between align-items-center gap-2">
+                                  <p className="mb-1 fw-semibold">
+                                    {notification.title || "System update"}
+                                  </p>
+                                  <span
+                                    className={`badge ${levelStyle.className}`}
+                                  >
+                                    {levelStyle.label}
+                                  </span>
+                                </div>
                                 {notification.message ? (
                                   <small className="text-muted d-block">
                                     {notification.message}
                                   </small>
                                 ) : null}
-                                {notification.createdAt ? (
-                                  <small className="text-muted">
-                                    {new Date(notification.createdAt).toLocaleString()}
+                                {statusLabel ? (
+                                  <small className="text-muted d-block">
+                                    Trạng thái: {statusLabel}
+                                  </small>
+                                ) : null}
+                                {metaParts.length ? (
+                                  <small className="text-muted d-block">
+                                    {metaParts.join(" · ")}
                                   </small>
                                 ) : null}
                               </li>
-                            ))}
+                            );
+                          })}
                           </ul>
                         )}
                       </div>

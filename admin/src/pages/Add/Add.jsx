@@ -10,14 +10,9 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
+import { formatCurrency } from "../../utils/currency";
 
 const DEFAULT_VARIANT = { size: "", price: "", isDefault: true };
-
-const formatCurrency = (value) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return "$0.00";
-  return `$${parsed.toFixed(2)}`;
-};
 
 const Add = ({ url }) => {
   const navigate = useNavigate();
@@ -285,6 +280,7 @@ const Add = ({ url }) => {
     return map;
   }, [branches]);
 
+  const MAX_BRANCH_SUMMARY_LINES = 3;
   const renderVariantSummary = (variants = []) => {
     if (!variants.length) return "No variants";
     const groups = variants.reduce((acc, variant) => {
@@ -296,9 +292,25 @@ const Add = ({ url }) => {
       );
       return acc;
     }, {});
-    return Object.entries(groups)
-      .map(([branchLabel, items]) => `${branchLabel}: ${items.join(", ")}`)
-      .join(" | ");
+
+    const entries = Object.entries(groups);
+    const visibleEntries = entries.slice(0, MAX_BRANCH_SUMMARY_LINES);
+    const hiddenCount = entries.length - visibleEntries.length;
+
+    return (
+      <>
+        {visibleEntries.map(([branchLabel, items]) => (
+          <div key={branchLabel}>
+            {branchLabel}: {items.join(" – ")}
+          </div>
+        ))}
+        {hiddenCount > 0 && (
+          <div className="text-muted">
+            và tại {hiddenCount} chi nhánh khác
+          </div>
+        )}
+      </>
+    );
   };
 
   const handleInventoryChange = (variantId, value) => {
@@ -358,9 +370,13 @@ const Add = ({ url }) => {
     if (!modalOpen) return null;
     return (
       <>
-        <div className="modal fade show d-block" tabIndex={-1} role="dialog">
-          <div className="modal-dialog modal-xl modal-dialog-scrollable">
-            <div className="modal-content border-0 rounded-4">
+        <div
+          className="modal fade show d-block create-food-modal"
+          tabIndex={-1}
+          role="dialog"
+        >
+          <div className="modal-dialog modal-xl modal-dialog-scrollable create-food-modal__dialog">
+            <div className="modal-content border-0 rounded-4 create-food-modal__content">
               <div className="modal-header border-0">
                 <div>
                   <h5 className="mb-0">Create Food Item</h5>
@@ -378,8 +394,8 @@ const Add = ({ url }) => {
                   }}
                 />
               </div>
-              <form onSubmit={onSubmitHandler}>
-                <div className="modal-body">
+              <form onSubmit={onSubmitHandler} className="d-flex flex-column flex-grow-1">
+                <div className="modal-body create-food-modal__body">
                   <div className="row g-4">
                     <div className="col-12 col-lg-4">
                       <div className="border rounded-4 p-3 h-100">
@@ -718,7 +734,7 @@ const Add = ({ url }) => {
       <div className="page-heading">
         <div className="page-title-headings mb-3">
           <div>
-            <h3 className="mb-1">Menu Builder</h3>
+            <h3 className="mb-1">Food Builder</h3>
             <p className="text-muted mb-0">
               Launch new dishes and assign them to specific branches.
             </p>
@@ -732,20 +748,13 @@ const Add = ({ url }) => {
           <div className="avatar avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center">
             <i className="bi bi-stars"></i>
           </div>
-          <div>
-            <h6 className="mb-1">Multi-branch publishing</h6>
-            <p className="mb-0 text-muted">
-              Create a dish once and deploy it across selected branches or all locations in a
-              single click.
-            </p>
-          </div>
         </div>
 
         <section className="card border rounded-4">
           <div className="card-header border-0 d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between">
             <div>
-              <h5 className="mb-1">Menu overview</h5>
-              <small className="text-muted">Filter by branch to review assignments.</small>
+              <h5 className="mb-1">Menu Overview</h5>
+              <small className="text-muted">Filter by branch to review their menu.</small>
             </div>
             <div className="d-flex gap-2 flex-wrap">
               <select

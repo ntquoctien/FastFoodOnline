@@ -36,7 +36,7 @@ const STATUS_BADGES = {
 
 const formatPrice = (value) => {
   const number = Number(value);
-  return Number.isFinite(number) ? number.toFixed(2) : "";
+  return Number.isFinite(number) ? String(number) : "";
 };
 
 const List = ({ url }) => {
@@ -691,11 +691,11 @@ const List = ({ url }) => {
                                 <td>
                                   <div className="d-flex flex-column flex-lg-row gap-2">
                                     <div className="input-group input-group-sm">
-                                      <span className="input-group-text">$</span>
+                                      <span className="input-group-text">đ</span>
                                       <input
                                         type="number"
                                         min="0"
-                                        step="0.01"
+                                        step="1"
                                         value={draftValue}
                                         className="form-control"
                                         onChange={(event) =>

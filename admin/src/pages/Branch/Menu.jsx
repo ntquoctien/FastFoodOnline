@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
+import { formatCurrency } from "../../utils/currency";
 import { toast } from "react-toastify";
 
 const BranchMenu = ({ url }) => {
@@ -71,9 +72,7 @@ const BranchMenu = ({ url }) => {
                       {(food.variants || [])
                         .map(
                           (variant) =>
-                            `${variant.size} - $${
-                              variant.price?.toFixed(2) ?? "0.00"
-                            }`
+                            `${variant.size} - ${formatCurrency(variant.price)}`
                         )
                         .join(", ") || "No variants"}
                     </td>

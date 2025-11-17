@@ -5,6 +5,9 @@ import * as foodRepo from "../../repositories/v2/foodRepository.js";
 import * as foodVariantRepo from "../../repositories/v2/foodVariantRepository.js";
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 
+const toPlainObject = (doc) =>
+  doc && typeof doc.toObject === "function" ? doc.toObject() : doc;
+
 const normaliseId = (value) =>
   value && typeof value.toString === "function" ? value.toString() : value ?? null;
 
@@ -190,6 +193,10 @@ export const updateFoodDetails = async ({
 };
 
 export const archiveFood = async ({ foodId }) => {
+  const food = await foodRepo.findById(foodId);
+  if (!food) {
+    return { success: false, message: "Food not found" };
+  }
   await foodRepo.updateById(foodId, {
     isActive: false,
     isManuallyDisabled: true,
@@ -199,7 +206,7 @@ export const archiveFood = async ({ foodId }) => {
     { foodId },
     { $set: { isActive: false, isManuallyDisabled: true, isArchived: true } }
   );
-  return { success: true };
+  return { success: true, data: toPlainObject(food) };
 };
 
 export const setFoodSaleStatus = async ({ foodId, isActive }) => {
@@ -214,7 +221,8 @@ export const setFoodSaleStatus = async ({ foodId, isActive }) => {
       isManuallyDisabled: !isActive,
       isArchived: false,
     });
-    return { success: true };
+    const refreshed = await foodRepo.findById(foodId);
+    return { success: true, data: { food: toPlainObject(refreshed) } };
   }
 
   if (!isActive) {
@@ -227,7 +235,8 @@ export const setFoodSaleStatus = async ({ foodId, isActive }) => {
       { foodId },
       { $set: { isActive: false, isManuallyDisabled: true, isArchived: false } }
     );
-    return { success: true };
+    const refreshed = await foodRepo.findById(foodId);
+    return { success: true, data: { food: toPlainObject(refreshed) } };
   }
 
   const variantIds = variants.map((variant) => variant._id);
@@ -258,7 +267,8 @@ export const setFoodSaleStatus = async ({ foodId, isActive }) => {
     })
   );
 
-  return { success: true };
+  const refreshed = await foodRepo.findById(foodId);
+  return { success: true, data: { food: toPlainObject(refreshed) } };
 };
 
 export const setVariantSaleStatus = async ({ variantId, isActive, context }) => {
@@ -269,12 +279,12 @@ export const setVariantSaleStatus = async ({ variantId, isActive, context }) => 
   ensureVariantAccess(context, variant);
 
   if (!isActive) {
-    await foodVariantRepo.updateById(variantId, {
+    const updated = await foodVariantRepo.updateById(variantId, {
       isActive: false,
       isManuallyDisabled: true,
       isArchived: false,
     });
-    return { success: true };
+    return { success: true, data: { variant: toPlainObject(updated) } };
   }
 
   const inventoryDoc = await inventoryRepo.findOne({
@@ -282,13 +292,16 @@ export const setVariantSaleStatus = async ({ variantId, isActive, context }) => 
   });
   const quantity = Number(inventoryDoc?.quantity) || 0;
 
-  await foodVariantRepo.updateById(variantId, {
+  const updated = await foodVariantRepo.updateById(variantId, {
     isActive: quantity > 0,
     isManuallyDisabled: false,
     isArchived: false,
   });
 
-  return { success: true, data: { quantity } };
+  return {
+    success: true,
+    data: { variant: toPlainObject(updated), quantity },
+  };
 };
 
 export const updateVariantDetails = async ({ variantId, price, context }) => {
@@ -309,7 +322,7 @@ export const updateVariantDetails = async ({ variantId, price, context }) => {
     return { success: false, message: "No changes requested" };
   }
   const updated = await foodVariantRepo.updateById(variantId, update);
-  return { success: true, data: updated };
+  return { success: true, data: toPlainObject(updated) };
 };
 
 export const deleteVariant = async ({ variantId, context }) => {
@@ -318,9 +331,9 @@ export const deleteVariant = async ({ variantId, context }) => {
     return { success: false, message: "Variant not found" };
   }
   ensureVariantAccess(context, variant);
-  await foodVariantRepo.deleteById(variantId);
+  const deleted = await foodVariantRepo.deleteById(variantId);
   await inventoryRepo.deleteByVariantIds([variantId]);
-  return { success: true };
+  return { success: true, data: toPlainObject(deleted || variant) };
 };
 
 export default {

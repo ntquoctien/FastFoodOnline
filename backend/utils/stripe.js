@@ -1,6 +1,24 @@
 import Stripe from "stripe";
 
 let stripeClient = null;
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  "bif",
+  "clp",
+  "djf",
+  "gnf",
+  "jpy",
+  "kmf",
+  "krw",
+  "mga",
+  "pyg",
+  "rwf",
+  "ugx",
+  "vnd",
+  "vuv",
+  "xaf",
+  "xof",
+  "xpf",
+]);
 
 const getStripeClient = () => {
   if (stripeClient) {
@@ -14,19 +32,22 @@ const getStripeClient = () => {
   return stripeClient;
 };
 
-const toStripeAmount = (amount) => {
+const normaliseCurrency = (currency) => {
+  if (!currency) {
+    return "vnd";
+  }
+  return String(currency).trim().toLowerCase();
+};
+
+const toStripeAmount = (amount, currency = "vnd") => {
   const numeric = Number(amount);
   if (!Number.isFinite(numeric) || numeric <= 0) {
     throw new Error("STRIPE_INVALID_AMOUNT");
   }
-  return Math.round(numeric * 100);
-};
-
-const normaliseCurrency = (currency) => {
-  if (!currency) {
-    return "usd";
+  if (ZERO_DECIMAL_CURRENCIES.has(currency)) {
+    return Math.round(numeric);
   }
-  return String(currency).trim().toLowerCase();
+  return Math.round(numeric * 100);
 };
 
 export const createCheckoutSession = async ({
@@ -39,7 +60,8 @@ export const createCheckoutSession = async ({
   description,
 }) => {
   const stripe = getStripeClient();
-  const unitAmount = toStripeAmount(amount);
+  const normalizedCurrency = normaliseCurrency(currency);
+  const unitAmount = toStripeAmount(amount, normalizedCurrency);
   const orderName =
     description ||
     metadata?.orderName ||
@@ -55,7 +77,7 @@ export const createCheckoutSession = async ({
     line_items: [
       {
         price_data: {
-          currency: normaliseCurrency(currency),
+          currency: normalizedCurrency,
           unit_amount: unitAmount,
           product_data: {
             name: orderName,

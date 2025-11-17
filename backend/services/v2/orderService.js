@@ -50,7 +50,7 @@ const getFrontendBaseUrl = () => {
 };
 
 const getStripeCurrency = () =>
-  (process.env.STRIPE_CURRENCY || "usd").toLowerCase();
+  (process.env.STRIPE_CURRENCY || "vnd").toLowerCase();
 
 const calculateItems = async (items) => {
   const variantIds = items.map((item) => new mongoose.Types.ObjectId(item.variantId));

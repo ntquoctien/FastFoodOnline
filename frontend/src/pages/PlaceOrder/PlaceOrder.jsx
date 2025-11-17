@@ -5,12 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
-
-const formatCurrency = (value) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(value);
+import { formatCurrency } from "../../utils/currency";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
