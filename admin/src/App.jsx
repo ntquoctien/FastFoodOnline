@@ -15,6 +15,8 @@ import Categories from "./pages/Categories/Categories";
 import Staff from "./pages/Staff/Staff";
 import Profile from "./pages/Profile/Profile";
 import RestaurantSettings from "./pages/Restaurant/Restaurant";
+import Admins from "./pages/Admins/Admins";
+import Customers from "./pages/Customers/Customers";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Login from "./components/Login/Login";
@@ -67,6 +69,8 @@ const App = () => {
                   <Route path="/inventory" element={<Inventory url={apiBaseUrl} />} />
                   <Route path="/shippers" element={<Shippers url={apiBaseUrl} />} />
                   <Route path="/orders" element={<Orders url={apiBaseUrl} />} />
+                  <Route path="/admins" element={<Admins url={apiBaseUrl} />} />
+                  <Route path="/customers" element={<Customers url={apiBaseUrl} />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="*" element={<Navigate to="/restaurant" replace />} />
                 </>

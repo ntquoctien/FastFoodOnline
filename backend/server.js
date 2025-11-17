@@ -18,6 +18,8 @@ import staffV2Router from "./routes/staffV2Route.js";
 import notificationV2Router from "./routes/notificationV2Route.js";
 import categoryV2Router from "./routes/categoryV2Route.js";
 import restaurantV2Router from "./routes/restaurantV2Route.js";
+import adminAccountRouter from "./routes/adminAccountRoute.js";
+import customerRouter from "./routes/customerRoute.js";
 
 // app config
 const app = express();
@@ -98,6 +100,8 @@ app.use("/api/v2/staff", staffV2Router);
 app.use("/api/v2/notifications", notificationV2Router);
 app.use("/api/v2/categories", categoryV2Router);
 app.use("/api/v2/restaurant", restaurantV2Router);
+app.use("/api/v2/admins", adminAccountRouter);
+app.use("/api/v2/customers", customerRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working");

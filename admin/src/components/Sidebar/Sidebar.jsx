@@ -28,8 +28,12 @@ const adminSections = [
     ],
   },
   {
-    title: "Tài khoản",
-    links: [{ to: "/profile", icon: assets.profile_image, label: "Profile" }],
+    title: "Người dùng & tài khoản",
+    links: [
+      { to: "/admins", icon: assets.order_icon, label: "Admins" },
+      { to: "/customers", icon: assets.order_icon, label: "Customers" },
+      { to: "/profile", icon: assets.profile_image, label: "Profile" },
+    ],
   },
 ];
 
