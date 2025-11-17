@@ -190,6 +190,30 @@
     outline: 2px solid rgba(255, 99, 71, 0.2);
     border-color: tomato;
 }
+.navbar-branch-controls{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.navbar-find-branch{
+    border: 1px solid #d4d4d8;
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.navbar-find-branch:hover{
+    border-color: tomato;
+    background-color: #fff5f2;
+}
+.navbar-find-branch:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 @media (max-width:1050px) {
     .navbar .logo{
         width: 140px;
@@ -206,6 +230,12 @@
     }
     .navbar-branch-select select{
         max-width: 200px;
+    }
+    .navbar-branch-controls{
+        flex-wrap: wrap;
+    }
+    .navbar-find-branch{
+        width: fit-content;
     }
     .navbar-right img{
         width: 22px;

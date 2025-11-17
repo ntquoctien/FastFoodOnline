@@ -9,6 +9,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { StoreContext } from "../../context/StoreContext";
 
+const customerSortOptions = [
+  { value: "newest", label: "Mới nhất" },
+  { value: "oldest", label: "Cũ nhất" },
+  { value: "name_asc", label: "Tên A-Z" },
+  { value: "name_desc", label: "Tên Z-A" },
+];
+
 const Customers = ({ url }) => {
   const { token } = useContext(StoreContext);
   const [customers, setCustomers] = useState([]);
@@ -18,6 +25,7 @@ const Customers = ({ url }) => {
   const [ordersModal, setOrdersModal] = useState({ open: false, customer: null });
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [sortOption, setSortOption] = useState("newest");
 
   useEffect(() => {
     const handle = window.setTimeout(() => setDebouncedSearch(search), 400);
@@ -81,7 +89,39 @@ const Customers = ({ url }) => {
     setOrders([]);
   };
 
-  const filteredCount = useMemo(() => customers.length, [customers]);
+  const sortedCustomers = useMemo(() => {
+    const list = [...customers];
+    const getTime = (value) => {
+      if (!value) return 0;
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 0;
+      return date.getTime();
+    };
+    switch (sortOption) {
+      case "name_asc":
+        return list.sort((a, b) =>
+          (a.name || "").localeCompare(b.name || "", "vi", {
+            sensitivity: "base",
+          })
+        );
+      case "name_desc":
+        return list.sort((a, b) =>
+          (b.name || "").localeCompare(a.name || "", "vi", {
+            sensitivity: "base",
+          })
+        );
+      case "oldest":
+        return list.sort((a, b) => getTime(a.createdAt) - getTime(b.createdAt));
+      case "newest":
+      default:
+        return list.sort((a, b) => getTime(b.createdAt) - getTime(a.createdAt));
+    }
+  }, [customers, sortOption]);
+
+  const filteredCount = useMemo(
+    () => sortedCustomers.length,
+    [sortedCustomers]
+  );
 
   return (
     <div className="page-heading">
@@ -106,14 +146,27 @@ const Customers = ({ url }) => {
                 onChange={(event) => setSearch(event.target.value)}
               />
             </div>
-            <div className="text-muted small">
-              {loading ? "Đang tải..." : `${filteredCount} khách hàng`}
+            <div className="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+              <select
+                className="form-select form-select-sm"
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value)}
+              >
+                {customerSortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="text-muted small">
+                {loading ? "Đang tải..." : `${filteredCount} khách hàng`}
+              </div>
             </div>
           </div>
 
           {loading ? (
             <p className="text-muted mb-0">Đang tải dữ liệu khách hàng...</p>
-          ) : customers.length === 0 ? (
+          ) : sortedCustomers.length === 0 ? (
             <p className="text-muted mb-0">
               Chưa có khách hàng nào hoặc không tìm thấy kết quả phù hợp.
             </p>
@@ -130,7 +183,7 @@ const Customers = ({ url }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {customers.map((customer) => (
+                  {sortedCustomers.map((customer) => (
                     <tr key={customer._id}>
                       <td className="fw-semibold">{customer.name}</td>
                       <td>{customer.email}</td>

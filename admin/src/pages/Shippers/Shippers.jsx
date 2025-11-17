@@ -4,11 +4,8 @@ import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 
 const statusOptions = ["available", "busy", "inactive"];
-const vehicleOptions = [
-  { value: "drone", label: "Drone" },
-  { value: "bike", label: "Bike" },
-  { value: "scooter", label: "Scooter" },
-];
+const DRONE_VEHICLE_TYPE = "drone";
+const isLocalId = (value) => String(value || "").startsWith("local-");
 
 const statusBadgeMap = {
   available: "badge bg-success-subtle text-success",
@@ -26,10 +23,17 @@ const Shippers = ({ url }) => {
     name: "",
     email: "",
     branchId: "",
-    vehicleType: "drone",
   });
   const [saving, setSaving] = useState(false);
   const [endpointAvailable, setEndpointAvailable] = useState(true);
+  const [editingShipper, setEditingShipper] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    branchId: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const filteredShippers = useMemo(() => {
     if (branchFilter === "all") return shippers;
@@ -118,6 +122,136 @@ const Shippers = ({ url }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const resolveBranchName = (shipper) => {
+    if (!shipper) return "Unassigned";
+    if (shipper.branchId?.name) return shipper.branchId.name;
+    const branchId =
+      (shipper.branchId && shipper.branchId._id) || shipper.branchId || "";
+    if (!branchId) return "Unassigned";
+    return (
+      branches.find((branch) => branch._id === branchId)?.name || "Unassigned"
+    );
+  };
+
+  const openEditShipper = (shipper) => {
+    if (!shipper) return;
+    const branchValue =
+      shipper.branchId?._id || shipper.branchId || branches[0]?._id || "";
+    setEditingShipper(shipper);
+    setEditForm({
+      name: shipper.userId?.name || "",
+      email: shipper.userId?.email || "",
+      branchId: branchValue,
+    });
+  };
+
+  const closeEditShipper = () => {
+    if (editSaving) return;
+    setEditingShipper(null);
+    setEditForm({
+      name: "",
+      email: "",
+      branchId: "",
+    });
+  };
+
+  const handleEditFormChange = (event) => {
+    const { name, value } = event.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitEditShipper = async (event) => {
+    event.preventDefault();
+    if (!editingShipper) return;
+    if (!editForm.branchId) {
+      toast.error("Select a branch for this shipper");
+      return;
+    }
+    const payload = {
+      name: editForm.name.trim(),
+      email: editForm.email.trim().toLowerCase(),
+      branchId: editForm.branchId,
+    };
+    if (!payload.name || !payload.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+    const shipperId = editingShipper._id;
+    if (!endpointAvailable || isLocalId(shipperId)) {
+      setShippers((prev) =>
+        prev.map((shipper) => {
+          if (shipper._id !== shipperId) return shipper;
+          const branchObject =
+            branches.find((branch) => branch._id === payload.branchId) ||
+            shipper.branchId;
+          return {
+            ...shipper,
+            userId: {
+              ...(shipper.userId || {}),
+              name: payload.name,
+              email: payload.email,
+            },
+            branchId: branchObject?._id ? branchObject : payload.branchId,
+          };
+        })
+      );
+      toast.success("Drone details updated (local preview)");
+      closeEditShipper();
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const response = await axios.patch(
+        `${url}/api/v2/shippers/${shipperId}`,
+        payload,
+        { headers: { token } }
+      );
+      if (response.data?.success) {
+        toast.success("Drone details updated");
+        closeEditShipper();
+        fetchShippers();
+      } else {
+        toast.error(response.data?.message || "Unable to update shipper");
+      }
+    } catch (error) {
+      console.error("Update shipper failed", error);
+      toast.error("Unable to update shipper");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const deleteShipper = async (shipper) => {
+    if (!shipper) return;
+    const confirmed = window.confirm(
+      `Xóa drone ${shipper.userId?.name || shipper.userId?.email || ""}?`
+    );
+    if (!confirmed) return;
+    const shipperId = shipper._id;
+    if (!endpointAvailable || isLocalId(shipperId)) {
+      setShippers((prev) => prev.filter((entry) => entry._id !== shipperId));
+      toast.success("Drone removed");
+      return;
+    }
+    setDeletingId(shipperId);
+    try {
+      const response = await axios.delete(`${url}/api/v2/shippers/${shipperId}`, {
+        headers: { token },
+      });
+      if (response.data?.success) {
+        toast.success("Drone removed");
+        fetchShippers();
+      } else {
+        toast.error(response.data?.message || "Unable to delete shipper");
+      }
+    } catch (error) {
+      console.error("Delete shipper failed", error);
+      toast.error("Unable to delete shipper");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const handleCreate = async (event) => {
     event.preventDefault();
     if (saving) return;
@@ -130,7 +264,7 @@ const Shippers = ({ url }) => {
       name: form.name.trim(),
       email: form.email.trim().toLowerCase(),
       branchId: form.branchId,
-      vehicleType: form.vehicleType,
+      vehicleType: DRONE_VEHICLE_TYPE,
     };
     if (!endpointAvailable) {
       setShippers((prev) => [
@@ -202,18 +336,20 @@ const Shippers = ({ url }) => {
             Monitor delivery pilots by branch and update their availability.
           </p>
         </div>
-        <select
-          className="form-select w-100 w-lg-auto"
-          value={branchFilter}
-          onChange={(event) => setBranchFilter(event.target.value)}
-        >
-          <option value="all">All branches</option>
-          {branches.map((branch) => (
-            <option key={branch._id} value={branch._id}>
-              {branch.name}
-            </option>
-          ))}
-        </select>
+        <div className="w-100 w-lg-auto" style={{ maxWidth: "260px" }}>
+          <select
+            className="form-select"
+            value={branchFilter}
+            onChange={(event) => setBranchFilter(event.target.value)}
+          >
+            <option value="all">All branches</option>
+            {branches.map((branch) => (
+              <option key={branch._id} value={branch._id}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {!endpointAvailable ? (
@@ -271,21 +407,6 @@ const Shippers = ({ url }) => {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="form-label">Vehicle</label>
-                  <select
-                    className="form-select"
-                    name="vehicleType"
-                    value={form.vehicleType}
-                    onChange={handleFormChange}
-                  >
-                    {vehicleOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? "Creating..." : "Add shipper"}
                 </button>
@@ -312,43 +433,56 @@ const Shippers = ({ url }) => {
                   {filteredShippers.map((shipper) => (
                     <div
                       key={shipper._id}
-                      className="list-group-item px-0 py-3 d-flex flex-column flex-lg-row gap-3 justify-content-between"
+                      className="list-group-item px-0 py-3 d-flex flex-column gap-3"
                     >
-                      <div className="d-flex gap-3">
-                        <div className="avatar bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
-                          {shipper.userId?.name?.[0]?.toUpperCase() || "D"}
+                      <div className="d-flex flex-column flex-lg-row gap-3 justify-content-between">
+                        <div className="d-flex gap-3">
+                          <div className="avatar bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
+                            {shipper.userId?.name?.[0]?.toUpperCase() || "D"}
+                          </div>
+                          <div>
+                            <h6 className="mb-1">{shipper.userId?.name || "Unnamed pilot"}</h6>
+                            <small className="text-muted">{shipper.userId?.email || "No email"}</small>
+                          </div>
                         </div>
-                        <div>
-                          <h6 className="mb-1">{shipper.userId?.name || "Unnamed pilot"}</h6>
-                          <small className="text-muted">{shipper.userId?.email || "No email"}</small>
-                        </div>
-                      </div>
-                      <div className="text-muted small">
-                        <div>
-                          <strong>Branch:</strong>{" "}
-                          {shipper.branchId?.name ||
-                            branches.find((branch) => branch._id === shipper.branchId)?.name ||
-                            "Unassigned"}
-                        </div>
-                        <div>
-                          <strong>Vehicle:</strong> {shipper.vehicleType || "—"}
+                        <div className="text-muted small">
+                          <strong>Branch:</strong> {resolveBranchName(shipper)}
                         </div>
                       </div>
-                      <div className="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
-                        <span className={statusBadgeMap[shipper.status] || statusBadgeMap.available}>
-                          {shipper.status}
-                        </span>
-                        <select
-                          className="form-select form-select-sm"
-                          value={shipper.status}
-                          onChange={(event) => updateStatus(shipper._id, event.target.value)}
-                        >
-                          {statusOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
+                      <div className="d-flex flex-column flex-xl-row gap-2 align-items-xl-center justify-content-between">
+                        <div className="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
+                          <span className={statusBadgeMap[shipper.status] || statusBadgeMap.available}>
+                            {shipper.status}
+                          </span>
+                          <select
+                            className="form-select form-select-sm"
+                            value={shipper.status}
+                            onChange={(event) => updateStatus(shipper._id, event.target.value)}
+                          >
+                            {statusOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="d-flex flex-column flex-lg-row gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => openEditShipper(shipper)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            disabled={deletingId === shipper._id}
+                            onClick={() => deleteShipper(shipper)}
+                          >
+                            {deletingId === shipper._id ? "Deleting..." : "Delete"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -358,6 +492,83 @@ const Shippers = ({ url }) => {
           </div>
         </div>
       </div>
+      {editingShipper ? (
+        <>
+          <div className="modal fade show d-block" tabIndex={-1} role="dialog" onClick={closeEditShipper}>
+            <div
+              className="modal-dialog"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="modal-content border-0 rounded-4">
+                <div className="modal-header border-0">
+                  <div>
+                    <h5 className="mb-1">Edit drone</h5>
+                    <small className="text-muted">
+                      Update details for {editingShipper.userId?.name || editingShipper.userId?.email}
+                    </small>
+                  </div>
+                  <button type="button" className="btn-close" onClick={closeEditShipper} />
+                </div>
+                <form onSubmit={submitEditShipper}>
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <label className="form-label">Name</label>
+                      <input
+                        className="form-control"
+                        name="name"
+                        value={editForm.name}
+                        onChange={handleEditFormChange}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Email</label>
+                      <input
+                        className="form-control"
+                        name="email"
+                        type="email"
+                        value={editForm.email}
+                        onChange={handleEditFormChange}
+                        required
+                      />
+                    </div>
+                    <div className="mb-0">
+                      <label className="form-label">Branch</label>
+                      <select
+                        className="form-select"
+                        name="branchId"
+                        value={editForm.branchId}
+                        onChange={handleEditFormChange}
+                        required
+                      >
+                        {branches.map((branch) => (
+                          <option key={branch._id} value={branch._id}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="modal-footer border-0">
+                    <button
+                      type="button"
+                      className="btn btn-light"
+                      onClick={closeEditShipper}
+                      disabled={editSaving}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={editSaving}>
+                      {editSaving ? "Saving..." : "Save changes"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" onClick={closeEditShipper} />
+        </>
+      ) : null}
     </div>
   );
 };

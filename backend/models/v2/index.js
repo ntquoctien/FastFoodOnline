@@ -9,3 +9,4 @@ export { default as ShipperProfileModel } from "./shipperProfileModel.js";
 export { default as DeliveryAssignmentModel } from "./deliveryAssignmentModel.js";
 export { default as PaymentModel } from "./paymentModel.js";
 export { default as NotificationModel } from "./notificationModel.js";
+export { default as MeasurementUnitModel } from "./measurementUnitModel.js";

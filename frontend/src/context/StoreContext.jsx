@@ -1,6 +1,7 @@
 import axios from "axios";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { findNearestBranch } from "../utils/location";
 
 export const StoreContext = createContext(null);
 
@@ -13,8 +14,51 @@ const StoreContextProvider = (props) => {
   const [categories, setCategories] = useState([]);
   const [branches, setBranches] = useState([]);
   const [variantMap, setVariantMap] = useState({});
-  const [selectedBranchId, setSelectedBranchId] = useState("all");
+  const [selectedBranchId, setSelectedBranchIdState] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [userLocation, setUserLocation] = useState(null);
+
+  const setSelectedBranchId = useCallback((branchId) => {
+    setSelectedBranchIdState((prev) => {
+      const next = branchId || "";
+      if (typeof window !== "undefined") {
+        if (next) {
+          localStorage.setItem("preferredBranchId", next);
+        } else {
+          localStorage.removeItem("preferredBranchId");
+        }
+      }
+      if (prev === next) {
+        return prev;
+      }
+      return next;
+    });
+  }, []);
+
+  const ensureBranchSelection = useCallback(
+    (branchList = []) => {
+      if (!branchList.length) {
+        setSelectedBranchId("");
+        return;
+      }
+      const branchExists = (id) =>
+        !!id &&
+        branchList.some((branch) => String(branch._id) === String(id));
+      if (branchExists(selectedBranchId)) {
+        return;
+      }
+      let storedId = "";
+      if (typeof window !== "undefined") {
+        storedId = localStorage.getItem("preferredBranchId") || "";
+      }
+      if (branchExists(storedId)) {
+        setSelectedBranchId(storedId);
+      } else {
+        setSelectedBranchId("");
+      }
+    },
+    [selectedBranchId, setSelectedBranchId]
+  );
 
   const addToCart = async (variantId) => {
     if (!variantMap[variantId]) {
@@ -88,11 +132,7 @@ const StoreContextProvider = (props) => {
         setFoodList(foods);
         setCategories(categories);
         setBranches(branches);
-        setSelectedBranchId((prev) => {
-          if (prev === "all") return "all";
-          const stillExists = branches.some((branch) => branch._id === prev);
-          return stillExists ? prev : "all";
-        });
+        ensureBranchSelection(branches);
         const map = {};
         foods.forEach((food) => {
           (food.variants || []).forEach((variant) => {
@@ -139,6 +179,44 @@ const StoreContextProvider = (props) => {
   }, [variantMap]);
 
   useEffect(() => {
+    if (!branches.length) return;
+    if (selectedBranchId) return;
+    let cancelled = false;
+    const firstBranch = branches[0];
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      if (firstBranch) {
+        setSelectedBranchId(firstBranch._id);
+      }
+      return () => {};
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (cancelled) return;
+        const coords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        setUserLocation(coords);
+        const nearest = findNearestBranch(branches, coords);
+        if (nearest?.branch?._id) {
+          setSelectedBranchId(nearest.branch._id);
+        } else if (firstBranch) {
+          setSelectedBranchId(firstBranch._id);
+        }
+      },
+      () => {
+        if (!cancelled && firstBranch) {
+          setSelectedBranchId(firstBranch._id);
+        }
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [branches, selectedBranchId, setSelectedBranchId]);
+
+  useEffect(() => {
     async function loadData() {
       await fetchFoodList();
       const storedToken = localStorage.getItem("token");
@@ -149,6 +227,41 @@ const StoreContextProvider = (props) => {
     }
     loadData();
   }, []);
+
+  const locateNearestBranch = useCallback(() => {
+    if (!branches.length) {
+      toast.error("Hiện chưa có cửa hàng nào khả dụng");
+      return Promise.reject(new Error("No branches available"));
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Thiết bị của bạn không hỗ trợ định vị");
+      return Promise.reject(new Error("Geolocation unsupported"));
+    }
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          setUserLocation(coords);
+          const nearest = findNearestBranch(branches, coords);
+          if (nearest?.branch?._id) {
+            setSelectedBranchId(nearest.branch._id);
+            resolve(nearest);
+          } else {
+            toast.error("Không tìm thấy cửa hàng phù hợp");
+            reject(new Error("No nearest branch"));
+          }
+        },
+        (error) => {
+          toast.error("Không thể xác định vị trí của bạn");
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    });
+  }, [branches, setSelectedBranchId]);
 
   const contextValue = {
     food_list,
@@ -167,6 +280,8 @@ const StoreContextProvider = (props) => {
     setSelectedBranchId,
     searchTerm,
     setSearchTerm,
+    userLocation,
+    locateNearestBranch,
   };
 
   return (

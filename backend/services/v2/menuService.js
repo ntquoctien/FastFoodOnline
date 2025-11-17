@@ -4,6 +4,7 @@ import * as categoryRepo from "../../repositories/v2/categoryRepository.js";
 import * as foodRepo from "../../repositories/v2/foodRepository.js";
 import * as foodVariantRepo from "../../repositories/v2/foodVariantRepository.js";
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
+import * as measurementUnitRepo from "../../repositories/v2/measurementUnitRepository.js";
 
 const toPlainObject = (doc) =>
   doc && typeof doc.toObject === "function" ? doc.toObject() : doc;
@@ -22,13 +23,90 @@ const ensureVariantAccess = (context, variant) => {
   }
 };
 
+const compareVariantsBySize = (a, b) => {
+  const symbolA = (a.unitSymbol || "").toLowerCase();
+  const symbolB = (b.unitSymbol || "").toLowerCase();
+  if (symbolA && symbolB && symbolA !== symbolB) {
+    return symbolA.localeCompare(symbolB);
+  }
+  const orderA = Number(a.unitOrder ?? (Number(a.unitValue) || 0)) || 0;
+  const orderB = Number(b.unitOrder ?? (Number(b.unitValue) || 0)) || 0;
+  if (orderA !== orderB) {
+    return orderB - orderA;
+  }
+  const labelA = (a.unitLabel || a.size || "").toString();
+  const labelB = (b.unitLabel || b.size || "").toString();
+  return labelA.localeCompare(labelB);
+};
+
+const enrichVariantsWithUnits = async (variants = []) => {
+  const unitIds = Array.from(
+    new Set(
+      variants
+        .map((variant) => normaliseId(variant.measurementUnitId || variant.unitId))
+        .filter(Boolean)
+    )
+  );
+
+  let unitMap = new Map();
+  if (unitIds.length) {
+    const unitDocs = await measurementUnitRepo.findByIds(unitIds).lean();
+    unitMap = new Map(
+      unitDocs.map((unit) => [normaliseId(unit._id), unit])
+    );
+  }
+
+  return variants.map((variant) => {
+    const unitId = normaliseId(variant.measurementUnitId || variant.unitId);
+    const unitDoc = unitId ? unitMap.get(unitId) : null;
+
+    const baseMeta = unitDoc
+      ? {
+          measurementUnitId: unitDoc._id,
+          unitType: unitDoc.type,
+          unitLabel: unitDoc.label,
+          unitValue: unitDoc.value ?? null,
+          unitSymbol: unitDoc.symbol || "",
+          unitOrder: unitDoc.order ?? unitDoc.value ?? 0,
+        }
+      : {
+          unitType: variant.unitType || null,
+          unitLabel: variant.unitLabel || variant.size,
+          unitValue:
+            variant.unitValue !== undefined
+              ? Number(variant.unitValue)
+              : null,
+          unitSymbol: variant.unitSymbol || "",
+          unitOrder:
+            variant.unitOrder !== undefined
+              ? Number(variant.unitOrder)
+              : Number(variant.unitValue) || 0,
+        };
+
+    const resolvedSize =
+      (variant.size || "").trim() ||
+      baseMeta.unitLabel ||
+      variant.unitLabel ||
+      "Regular";
+
+    return {
+      ...variant,
+      size: resolvedSize,
+      ...baseMeta,
+    };
+  });
+};
+
 export const getDefaultMenu = async ({ branchId, includeInactive = false } = {}) => {
   const restaurant =
     (await restaurantRepo.findOne({ isActive: true })) ||
     (await restaurantRepo.findOne({}));
 
   if (!restaurant) {
-    return { success: true, data: { restaurant: null, categories: [], foods: [] } };
+    return {
+      success: true,
+      data: { restaurant: null, categories: [], foods: [], measurementUnits: [] },
+    };
   }
 
   const foodFilter = { isArchived: { $ne: true } };
@@ -36,10 +114,14 @@ export const getDefaultMenu = async ({ branchId, includeInactive = false } = {})
     foodFilter.isActive = true;
   }
 
-  const [branches, categories, foods] = await Promise.all([
+  const [branches, categories, foods, measurementUnits] = await Promise.all([
     branchRepo.findActive({ restaurantId: restaurant._id }),
     categoryRepo.findAll({ restaurantId: restaurant._id, isActive: true }),
     foodRepo.findAll(foodFilter).lean(),
+    measurementUnitRepo
+      .findActive({})
+      .sort({ type: 1, symbol: 1, value: -1 })
+      .lean(),
   ]);
 
   const categoryMap = new Map(
@@ -88,6 +170,7 @@ export const getDefaultMenu = async ({ branchId, includeInactive = false } = {})
   const foodsWithVariants = foods
     .map((food) => {
       const variantsForFood = variantGroups[String(food._id)] || [];
+      variantsForFood.sort(compareVariantsBySize);
       if (branchId && variantsForFood.length === 0 && !includeInactive) {
         return null;
       }
@@ -107,6 +190,7 @@ export const getDefaultMenu = async ({ branchId, includeInactive = false } = {})
       branches,
       categories: Array.from(categoryMap.values()),
       foods: foodsWithVariants,
+      measurementUnits,
     },
   };
 };
@@ -129,7 +213,9 @@ export const createFoodWithVariants = async ({
     imageUrl,
   });
 
-  const payload = variants.map((variant, index) => ({
+  const variantsWithUnits = await enrichVariantsWithUnits(variants);
+
+  const payload = variantsWithUnits.map((variant, index) => ({
     ...variant,
     foodId: food._id,
     isDefault:

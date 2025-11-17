@@ -1,10 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-
 *{
     padding: 0;
     margin: 0;
     box-sizing: border-box;
-    font-family: Outfit;
+    font-family: "Montserrat", sans-serif;
 }
 body{
     min-height: 100vh;
@@ -36,21 +34,64 @@ a{
     align-items: center;
     justify-content: center;
     overflow-y: auto;
+    min-height: 100vh;
 }
 .create-food-modal__dialog{
-    width: min(1200px, 100%);
+    width: 100%;
+    max-width: min(1200px, calc(100vw - clamp(24px, 4vw, 96px)));
     margin: 0 auto;
     display: flex;
     flex: 1;
+    max-height: calc(100vh - clamp(32px, 6vh, 96px));
 }
 .create-food-modal__content{
     width: 100%;
-    max-height: calc(100vh - clamp(32px, 6vh, 96px));
+    height: auto;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+.create-food-modal__content form{
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 .create-food-modal__body{
     overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-right: .25rem;
+}
+.create-food-modal__content .modal-footer{
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+.variant-scroll-container{
+    max-height: min(420px, 45vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: .5rem;
+    width: 100%;
+}
+.variant-scroll-container::-webkit-scrollbar{
+    width: 6px;
+}
+.variant-scroll-container::-webkit-scrollbar-thumb{
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 999px;
+}
+@media (max-width: 992px){
+    .create-food-modal{
+        align-items: flex-start;
+    }
 }
 @media (max-width: 768px){
     .create-food-modal{

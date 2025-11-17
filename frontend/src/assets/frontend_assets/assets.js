@@ -12,9 +12,10 @@ import menu_6 from "./menu_6.png";
 import menu_7 from "./menu_7.png";
 import menu_8 from "./menu_8.png";
 
-import add_icon_white from "./add_icon_white.png";
 import add_icon_green from "./add_icon_green.png";
 import remove_icon_red from "./remove_icon_red.png";
+import add_icon_white from "./add_icon_white.png";
+import add_to_cart_icon from "./Icon/add-to-cart.png";
 import app_store from "./app_store.png";
 import play_store from "./play_store.png";
 import bocongthuong from "./bocongthuong.png";
@@ -73,6 +74,7 @@ export const assets = {
   rating_starts,
   add_icon_green,
   add_icon_white,
+  add_to_cart_icon,
   remove_icon_red,
   app_store,
   play_store,

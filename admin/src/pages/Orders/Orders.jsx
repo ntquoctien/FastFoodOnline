@@ -347,7 +347,7 @@ const Orders = ({ url }) => {
                 <div className="card-header border-0 d-flex justify-content-between align-items-start gap-3">
                   <div className="d-flex gap-3 align-items-center">
                     <img
-                      src={assets.parcel_icon}
+                      src={assets.navIcons.orders}
                       alt="Parcel"
                       width={40}
                       height={40}

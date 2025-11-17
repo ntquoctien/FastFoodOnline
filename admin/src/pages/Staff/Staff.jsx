@@ -4,7 +4,8 @@ import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 
 const roleOptions = [
-  { value: "manager", label: "Branch Manager" },
+  { value: "branch_manager", label: "Branch Manager" },
+  { value: "manager", label: "Manager" },
   { value: "staff", label: "Staff" },
   { value: "chef", label: "Kitchen" },
   { value: "support", label: "Support" },
@@ -17,6 +18,12 @@ const statusOptions = [
 ];
 
 const MANAGEABLE_ROLES = ["staff", "chef", "support"];
+const DRONE_ROLE = "shipper";
+const DEFAULT_FORM_ROLE = "staff";
+const isLocalStaffId = (value) => String(value || "").startsWith("local-");
+
+const isDroneActor = (member) =>
+  String(member?.role || "").toLowerCase() === DRONE_ROLE;
 
 const statusBadgeMap = {
   active: "badge bg-success-subtle text-success",
@@ -42,17 +49,18 @@ const Staff = ({ url }) => {
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
-    role: roleOptions[1]?.value || "staff",
+    role: DEFAULT_FORM_ROLE,
     branchId: "",
   });
   const [editSaving, setEditSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
-    role: roleOptions[0].value,
+    role: DEFAULT_FORM_ROLE,
     branchId: "",
     password: "",
   });
+  const [deletingStaffId, setDeletingStaffId] = useState(null);
 
   const branchNameMap = useMemo(() => {
     const map = new Map();
@@ -109,7 +117,8 @@ const Staff = ({ url }) => {
         headers: { token },
       });
       if (response.data?.success) {
-        setStaffMembers(response.data.data || []);
+        const staffList = response.data.data || [];
+        setStaffMembers(staffList.filter((member) => !isDroneActor(member)));
         setEndpointUnavailable(false);
         return;
       }
@@ -143,11 +152,12 @@ const Staff = ({ url }) => {
 
   const filteredStaff = useMemo(() => {
     return staffMembers.filter((member) => {
-      if (filterBranch !== "all" && member.branchId !== filterBranch) return false;
+      const memberBranchId = normaliseId(member.branchId);
+      if (filterBranch !== "all" && memberBranchId !== filterBranch) return false;
       if (filterRole !== "all" && member.role !== filterRole) return false;
       return true;
     });
-  }, [staffMembers, filterBranch, filterRole]);
+  }, [staffMembers, filterBranch, filterRole, normaliseId]);
 
   const updateForm = (event) => {
     const { name, value } = event.target;
@@ -158,7 +168,7 @@ const Staff = ({ url }) => {
     setForm({
       name: "",
       email: "",
-      role: roleOptions[0].value,
+      role: DEFAULT_FORM_ROLE,
       branchId: branches[0]?._id || "",
       password: "",
     });
@@ -169,7 +179,7 @@ const Staff = ({ url }) => {
     setEditForm({
       name: "",
       phone: "",
-      role: roleOptions[1]?.value || "staff",
+      role: DEFAULT_FORM_ROLE,
       branchId: "",
     });
   };
@@ -183,7 +193,7 @@ const Staff = ({ url }) => {
     setEditForm({
       name: member.name || "",
       phone: member.phone || "",
-      role: member.role || (roleOptions[1]?.value || "staff"),
+      role: member.role || DEFAULT_FORM_ROLE,
       branchId: normaliseId(member.branchId),
     });
   };
@@ -293,18 +303,24 @@ const Staff = ({ url }) => {
       }
     } catch (error) {
       console.error("Create staff failed", error);
-      toast.info("API unavailable. Staff member added locally for preview.");
-      setEndpointUnavailable(true);
-      setStaffMembers((prev) => [
-        {
-          _id: `local-${Date.now()}`,
-          status: "active",
-          ...payload,
-          branchName: branchNameMap.get(payload.branchId),
-        },
-        ...prev,
-      ]);
-      resetForm();
+      if (error.response) {
+        toast.error(
+          error.response.data?.message || "Failed to create staff member"
+        );
+      } else {
+        toast.info("API unavailable. Staff member added locally for preview.");
+        setEndpointUnavailable(true);
+        setStaffMembers((prev) => [
+          {
+            _id: `local-${Date.now()}`,
+            status: "active",
+            ...payload,
+            branchName: branchNameMap.get(payload.branchId),
+          },
+          ...prev,
+        ]);
+        resetForm();
+      }
     } finally {
       setSaving(false);
     }
@@ -370,6 +386,43 @@ const Staff = ({ url }) => {
     } catch (error) {
       console.error("Reset password failed", error);
       toast.error("Unable to reset password");
+    }
+  };
+
+  const deleteStaffMember = async (member) => {
+    if (!member) return;
+    if (!canManageMember(member)) {
+      toast.error("You are not allowed to delete this member");
+      return;
+    }
+    const confirmed = window.confirm(
+      `Remove ${member.name || member.email || "this member"}?`
+    );
+    if (!confirmed) return;
+    const staffId = member._id;
+    if (endpointUnavailable || isLocalStaffId(staffId)) {
+      setStaffMembers((prev) => prev.filter((entry) => entry._id !== staffId));
+      toast.success("Staff member removed");
+      return;
+    }
+    setDeletingStaffId(staffId);
+    try {
+      const response = await axios.delete(`${url}/api/v2/staff/${staffId}`, {
+        headers: { token },
+      });
+      if (response.data?.success) {
+        toast.success("Staff member removed");
+        fetchStaff();
+      } else {
+        toast.error(response.data?.message || "Unable to delete staff member");
+      }
+    } catch (error) {
+      console.error("Delete staff failed", error);
+      toast.error(
+        error.response?.data?.message || "Unable to delete staff member"
+      );
+    } finally {
+      setDeletingStaffId(null);
     }
   };
 
@@ -682,7 +735,7 @@ const Staff = ({ url }) => {
                               <small className="text-muted">{member.email}</small>
                             </td>
                             <td className="text-muted">
-                              {branchNameMap.get(member.branchId) ||
+                              {branchNameMap.get(normaliseId(member.branchId)) ||
                                 member.branchName ||
                                 "Unassigned"}
                             </td>
@@ -721,6 +774,18 @@ const Staff = ({ url }) => {
                                     onClick={() => openEditProfile(member)}
                                   >
                                     Edit profile
+                                  </button>
+                                ) : null}
+                                {canManageMember(member) ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-danger btn-sm"
+                                    onClick={() => deleteStaffMember(member)}
+                                    disabled={deletingStaffId === member._id}
+                                  >
+                                    {deletingStaffId === member._id
+                                      ? "Removing..."
+                                      : "Delete"}
                                   </button>
                                 ) : null}
                                 {isAdmin ? (

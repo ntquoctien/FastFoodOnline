@@ -11,10 +11,10 @@ const FoodItem = ({ food }) => {
     removeFromCart,
     url,
     variantMap,
-    selectedBranchId,
-  } =
-    useContext(StoreContext);
+  } = useContext(StoreContext);
   const variants = food?.variants || [];
+
+  const hasMultipleVariants = variants.length > 1;
 
   const defaultVariantId = useMemo(() => {
     if (!variants.length) return null;
@@ -55,6 +55,23 @@ const FoodItem = ({ food }) => {
     ? `${url}/images/${food.imageUrl}`
     : assets.placeholder_image;
 
+  const renderVariantSelector = () => {
+    if (!hasMultipleVariants) return null;
+    return (
+      <select
+        className="food-item-variant-select"
+        value={selectedVariantId || ""}
+        onChange={(event) => setSelectedVariantId(event.target.value)}
+      >
+        {variants.map((variant) => (
+          <option key={variant._id} value={variant._id}>
+            {`${variant.size || "Regular"} - ${formatCurrency(variant.price)}`}
+          </option>
+        ))}
+      </select>
+    );
+  };
+
   return (
     <div className="food-item">
       <div className="food-item-img-container">
@@ -63,8 +80,8 @@ const FoodItem = ({ food }) => {
           <img
             className="add"
             onClick={handleAdd}
-            src={assets.add_icon_white}
-            alt="add"
+            src={assets.add_to_cart_icon}
+            alt="add to cart"
           />
         ) : (
           <div className="food-item-counter">
@@ -93,27 +110,7 @@ const FoodItem = ({ food }) => {
             Available at {selectedVariant.branchName}
           </p>
         )}
-        {variants.length > 1 && (
-          <select
-            className="food-item-variant"
-            value={selectedVariantId || ""}
-            onChange={(event) => setSelectedVariantId(event.target.value)}
-          >
-            {variants.map((variant) => {
-              const sizeLabel = variant.size || "Regular";
-              const priceLabel = formatCurrency(variant.price);
-              const branchLabel =
-                selectedBranchId === "all" && variant.branchName
-                  ? ` (${variant.branchName})`
-                  : "";
-              return (
-                <option key={variant._id} value={variant._id}>
-                  {`${sizeLabel} - ${priceLabel}${branchLabel}`}
-                </option>
-              );
-            })}
-          </select>
-        )}
+        {renderVariantSelector()}
         <p className="food-item-price">{formatCurrency(price)}</p>
       </div>
     </div>

@@ -16,12 +16,18 @@ const Navbar = ({ setShowLogin }) => {
     setSelectedBranchId,
     searchTerm,
     setSearchTerm,
+    locateNearestBranch,
   } = useContext(StoreContext);
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
+    if (location.pathname === "/menu") {
+      setMenu("menu");
+      return;
+    }
     if (location.pathname !== "/") {
       setMenu("");
     }
@@ -39,10 +45,15 @@ const Navbar = ({ setShowLogin }) => {
   };
 
   const handleRestaurantChange = (event) => {
-    setSelectedBranchId(event.target.value);
-    setMenu("home");
-    if (window.location.pathname !== "/") {
-      navigate("/");
+    const nextBranchId = event.target.value;
+    if (!nextBranchId) return;
+    setSelectedBranchId(nextBranchId);
+    if (location.pathname === "/menu") {
+      setMenu("menu");
+    } else if (location.pathname === "/") {
+      setMenu("home");
+    } else {
+      setMenu("");
     }
   };
 
@@ -56,13 +67,18 @@ const Navbar = ({ setShowLogin }) => {
     if (trimmed !== searchTerm) {
       setSearchTerm(trimmed);
     }
-    if (location.pathname !== "/") {
-      navigate("/", { state: { scrollTo: "food-display" } });
+    if (location.pathname !== "/menu") {
+      navigate("/menu", { state: { scrollTo: "menu-food-display" } });
       return;
     }
-    const target = document.getElementById("food-display");
+    const target = document.getElementById("menu-food-display");
     if (target) {
       target.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      navigate("/menu", {
+        replace: true,
+        state: { scrollTo: "menu-food-display" },
+      });
     }
   };
 
@@ -70,6 +86,21 @@ const Navbar = ({ setShowLogin }) => {
     if (!searchTerm) return;
     setSearchTerm("");
     searchInputRef.current?.focus();
+  };
+
+  const handleLocateNearest = async () => {
+    if (isLocating) return;
+    setIsLocating(true);
+    try {
+      const nearest = await locateNearestBranch();
+      if (nearest?.branch?.name) {
+        toast.success(`Đã chọn ${nearest.branch.name} gần bạn`);
+      }
+    } catch (error) {
+      // errors handled inside locateNearestBranch
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   return (
@@ -88,16 +119,13 @@ const Navbar = ({ setShowLogin }) => {
           </Link>
         </li>
         <li>
-          <button
-            type="button"
-            onClick={() => {
-              setMenu("menu");
-              handleScrollNavigate("explore-menu");
-            }}
+          <Link
+            to="/menu"
+            onClick={() => setMenu("menu")}
             className={menu === "menu" ? "active" : ""}
           >
             Menu
-          </button>
+          </Link>
         </li>
         <li>
           <button
@@ -127,19 +155,29 @@ const Navbar = ({ setShowLogin }) => {
       <div className="navbar-right">
         {branches.length > 0 && (
           <div className="navbar-branch-select">
-            <label htmlFor="branch-select">Restaurant</label>
-            <select
-              id="branch-select"
-              value={selectedBranchId}
-              onChange={handleRestaurantChange}
-            >
-              <option value="all">All locations</option>
-              {branches.map((branch) => (
-                <option key={branch._id} value={branch._id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
+            <label htmlFor="branch-select">Cửa hàng của bạn</label>
+            <div className="navbar-branch-controls">
+              <select
+                id="branch-select"
+                value={selectedBranchId}
+                onChange={handleRestaurantChange}
+              >
+                <option value="">Chọn cửa hàng gần nhất</option>
+                {branches.map((branch) => (
+                  <option key={branch._id} value={branch._id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="navbar-find-branch"
+                onClick={handleLocateNearest}
+                disabled={isLocating}
+              >
+                {isLocating ? "Đang tìm..." : "Gần tôi"}
+              </button>
+            </div>
           </div>
         )}
         <form className="navbar-search" onSubmit={handleSearchSubmit}>
