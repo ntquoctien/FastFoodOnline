@@ -1,4 +1,4 @@
-﻿import React, {
+import React, {
   useCallback,
   useContext,
   useEffect,
@@ -10,20 +10,14 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
-import { formatCurrency } from "../../utils/currency";
 
-const DEFAULT_VARIANT = {
-  size: "",
-  price: "",
-  isDefault: true,
-  unitType: "",
-  measurementUnitId: "",
-  unitValue: "",
-  unitSymbol: "",
-  unitOrder: "",
-  useCustomUnit: false,
+const DEFAULT_VARIANT = { size: "", price: "", isDefault: true };
+
+const formatCurrency = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return "0.00đ";
+  return `$${parsed.toFixed(2)}`;
 };
-const DEFAULT_UNIT_TYPES = ["size", "volume", "weight", "quantity", "custom"];
 
 const Add = ({ url }) => {
   const navigate = useNavigate();
@@ -43,52 +37,6 @@ const Add = ({ url }) => {
   const [inventoryModal, setInventoryModal] = useState(null);
   const [inventoryValues, setInventoryValues] = useState({});
   const [inventorySaving, setInventorySaving] = useState(false);
-  const [measurementUnits, setMeasurementUnits] = useState([]);
-  const [unitManagerOpen, setUnitManagerOpen] = useState(false);
-  const [unitManagerLoading, setUnitManagerLoading] = useState(false);
-  const [unitManagerList, setUnitManagerList] = useState([]);
-  const [unitForm, setUnitForm] = useState({
-    type: "",
-    value: "",
-    symbol: "",
-  });
-  const [unitFormSubmitting, setUnitFormSubmitting] = useState(false);
-  const [editingUnitId, setEditingUnitId] = useState(null);
-
-  const measurementUnitLookup = useMemo(() => {
-    const map = new Map();
-    measurementUnits.forEach((unit) => {
-      if (unit?._id) {
-        map.set(unit._id, unit);
-      }
-    });
-    return map;
-  }, [measurementUnits]);
-
-  const mergedUnitTypes = useMemo(() => {
-    const dynamicTypes = Array.from(
-      new Set(measurementUnits.map((unit) => unit.type).filter(Boolean))
-    );
-    const combined = Array.from(
-      new Set([
-        ...DEFAULT_UNIT_TYPES,
-        ...dynamicTypes.map((type) => type.trim().toLowerCase()),
-      ])
-    ).filter(Boolean);
-    return combined;
-  }, [measurementUnits]);
-
-  const unitsByType = useMemo(() => {
-    return measurementUnits.reduce((acc, unit) => {
-      const typeKey = (unit?.type || "").trim().toLowerCase();
-      if (!typeKey) return acc;
-      if (!acc[typeKey]) {
-        acc[typeKey] = [];
-      }
-      acc[typeKey].push(unit);
-      return acc;
-    }, {});
-  }, [measurementUnits]);
 
   const imagePreviewUrl = useMemo(() => {
     if (!image) return null;
@@ -133,11 +81,9 @@ const Add = ({ url }) => {
       const nextCategories = payload.categories || [];
       const nextBranches = payload.branches || [];
       const foods = payload.foods || [];
-      const units = payload.measurementUnits || [];
 
       setCategories(nextCategories);
       setBranches(nextBranches);
-      setMeasurementUnits(Array.isArray(units) ? units : []);
       setMenuPreview(Array.isArray(foods) ? foods : []);
       setBranchScope((prev) => {
         const availableIds = nextBranches.map((branch) => branch._id);
@@ -180,100 +126,11 @@ const Add = ({ url }) => {
   };
 
   const updateVariant = (index, field, value) => {
-    if (typeof field === "object" && field !== null) {
-      const updates = field;
-      setVariants((prev) =>
-        prev.map((variant, i) => (i === index ? { ...variant, ...updates } : variant))
-      );
-      return;
-    }
     setVariants((prev) =>
       prev.map((variant, i) =>
         i === index ? { ...variant, [field]: value } : variant
       )
     );
-  };
-
-  const normaliseUnitTypeInput = (value) =>
-    typeof value === "string" ? value.trim().toLowerCase() : "";
-
-  const handleVariantUnitTypeChange = (index, unitTypeRaw) => {
-    const unitType = normaliseUnitTypeInput(unitTypeRaw);
-    const isCustom = unitType === "custom" || unitType === "";
-    updateVariant(index, {
-      unitType,
-      measurementUnitId: "",
-      useCustomUnit: isCustom,
-      size: isCustom ? "" : variants[index]?.size || "",
-      unitValue: "",
-      unitSymbol: "",
-      unitOrder: "",
-    });
-  };
-
-  const applyMeasurementUnitToVariant = (index, unit) => {
-    if (!unit) {
-      updateVariant(index, {
-        measurementUnitId: "",
-        useCustomUnit: true,
-        size: "",
-        unitValue: "",
-        unitSymbol: "",
-        unitOrder: "",
-      });
-      return;
-    }
-    updateVariant(index, {
-      measurementUnitId: unit._id,
-      unitType: normaliseUnitTypeInput(unit.type || variants[index]?.unitType || ""),
-      useCustomUnit: false,
-      size: unit.label,
-      unitValue: unit.value ?? "",
-      unitSymbol: unit.symbol || "",
-      unitOrder:
-        unit.order !== undefined && unit.order !== null
-          ? unit.order
-          : unit.value ?? "",
-    });
-  };
-
-  const handleVariantUnitChange = (index, selectedValue) => {
-    if (selectedValue === "__custom") {
-      updateVariant(index, {
-        measurementUnitId: "",
-        useCustomUnit: true,
-        size: "",
-        unitValue: "",
-        unitSymbol: "",
-        unitOrder: "",
-      });
-      return;
-    }
-    const unit = measurementUnitLookup.get(selectedValue);
-    if (unit) {
-      applyMeasurementUnitToVariant(index, unit);
-    } else {
-      updateVariant(index, {
-        measurementUnitId: "",
-        size: "",
-        unitValue: "",
-        unitSymbol: "",
-        unitOrder: "",
-        useCustomUnit: true,
-      });
-    }
-  };
-
-  const handleCustomLabelChange = (index, value) => {
-    updateVariant(index, { size: value, unitLabel: value, useCustomUnit: true });
-  };
-
-  const handleCustomValueChange = (index, value) => {
-    updateVariant(index, { unitValue: value, unitOrder: value, useCustomUnit: true });
-  };
-
-  const handleCustomSymbolChange = (index, value) => {
-    updateVariant(index, { unitSymbol: value, useCustomUnit: true });
   };
 
   const addVariantRow = () => {
@@ -327,167 +184,6 @@ const Add = ({ url }) => {
     });
   };
 
-  const resetUnitForm = useCallback(() => {
-    setUnitForm({
-      type: "",
-      value: "",
-      symbol: "",
-    });
-    setEditingUnitId(null);
-  }, []);
-
-  const loadUnitManagerList = useCallback(
-    async (includeInactive = true) => {
-      try {
-        setUnitManagerLoading(true);
-        const query = includeInactive ? "?includeInactive=true" : "";
-        const response = await axios.get(`${url}/api/v2/units${query}`, {
-          headers: token ? { token } : undefined,
-        });
-        if (response.data?.success) {
-          const items = response.data.data || [];
-          setUnitManagerList(items);
-          const activeUnits = items.filter((unit) => unit.isActive);
-          if (includeInactive) {
-            setMeasurementUnits(activeUnits);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load measurement units", error);
-        toast.error("Không thể tải danh sách đơn vị");
-      } finally {
-        setUnitManagerLoading(false);
-      }
-    },
-    [token, url]
-  );
-
-  const openUnitManager = () => {
-    setUnitManagerOpen(true);
-    loadUnitManagerList(true);
-  };
-
-  const closeUnitManager = () => {
-    setUnitManagerOpen(false);
-    resetUnitForm();
-  };
-
-  const handleUnitFormChange = (event) => {
-    const { name, value } = event.target;
-    setUnitForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const refreshActiveUnits = async () => {
-    try {
-      const response = await axios.get(`${url}/api/v2/units`);
-      if (response.data?.success) {
-        setMeasurementUnits(response.data.data || []);
-      }
-    } catch (error) {
-      console.warn("Unable to refresh measurement units", error);
-    }
-  };
-
-  const handleUnitFormSubmit = async (event) => {
-    event.preventDefault();
-    if (!token) {
-      toast.error("Bạn cần đăng nhập lại");
-      return;
-    }
-    const normalisedType = normaliseUnitTypeInput(unitForm.type || unitForm.symbol);
-    if (!normalisedType) {
-      toast.error("Loại đơn vị là bắt buộc");
-      return;
-    }
-    const numericValue = Number(unitForm.value);
-    if (!Number.isFinite(numericValue) || numericValue <= 0) {
-      toast.error("Giá trị phải là số lớn hơn 0");
-      return;
-    }
-    setUnitFormSubmitting(true);
-    try {
-      const payload = {
-        type: normalisedType,
-        value: numericValue,
-        symbol: unitForm.symbol,
-      };
-      if (editingUnitId) {
-        await axios.put(`${url}/api/v2/units/${editingUnitId}`, payload, {
-          headers: { token },
-        });
-        toast.success("Đã cập nhật đơn vị");
-      } else {
-        await axios.post(`${url}/api/v2/units`, payload, {
-          headers: { token },
-        });
-        toast.success("Đã thêm đơn vị mới");
-      }
-      await loadUnitManagerList(true);
-      await refreshActiveUnits();
-      resetUnitForm();
-    } catch (error) {
-      console.error("Failed to save measurement unit", error);
-      toast.error(
-        error.response?.data?.message || "Không thể lưu đơn vị đo lường"
-      );
-    } finally {
-      setUnitFormSubmitting(false);
-    }
-  };
-
-  const handleEditUnit = (unit) => {
-    setEditingUnitId(unit._id);
-    setUnitForm({
-      type: unit.type || "",
-      value:
-        unit.value !== undefined && unit.value !== null ? String(unit.value) : "",
-      symbol: unit.symbol || "",
-    });
-  };
-
-  const handleToggleUnit = async (unit) => {
-    if (!token) {
-      toast.error("Bạn cần đăng nhập lại");
-      return;
-    }
-    try {
-      await axios.put(
-        `${url}/api/v2/units/${unit._id}`,
-        { isActive: !unit.isActive },
-        { headers: { token } }
-      );
-      toast.success("Đã cập nhật trạng thái đơn vị");
-      await loadUnitManagerList(true);
-      await refreshActiveUnits();
-    } catch (error) {
-      console.error("Failed to toggle unit", error);
-      toast.error("Không thể cập nhật trạng thái đơn vị");
-    }
-  };
-
-  const handleDeleteUnit = async (unit) => {
-    if (!token) {
-      toast.error("Bạn cần đăng nhập lại");
-      return;
-    }
-    const confirmed =
-      typeof window === "undefined"
-        ? true
-        : window.confirm(`Xóa đơn vị "${unit.label}"?`);
-    if (!confirmed) return;
-    try {
-      await axios.delete(`${url}/api/v2/units/${unit._id}`, {
-        headers: { token },
-      });
-      toast.success("Đã xóa đơn vị");
-      await loadUnitManagerList(true);
-      await refreshActiveUnits();
-    } catch (error) {
-      console.error("Failed to delete unit", error);
-      toast.error("Không thể xóa đơn vị");
-    }
-  };
-
   const activeBranchIds = useMemo(() => {
     if (branchScope.mode === "custom") {
       return branchScope.selected;
@@ -507,29 +203,11 @@ const Add = ({ url }) => {
     if (submitting) return;
 
     const trimmedVariants = variants
-      .map((variant) => {
-        const selectedUnit =
-          variant.measurementUnitId && measurementUnitLookup.get(variant.measurementUnitId);
-        const resolvedSize = (variant.size || selectedUnit?.label || "").trim();
-        const numericPrice = Number(variant.price);
-        return {
-          ...variant,
-          size: resolvedSize,
-          price: numericPrice,
-          unitType: variant.unitType || selectedUnit?.type || "",
-          measurementUnitId: selectedUnit?._id || variant.measurementUnitId || "",
-          unitValue:
-            variant.unitValue !== "" && variant.unitValue !== undefined
-              ? variant.unitValue
-              : selectedUnit?.value ?? "",
-          unitSymbol: variant.unitSymbol || selectedUnit?.symbol || "",
-          unitOrder:
-            variant.unitOrder !== "" && variant.unitOrder !== undefined
-              ? variant.unitOrder
-              : selectedUnit?.order ?? selectedUnit?.value ?? "",
-        };
-      })
-      .filter((variant) => variant.size && Number.isFinite(variant.price));
+      .map((variant) => ({
+        ...variant,
+        size: variant.size.trim(),
+      }))
+      .filter((variant) => variant.size && variant.price);
 
     if (!trimmedVariants.length) {
       toast.error("Please add at least one variant with size and price");
@@ -544,42 +222,11 @@ const Add = ({ url }) => {
     const expandedVariants = [];
     trimmedVariants.forEach((variant) => {
       activeBranchIds.forEach((branchId, branchIndex) => {
-        const presetUnit =
-          variant.measurementUnitId && measurementUnitLookup.get(variant.measurementUnitId);
-        const unitMeta = presetUnit
-          ? {
-              measurementUnitId: presetUnit._id,
-              unitType: normaliseUnitTypeInput(presetUnit.type),
-              unitLabel: presetUnit.label,
-              unitValue: presetUnit.value,
-              unitSymbol: presetUnit.symbol,
-              unitOrder:
-                presetUnit.order !== undefined
-                  ? presetUnit.order
-                  : presetUnit.value ?? 0,
-            }
-          : {
-              unitType: normaliseUnitTypeInput(variant.unitType) || "custom",
-              unitLabel: variant.size,
-              unitValue:
-                variant.unitValue !== "" && variant.unitValue !== undefined
-                  ? Number(variant.unitValue)
-                  : null,
-              unitSymbol: variant.unitSymbol || "",
-              unitOrder:
-                variant.unitOrder !== "" && variant.unitOrder !== undefined
-                  ? Number(variant.unitOrder)
-                  : variant.unitValue
-                  ? Number(variant.unitValue)
-                  : 0,
-            };
-
         expandedVariants.push({
           size: variant.size,
           price: Number(variant.price),
           branchId,
           isDefault: variant.isDefault && branchIndex === 0,
-          ...unitMeta,
         });
       });
     });
@@ -630,189 +277,13 @@ const Add = ({ url }) => {
     }
   };
 
-
-  const renderUnitManagerModal = () => {
-    if (!unitManagerOpen) return null;
-    return (
-      <>
-        <div className="modal fade show d-block" tabIndex={-1} role="dialog">
-          <div className="modal-dialog modal-lg modal-dialog-scrollable">
-            <div className="modal-content border-0 rounded-4">
-              <div className="modal-header border-0">
-                <div>
-                  <h5 className="mb-0">Measurement units</h5>
-                  <small className="text-muted">
-                    Định nghĩa các đơn vị kích cỡ để dùng khi tạo món mới.
-                  </small>
-                </div>
-                <button
-                  type="button"
-                  className="btn-close"
-                  aria-label="Close"
-                  onClick={closeUnitManager}
-                />
-              </div>
-              <div className="modal-body">
-                                <form className="row g-3 mb-4" onSubmit={handleUnitFormSubmit}>
-                  <div className="col-12 col-md-4">
-                    <label className="form-label fw-semibold">Loại</label>
-                    <input
-                      name="type"
-                      className="form-control"
-                      list="unit-type-suggestions"
-                      placeholder="Nhập loại (vd: size, volume...)"
-                      value={unitForm.type}
-                      onChange={handleUnitFormChange}
-                      required
-                    />
-                    <datalist id="unit-type-suggestions">
-                      {mergedUnitTypes.map((type) => (
-                        <option key={type} value={type} />
-                      ))}
-                    </datalist>
-                  </div>
-                  <div className="col-12 col-md-4">
-                    <label className="form-label fw-semibold">
-                      Giá trị số (để sắp xếp)
-                    </label>
-                    <input
-                      name="value"
-                      type="number"
-                      className="form-control"
-                      placeholder="500"
-                      value={unitForm.value}
-                      onChange={handleUnitFormChange}
-                      required
-                    />
-                  </div>
-                  <div className="col-12 col-md-4">
-                    <label className="form-label fw-semibold">Ký hiệu</label>
-                    <input
-                      name="symbol"
-                      className="form-control"
-                      placeholder="ml, g, pcs..."
-                      value={unitForm.symbol}
-                      onChange={handleUnitFormChange}
-                    />
-                  </div>
-                  <div className="col-12 d-flex flex-wrap gap-2">
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={unitFormSubmitting}
-                    >
-                      {unitFormSubmitting
-                        ? "Saving..."
-                        : editingUnitId
-                        ? "Update unit"
-                        : "Add unit"}
-                    </button>
-                    {editingUnitId ? (
-                      <button
-                        type="button"
-                        className="btn btn-light"
-                        onClick={resetUnitForm}
-                        disabled={unitFormSubmitting}
-                      >
-                        Cancel edit
-                      </button>
-                    ) : null}
-                  </div>
-                </form>
-                <hr />
-                {unitManagerLoading ? (
-                  <div className="text-center py-4 text-muted">
-                    <div className="spinner-border text-primary mb-3" role="status" />
-                    Đang tải danh sách đơn vị...
-                  </div>
-                ) : unitManagerList.length === 0 ? (
-                  <p className="text-center text-muted mb-0">
-                    Chưa có đơn vị nào. Hãy thêm mới ở biểu mẫu phía trên.
-                  </p>
-                ) : (
-                  <div className="table-responsive">
-                    <table className="table align-middle">
-                                            <thead>
-                        <tr>
-                          <th>Tên hiển thị</th>
-                          <th>Loại</th>
-                          <th>Giá trị</th>
-                          <th>Ký hiệu</th>
-                          <th>Trạng thái</th>
-                          <th className="text-end">Hành động</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {unitManagerList.map((unit) => (
-                          <tr key={unit._id}>
-                            <td>
-                              {[unit.value ?? "", unit.symbol || ""]
-                                .filter(Boolean)
-                                .join(" ")
-                                .trim() || unit.label}
-                            </td>
-                            <td className="text-capitalize">{unit.type || "-"}</td>
-                            <td>{unit.value ?? "-"}</td>
-                            <td>{unit.symbol || "-"}</td>
-                            <td>
-                              {unit.isActive ? (
-                                <span className="badge bg-light-success text-success">
-                                  Active
-                                </span>
-                              ) : (
-                                <span className="badge bg-light-secondary text-secondary">
-                                  Inactive
-                                </span>
-                              )}
-                            </td>
-                            <td className="text-end">
-                              <div className="btn-group">
-                                <button
-                                  type="button"
-                                  className="btn btn-outline-primary btn-sm"
-                                  onClick={() => handleEditUnit(unit)}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn btn-outline-secondary btn-sm"
-                                  onClick={() => handleToggleUnit(unit)}
-                                >
-                                  {unit.isActive ? "Deactivate" : "Activate"}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn btn-outline-danger btn-sm"
-                                  onClick={() => handleDeleteUnit(unit)}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="modal-backdrop fade show"></div>
-      </>
-    );
-  };
-
   const branchNameMap = useMemo(() => {
     const map = new Map();
     branches.forEach((branch) => {
       map.set(branch._id, branch.name);
     });
     return map;
-  }, [branches]);
-
+  }, [branches])
   const MAX_BRANCH_SUMMARY_LINES = 3;
   const renderVariantSummary = (variants = []) => {
     if (!variants.length) return "No variants";
@@ -903,13 +374,9 @@ const Add = ({ url }) => {
     if (!modalOpen) return null;
     return (
       <>
-        <div
-          className="modal fade show d-block create-food-modal"
-          tabIndex={-1}
-          role="dialog"
-        >
-          <div className="modal-dialog modal-xl modal-dialog-scrollable create-food-modal__dialog">
-            <div className="modal-content border-0 rounded-4 create-food-modal__content">
+        <div className="modal fade show d-block" tabIndex={-1} role="dialog">
+          <div className="modal-dialog modal-xl modal-dialog-scrollable">
+            <div className="modal-content border-0 rounded-4">
               <div className="modal-header border-0">
                 <div>
                   <h5 className="mb-0">Create Food Item</h5>
@@ -927,8 +394,8 @@ const Add = ({ url }) => {
                   }}
                 />
               </div>
-              <form onSubmit={onSubmitHandler} className="d-flex flex-column flex-grow-1">
-                <div className="modal-body create-food-modal__body">
+              <form onSubmit={onSubmitHandler}>
+                <div className="modal-body">
                   <div className="row g-4">
                     <div className="col-12 col-lg-4">
                       <div className="border rounded-4 p-3 h-100">
@@ -1094,94 +561,30 @@ const Add = ({ url }) => {
                           + Add variant
                         </button>
                       </div>
-                      <div className="d-flex flex-column gap-3 variant-scroll-container">
+                      <div className="d-flex flex-column gap-3">
                         {variants.map((variant, index) => (
                           <div
                             key={`variant-${index}`}
                             className="row g-3 align-items-end border rounded-4 p-3"
                           >
-                            <div className="col-12 col-lg-3">
+                            <div className="col-12 col-md-4">
                               <label className="form-label fw-semibold">
-                                Loại đơn vị
-                              </label>
-                              <select
-                                className="form-select"
-                                value={variant.unitType}
-                                onChange={(event) =>
-                                  handleVariantUnitTypeChange(index, event.target.value)
-                                }
-                              >
-                                <option value="">Chọn loại</option>
-                                {mergedUnitTypes.map((type) => (
-                                  <option key={type} value={type}>
-                                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                                  </option>
-                                ))}
-                                <option value="custom">Tùy chỉnh</option>
-                              </select>
-                            </div>
-                            <div className="col-12 col-lg-3">
-                              <label className="form-label fw-semibold">
-                                Giá trị / kích cỡ
-                              </label>
-                              <select
-                                className="form-select"
-                                value={
-                                  variant.useCustomUnit || !variant.measurementUnitId
-                                    ? "__custom"
-                                    : variant.measurementUnitId
-                                }
-                                onChange={(event) =>
-                                  handleVariantUnitChange(index, event.target.value)
-                                }
-                                disabled={
-                                  !variant.unitType ||
-                                  variant.unitType == "custom"
-                                }
-                              >
-                                <option value="">Chọn giá trị</option>
-                                {(unitsByType[variant.unitType] || [])
-                                  .slice()
-                                  .sort((a, b) => {
-                                    const symbolA = (a.symbol || "").toLowerCase();
-                                    const symbolB = (b.symbol || "").toLowerCase();
-                                    if (symbolA && symbolB && symbolA !== symbolB) {
-                                      return symbolA.localeCompare(symbolB);
-                                    }
-                                    return (
-                                      (b.order ?? b.value ?? 0) -
-                                      (a.order ?? a.value ?? 0)
-                                    );
-                                  })
-                                  .map((unit) => (
-                                    <option key={unit._id} value={unit._id}>
-                                      {unit.label}
-                                    </option>
-                                  ))}
-                                <option value="__custom">Giá trị tùy chỉnh</option>
-                              </select>
-                            </div>
-                            <div className="col-12 col-lg-3">
-                              <label className="form-label fw-semibold">
-                                Nhãn hiển thị
+                                Size / label
                               </label>
                               <input
                                 className="form-control"
                                 type="text"
-                                placeholder="Large, Combo..."
+                                placeholder="Large, Combo, …"
                                 value={variant.size}
                                 onChange={(event) =>
-                                  handleCustomLabelChange(index, event.target.value)
+                                  updateVariant(index, "size", event.target.value)
                                 }
                                 required
-                                readOnly={
-                                  !variant.useCustomUnit && Boolean(variant.measurementUnitId)
-                                }
                               />
                             </div>
-                            <div className="col-12 col-lg-3">
+                            <div className="col-12 col-md-3">
                               <label className="form-label fw-semibold">
-                                Giá bán
+                                Price
                               </label>
                               <input
                                 className="form-control"
@@ -1196,45 +599,8 @@ const Add = ({ url }) => {
                                 required
                               />
                             </div>
-                            {(variant.useCustomUnit || !variant.measurementUnitId) && (
-                              <>
-                                <div className="col-12 col-md-6 col-lg-4">
-                                  <label className="form-label fw-semibold">
-                                    Giá trị sắp xếp (số)
-                                  </label>
-                                  <input
-                                    className="form-control"
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    placeholder="Ví dụ: 350"
-                                    value={variant.unitValue}
-                                    onChange={(event) =>
-                                      handleCustomValueChange(index, event.target.value)
-                                    }
-                                  />
-                                  <small className="text-muted">
-                                    Dùng để sắp xếp kích cỡ từ lớn đến nhỏ
-                                  </small>
-                                </div>
-                                <div className="col-12 col-md-6 col-lg-4">
-                                  <label className="form-label fw-semibold">
-                                    Ký hiệu / đơn vị
-                                  </label>
-                                  <input
-                                    className="form-control"
-                                    type="text"
-                                    placeholder="ml, g, pcs..."
-                                    value={variant.unitSymbol}
-                                    onChange={(event) =>
-                                      handleCustomSymbolChange(index, event.target.value)
-                                    }
-                                  />
-                                </div>
-                              </>
-                            )}
-                            <div className="col-12 col-md-6">
-                              <div className="form-check mt-2">
+                            <div className="col-12 col-md-3">
+                              <div className="form-check mt-4">
                                 <input
                                   className="form-check-input"
                                   type="radio"
@@ -1251,10 +617,10 @@ const Add = ({ url }) => {
                                 </label>
                               </div>
                             </div>
-                            <div className="col-12 col-md-6 text-md-end">
+                            <div className="col-12 col-md-2 text-md-end">
                               <button
                                 type="button"
-                                className="btn btn-outline-danger w-100 w-md-auto mt-2"
+                                className="btn btn-outline-danger mt-md-4 w-100"
                                 onClick={() => removeVariantRow(index)}
                                 disabled={variants.length === 1}
                               >
@@ -1373,19 +739,17 @@ const Add = ({ url }) => {
               Launch new dishes and assign them to specific branches.
             </p>
           </div>
-          <div className="d-flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
-              onClick={openUnitManager}
-            >
-              Manage units
-            </button>
-            <button type="button" className="btn btn-primary" onClick={() => setModalOpen(true)}>
-              + New Item
-            </button>
+          <button type="button" className="btn btn-primary" onClick={() => setModalOpen(true)}>
+            + New Item
+          </button>
+        </div>
+
+        <div className="alert alert-primary d-flex align-items-center gap-3 rounded-4">
+          <div className="avatar avatar-lg bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center">
+            <i className="bi bi-stars"></i>
           </div>
         </div>
+
         <section className="card border rounded-4">
           <div className="card-header border-0 d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between">
             <div>
@@ -1451,18 +815,9 @@ const Add = ({ url }) => {
         </section>
       </div>
       {renderCreationModal()}
-      {renderUnitManagerModal()}
       {renderInventoryModal()}
     </>
   );
 };
 
 export default Add;
-
-
-
-
-
-
-
-
