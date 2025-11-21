@@ -13,7 +13,7 @@
 - Backend Node.js/Express cung cấp REST API v2, xác thực JWT, quản lý menu, đơn hàng, tồn kho, shipper, chi nhánh.
 - Tích hợp VNPAY cho quy trình thanh toán; lưu trạng thái thanh toán và đơn hàng trong MongoDB.
 - Phân quyền theo vai trò (user, admin, staff/shipper) tại middleware và từng service.
-- Đóng gói bằng Docker Compose: Backend, Frontend, Admin và MongoDB khởi chạy đồng bộ.
+- Đóng gói bằng Docker Compose: Backend, Frontend, Admin khởi chạy đồng bộ; MongoDB kết nối qua Atlas nên không cần container riêng.
 - Lưu ảnh món ăn qua multipart (Multer) vào thư mục uploads và phục vụ tĩnh qua đường dẫn /images/...
 
 ## 1.2 Narrative
@@ -55,7 +55,7 @@ Xem sơ đồ tổng quan và ERD trong `docs/diagrams.md` (Mermaid: kiến trú
 5. Tồn kho theo chi nhánh và biến thể; cập nhật và kiểm soát số lượng thực tế.
 6. Thanh toán VNPAY: tạo intent, xác nhận; lưu Payment liên kết Order.
 7. Quản trị chi nhánh, danh mục, món ăn, nhân sự/shipper; xem danh sách và cập nhật trạng thái.
-8. Docker Compose khởi chạy đầy đủ stack; MongoDB Atlas hoặc container nội bộ làm nguồn dữ liệu.
+8. Docker Compose khởi chạy backend/frontend/admin; MongoDB Atlas làm nguồn dữ liệu (cấu hình qua `MONGO_URL`).
 
 Future considerations:
 
@@ -104,7 +104,7 @@ Future considerations:
 
 2.4.5 Upload ảnh: Multer nhận multipart `image`, lưu vào `backend/uploads/`, truy cập qua `/images/<filename>`.
 
-2.4.6 Triển khai: Docker Compose khởi chạy 4 dịch vụ (backend, frontend, admin, mongo); cấu hình qua env.
+2.4.6 Triển khai: Docker Compose khởi chạy backend, frontend, admin; MongoDB Atlas cung cấp database (qua `MONGO_URL`).
 
 ---
 
@@ -112,7 +112,7 @@ Future considerations:
 
 | TARGET DATE | MILESTONE | DESCRIPTION |
 | --- | --- | --- |
-| Tuần 1 | Hoàn thiện setup & Docker | Chạy đủ 4 dịch vụ; cấu hình env; kiểm tra kết nối MongoDB |
+| Tuần 1 | Hoàn thiện setup & Docker | Chạy đủ backend/frontend/admin; cấu hình env; kiểm tra kết nối MongoDB Atlas |
 | Tuần 2 | Menu + Đơn hàng cơ bản | Duyệt menu, tạo đơn, theo dõi trạng thái; upload ảnh |
 | Tuần 3 | Thanh toán VNPAY | Tạo/confirm payment intent; cập nhật Payment/Order |
 | Tuần 4 | Tồn kho + Shipper | Cập nhật inventory; phân công shipper; báo cáo cơ bản |
@@ -131,7 +131,7 @@ Tham khảo `docs/diagrams.md` mục “Kien truc trien khai” (Mermaid).
 
 ## Deployment Diagram
 
-Triển khai chuẩn bằng Docker Compose (4 services). Có thể mở rộng lên VM/K8s; tách MongoDB managed.
+Triển khai chuẩn bằng Docker Compose (3 services). Có thể mở rộng lên VM/K8s; MongoDB dùng dịch vụ managed (Atlas).
 
 
 # Backend design
@@ -150,7 +150,7 @@ Triển khai chuẩn bằng Docker Compose (4 services). Có thể mở rộng l
 - Backend: Node.js (Express), REST API v2, Mongoose, JWT auth, Multer upload.
 - MongoDB: lưu dữ liệu document; index theo khoá tìm kiếm.
 - Frontend & Admin: React + Vite (5173/5174), gọi API qua `VITE_API_URL`.
-- Container: Docker Compose dựng backend/frontend/admin/mongo.
+- Container: Docker Compose dựng backend/frontend/admin (không bao gồm MongoDB).
 
 ## Data
 
@@ -178,5 +178,5 @@ Xem Mermaid ERD trong `docs/diagrams.md` mục “Mo hinh du lieu (chi tiet)”.
 
 ## Hướng dẫn chạy nhanh (trích `docs/setup.md`)
 
-- Docker: `docker compose up -d --build` → Frontend 5173, Admin 5174, API 4000, Mongo 27017; tắt bằng `docker compose down -v`.
+- Docker: `docker compose up -d --build` → Frontend 5173, Admin 5174, API 4000; MongoDB Atlas nằm ngoài stack nên không có cổng 27017 local. Dừng bằng `docker compose down`.
 - Local: cấu hình `backend/.env`, chạy `npm install` và `npm run server` (backend), `npm run dev` (frontend/admin).

@@ -8,9 +8,9 @@ Ngày cập nhật: 2025-10-21
 
 ## 2. Kiến trúc & Triển khai
 - Kiến trúc: client (frontend) và admin gọi API REST của backend. Backend kết nối MongoDB.
-- Docker compose cung cấp 4 services: mongo, backend (port 4000), frontend (5173), admin (5174). Mongo khởi tạo DB `fooddeliverydb`.
+- Docker compose cung cấp 3 services: backend (port 4000), frontend (5173), admin (5174). MongoDB được cung cấp qua Atlas (kết nối bằng `MONGO_URL`), không còn container riêng.
 - Biến môi trường chính:
-  - Backend: `PORT` (mặc định 4000), `MONGO_URL` (đặt trong docker compose trỏ tới `mongodb://mongo:27017/fooddeliverydb`), `SALT` (rounds cho bcrypt), các khóa thanh toán (nếu dùng VNPAY).
+  - Backend: `PORT` (mặc định 4000), `MONGO_URL` (chuỗi kết nối Atlas, ví dụ `mongodb+srv://...`), `SALT` (rounds cho bcrypt), các khóa thanh toán (nếu dùng VNPAY).
   - Frontend/Admin: `VITE_API_URL` (ví dụ http://localhost:4000), `VITE_PORT` (5173/5174).
 
 ## 3. Backend
@@ -69,9 +69,9 @@ Ngày cập nhật: 2025-10-21
 ### 5.1 Chạy nhanh bằng Docker
 - Yêu cầu: Docker Desktop.
 - Tại thư mục gốc dự án, chạy: `docker compose up -d --build`.
-- Truy cập: Backend http://localhost:4000, Frontend http://localhost:5173, Admin http://localhost:5174, MongoDB cổng 27017.
+- Truy cập: Backend http://localhost:4000, Frontend http://localhost:5173, Admin http://localhost:5174. MongoDB Atlas chạy bên ngoài stack nên không có port 27017 nội bộ.
 ### 5.2 Chạy local bằng Node.js
-- Yêu cầu: Node 18+, MongoDB đang chạy (hoặc dùng Docker service `mongo`).
+- Yêu cầu: Node 18+, MongoDB Atlas (hoặc một instance riêng do bạn quản lý) sẵn sàng và `MONGO_URL` trỏ tới đó.
 - Backend: đặt `.env` với `MONGO_URL`, `PORT`, `SALT`. Chạy `npm i` rồi `npm run server` trong thư mục `backend/`.
 - Frontend/Admin: trong mỗi thư mục `frontend/` và `admin/`, chạy `npm i` rồi `npm run dev`.
 
@@ -82,4 +82,4 @@ Ngày cập nhật: 2025-10-21
 
 ## 7. Phụ lục
 - Danh mục dependencies Backend: bcrypt, body-parser, cors, dotenv, express, jsonwebtoken, mongoose, multer, nodemon, validator.
-- Cổng dịch vụ mặc định: 4000 (API), 5173 (frontend), 5174 (admin), 27017 (MongoDB).
+- Cổng dịch vụ mặc định: 4000 (API), 5173 (frontend), 5174 (admin).

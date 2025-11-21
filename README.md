@@ -45,7 +45,7 @@ This repository hosts the source code for TOMATO, a dynamic food ordering websit
 
 ## Docker Compose Setup
 
-You can spin up the complete stack (frontend + backend + admin + MongoDB) with Docker:
+You can spin up the complete stack (frontend + backend + admin) with Docker. MongoDB is expected to run on MongoDB Atlas (or another managed instance) via the connection string in `backend/.env`.
 
 1. Build và chạy toàn bộ dịch vụ:
    ```bash
@@ -53,8 +53,7 @@ You can spin up the complete stack (frontend + backend + admin + MongoDB) with D
    ```
    The stack exposes the frontend at `http://localhost:5173`, the admin panel at `http://localhost:5174`, and the API at `http://localhost:4000`.
    > Tương đương với `docker compose up --build` nếu bạn không muốn dùng script npm.
-2. Kết nối MongoDB từ host (Compass, mongosh, v.v.) qua `mongodb://localhost:27017/fooddeliverydb`. Cổng 27017 đã được
-   publish nên bạn có thể xem/sửa dữ liệu trực tiếp mà không cần vào container.
+2. Bổ sung biến môi trường `MONGO_URL` trong `backend/.env` bằng connection string Atlas (ví dụ `mongodb+srv://...`). Docker Compose không khởi chạy MongoDB nội bộ nên sẽ không có cổng 27017 được mở trên máy bạn.
 3. Dừng stack khi không dùng nữa:
    ```bash
    npm run docker:down
@@ -63,9 +62,9 @@ You can spin up the complete stack (frontend + backend + admin + MongoDB) with D
 To rebuild after code changes you can run `docker compose up --build` again, or `docker compose up` if the images are already built.
 
 ### Troubleshooting Mongo Connection
-- Backend container load `backend/.env`; hãy chắc chắn `MONGO_URL` chính xác (Atlas hoặc local). Muốn dùng Mongo container nội bộ, đặt `MONGO_URL=mongodb://mongo:27017/fooddeliverydb`.
+- Backend container load `backend/.env`; hãy chắc chắn `MONGO_URL` chính xác (Atlas hoặc local). Nếu cần chạy MongoDB cục bộ, khởi tạo instance/container riêng (ngoài docker compose) rồi cập nhật `MONGO_URL` tương ứng.
 - If you start the API manually, prefer `npm run server --prefix backend` (or `cd backend && npm run server`) so nodemon watches the right paths.
-- Với Docker Compose, kiểm tra `backend` đã thấy Atlas bằng log `docker compose logs backend`. Nếu dùng Mongo container, xem trạng thái bằng `docker compose logs mongo`.
+- Với Docker Compose, kiểm tra backend đã kết nối được Atlas bằng `docker compose logs backend` (sẽ log `DB Connected: <cluster-host>`).
 - For MongoDB Atlas URIs, whitelist your IP address and verify username/password. The backend now prints the precise Mongo error so you can spot authentication or network issues quickly.
 - If you see `Missing MONGO_URL`, double-check environment variables in Docker, your shell session, or `backend/.env`.
 

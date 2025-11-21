@@ -8,7 +8,7 @@ flowchart LR
     A[Admin (Vite 5174)]
   end
   B[Backend API (Express 4000)]
-  M[(MongoDB 27017)]
+  M[(MongoDB Atlas (SRV))]
 
   F -->|REST| B
   A -->|REST| B

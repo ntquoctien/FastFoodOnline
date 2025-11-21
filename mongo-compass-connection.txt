@@ -1,4 +1,0 @@
-# MongoDB Compass / mongosh connection string for the Docker stack
-mongodb://127.0.0.1:27017/fooddeliverydb
-
-Paste this string into MongoDB Compass or mongosh after running `docker compose up`.

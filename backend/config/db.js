@@ -26,7 +26,7 @@ export const connectDB = async () => {
   } catch (error) {
     console.error("MongoDB connection failed:", error.message);
     console.error(
-      "Check Atlas credentials/IP or ensure the mongo container is running (docker compose logs mongo)."
+      "Check Atlas credentials/IP allowlist or ensure your self-hosted MongoDB instance is running and reachable."
     );
     if (process.env.NODE_ENV !== "production") {
       console.error(error);
