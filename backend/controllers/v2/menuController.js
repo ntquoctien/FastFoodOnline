@@ -82,7 +82,7 @@ export const createFood = async (req, res) => {
           .json({ success: false, message: "Invalid variants payload" });
       }
     }
-    const imageUrl = req.file?.filename;
+    const imageUrl = req.file?.path || req.file?.filename;
     const result = await menuService.createFoodWithVariants({
       categoryId,
       name,
@@ -155,7 +155,7 @@ export const updateFood = async (req, res) => {
       name,
       description,
       categoryId: normalise(categoryId),
-      imageFilename: req.file?.filename,
+      imageUrl: req.file?.path || req.file?.filename,
     });
     if (result.success) {
       await notificationService.publishNotification({

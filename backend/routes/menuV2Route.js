@@ -1,5 +1,7 @@
 import express from "express";
 import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 import authMiddleware from "../middleware/auth.js";
 import {
   getDefaultMenu,
@@ -15,10 +17,14 @@ import {
 
 const menuV2Router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: "uploads",
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "fastfoodonline/menu",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
+    use_filename: true,
+    unique_filename: true,
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
   },
 });
 

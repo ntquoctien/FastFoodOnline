@@ -238,7 +238,7 @@ export const updateFoodDetails = async ({
   name,
   description,
   categoryId,
-  imageFilename,
+  imageUrl,
 }) => {
   const food = await foodRepo.findById(foodId);
   if (!food) {
@@ -263,8 +263,8 @@ export const updateFoodDetails = async ({
     update.categoryId = categoryId;
   }
 
-  if (imageFilename) {
-    update.imageUrl = imageFilename;
+  if (imageUrl) {
+    update.imageUrl = imageUrl;
   }
 
   if (Object.keys(update).length === 0) {

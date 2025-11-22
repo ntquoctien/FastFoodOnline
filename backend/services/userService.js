@@ -4,6 +4,7 @@ import validator from "validator";
 import fs from "fs/promises";
 import path from "path";
 import * as userRepo from "../repositories/userRepository.js";
+import cloudinary from "../config/cloudinary.js";
 
 const createToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET);
 
@@ -20,14 +21,34 @@ const sanitizeUser = (user) => {
   };
 };
 
-const deleteAvatar = async (fileName) => {
-  if (!fileName) return;
+const extractCloudinaryPublicId = (urlOrId = "") => {
+  if (!urlOrId) return "";
+  // If we already got a public_id (no protocol), return as-is.
+  if (!/^https?:\/\//i.test(urlOrId)) {
+    return urlOrId.replace(/^\/+/, "");
+  }
+  const matches = urlOrId.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
+  return matches?.[1] || "";
+};
+
+const deleteAvatar = async (fileNameOrUrl) => {
+  if (!fileNameOrUrl) return;
+  const publicId = extractCloudinaryPublicId(fileNameOrUrl);
+  if (publicId) {
+    try {
+      await cloudinary.uploader.destroy(publicId);
+      return;
+    } catch (error) {
+      console.warn(`Failed to delete cloud avatar ${publicId}:`, error.message);
+    }
+  }
+  // Fallback for legacy local files.
   try {
-    const filePath = path.resolve("uploads", fileName);
+    const filePath = path.resolve("uploads", fileNameOrUrl);
     await fs.unlink(filePath);
   } catch (error) {
     if (error.code !== "ENOENT") {
-      console.warn(`Failed to delete avatar ${fileName}:`, error.message);
+      console.warn(`Failed to delete avatar ${fileNameOrUrl}:`, error.message);
     }
   }
 };

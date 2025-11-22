@@ -51,9 +51,14 @@ const FoodItem = ({ food }) => {
     }
   };
 
-  const imageSrc = food.imageUrl
-    ? `${url}/images/${food.imageUrl}`
-    : assets.placeholder_image;
+  const resolveImage = (value) => {
+    if (!value) return assets.placeholder_image;
+    if (/^https?:\/\//i.test(value)) return value;
+    const cleaned = String(value).replace(/^\/+/, "");
+    return `${url}/images/${cleaned}`;
+  };
+
+  const imageSrc = resolveImage(food.imageUrl);
 
   const renderVariantSelector = () => {
     if (!hasMultipleVariants) return null;

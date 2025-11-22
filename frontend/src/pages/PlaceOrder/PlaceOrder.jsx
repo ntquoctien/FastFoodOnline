@@ -76,15 +76,20 @@ const PlaceOrder = () => {
   }, [branches]);
 
   const checkoutItems = useMemo(() => {
+    const resolveImage = (value) => {
+      if (!value) return assets.placeholder_image;
+      if (/^https?:\/\//i.test(value)) return value;
+      const cleaned = String(value).replace(/^\/+/, "");
+      return `${url}/images/${cleaned}`;
+    };
+
     return Object.entries(cartItems)
       .filter(([, quantity]) => quantity > 0)
       .map(([variantId, quantity]) => {
         const variant = variantMap[variantId];
         if (!variant) return null;
         const branchId = variant.branchId ? String(variant.branchId) : null;
-        const imageSrc = variant.foodImage
-          ? `${url}/images/${variant.foodImage}`
-          : assets.placeholder_image;
+        const imageSrc = resolveImage(variant.foodImage);
         return {
           variantId,
           quantity,

@@ -61,9 +61,13 @@ const Cart = () => {
                 if (!variant) return null;
                 const price = variant.price;
                 const total = price * quantity;
-                const imageSrc = variant.foodImage
-                  ? `${url}/images/${variant.foodImage}`
-                  : assets.placeholder_image;
+                const resolveImage = (value) => {
+                  if (!value) return assets.placeholder_image;
+                  if (/^https?:\/\//i.test(value)) return value;
+                  const cleaned = String(value).replace(/^\/+/, "");
+                  return `${url}/images/${cleaned}`;
+                };
+                const imageSrc = resolveImage(variant.foodImage);
                 return (
                   <li key={variantId} className="cart-list-item">
                     <div className="cart-item-media">

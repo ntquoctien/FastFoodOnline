@@ -46,7 +46,7 @@ export const updateProfile = async (req, res) => {
       phone: req.body.phone,
       currentPassword: req.body.currentPassword,
       newPassword: req.body.newPassword,
-      avatarFileName: req.file?.filename,
+      avatarFileName: req.file?.path || req.file?.filename,
       removeAvatar: req.body.removeAvatar === "true",
     });
     if (result.success) {

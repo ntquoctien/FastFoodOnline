@@ -85,7 +85,6 @@ app.get("/api-docs.json", (req, res) => {
 connectDB();
 
 // api endpoints
-app.use("/images", express.static("uploads"));
 app.use("/api/v2/user", userRouter);
 app.use("/api/v2/cart", cartRouter);
 app.use("/api/v2/menu", menuV2Router);

@@ -1,0 +1,1002 @@
+[
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865444288food_1.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824349/fastfoodonline/uploads/1722865444288food_1.png",
+    "public_id": "fastfoodonline/uploads/1722865444288food_1",
+    "asset_id": "ea3ee2446264da1dfcaa000b58a10c7b",
+    "bytes": 200066,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865514626food_2.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824350/fastfoodonline/uploads/1722865514626food_2.png",
+    "public_id": "fastfoodonline/uploads/1722865514626food_2",
+    "asset_id": "da7e8c56b46e3227ee4d3ba7a4849038",
+    "bytes": 200772,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865628915food_3.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824352/fastfoodonline/uploads/1722865628915food_3.png",
+    "public_id": "fastfoodonline/uploads/1722865628915food_3",
+    "asset_id": "47515095bdedc6b1196fd1ab99741590",
+    "bytes": 187106,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865668073food_4.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824353/fastfoodonline/uploads/1722865668073food_4.png",
+    "public_id": "fastfoodonline/uploads/1722865668073food_4",
+    "asset_id": "78578eaf554f2e4c0dfcc7459c2ba0f8",
+    "bytes": 240199,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865738489food_5.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824354/fastfoodonline/uploads/1722865738489food_5.png",
+    "public_id": "fastfoodonline/uploads/1722865738489food_5",
+    "asset_id": "e8a39df76377e37ef1dce3c84256f184",
+    "bytes": 187385,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865934153food_6.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824355/fastfoodonline/uploads/1722865934153food_6.png",
+    "public_id": "fastfoodonline/uploads/1722865934153food_6",
+    "asset_id": "511ccd64664877ff185223207c5f6b90",
+    "bytes": 195192,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722865976487food_7.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824356/fastfoodonline/uploads/1722865976487food_7.png",
+    "public_id": "fastfoodonline/uploads/1722865976487food_7",
+    "asset_id": "642af528ded1d1dd936cf4d6a1f8ffc3",
+    "bytes": 201212,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866043779food_8.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824357/fastfoodonline/uploads/1722866043779food_8.png",
+    "public_id": "fastfoodonline/uploads/1722866043779food_8",
+    "asset_id": "2e23ae23bc82a1f3e76e3a5d0b7c86d4",
+    "bytes": 225044,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866109947food_9.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824358/fastfoodonline/uploads/1722866109947food_9.png",
+    "public_id": "fastfoodonline/uploads/1722866109947food_9",
+    "asset_id": "7a3940fe1d33b446f0e8a95751106931",
+    "bytes": 142883,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866148130food_10.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824360/fastfoodonline/uploads/1722866148130food_10.png",
+    "public_id": "fastfoodonline/uploads/1722866148130food_10",
+    "asset_id": "fc7a0844294f215221a5cbb91333c08f",
+    "bytes": 146912,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866329894food_11.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824361/fastfoodonline/uploads/1722866329894food_11.png",
+    "public_id": "fastfoodonline/uploads/1722866329894food_11",
+    "asset_id": "7a7ba4bff3aa8fd4eacb4ab1ae1babb5",
+    "bytes": 151596,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866385025food_12.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824362/fastfoodonline/uploads/1722866385025food_12.png",
+    "public_id": "fastfoodonline/uploads/1722866385025food_12",
+    "asset_id": "e8b8e0a11782ebb470daa3301be6eda2",
+    "bytes": 130384,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866412882food_13.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824363/fastfoodonline/uploads/1722866412882food_13.png",
+    "public_id": "fastfoodonline/uploads/1722866412882food_13",
+    "asset_id": "2428b8e079d127417d6d181a396cece8",
+    "bytes": 159907,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866469319food_14.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824364/fastfoodonline/uploads/1722866469319food_14.png",
+    "public_id": "fastfoodonline/uploads/1722866469319food_14",
+    "asset_id": "2322bf4c9df7715965df514e9d87afc2",
+    "bytes": 185318,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866504992food_15.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824366/fastfoodonline/uploads/1722866504992food_15.png",
+    "public_id": "fastfoodonline/uploads/1722866504992food_15",
+    "asset_id": "6041f47af65297fb42db9c4b084fffdf",
+    "bytes": 204072,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866560218food_16.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824366/fastfoodonline/uploads/1722866560218food_16.png",
+    "public_id": "fastfoodonline/uploads/1722866560218food_16",
+    "asset_id": "a9434ef98b971db273cb41c9b839bfb3",
+    "bytes": 209909,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866610567food_17.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824368/fastfoodonline/uploads/1722866610567food_17.png",
+    "public_id": "fastfoodonline/uploads/1722866610567food_17",
+    "asset_id": "500e86ec1b4b41024bc74d3ccbdc5f0d",
+    "bytes": 145164,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866647952food_18.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824369/fastfoodonline/uploads/1722866647952food_18.png",
+    "public_id": "fastfoodonline/uploads/1722866647952food_18",
+    "asset_id": "0964118b1844954212fc4155630cdb0f",
+    "bytes": 141141,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866694357food_19.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824370/fastfoodonline/uploads/1722866694357food_19.png",
+    "public_id": "fastfoodonline/uploads/1722866694357food_19",
+    "asset_id": "b79e02e34823f23ac0656ecd3f3a46a8",
+    "bytes": 98571,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866729053food_20.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824371/fastfoodonline/uploads/1722866729053food_20.png",
+    "public_id": "fastfoodonline/uploads/1722866729053food_20",
+    "asset_id": "6383de8a63fe45e7cd4f4a4c3dec4b40",
+    "bytes": 161894,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866777756food_21.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824372/fastfoodonline/uploads/1722866777756food_21.png",
+    "public_id": "fastfoodonline/uploads/1722866777756food_21",
+    "asset_id": "42928afdbfe054135b8835e13bee3bc5",
+    "bytes": 204476,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866830901food_22.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824374/fastfoodonline/uploads/1722866830901food_22.png",
+    "public_id": "fastfoodonline/uploads/1722866830901food_22",
+    "asset_id": "cf5363fcfd52176c95ea3d6369b99a17",
+    "bytes": 211518,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866871307food_23.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824375/fastfoodonline/uploads/1722866871307food_23.png",
+    "public_id": "fastfoodonline/uploads/1722866871307food_23",
+    "asset_id": "dd09645b61157615f432c4a655914752",
+    "bytes": 197754,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866909328food_24.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824376/fastfoodonline/uploads/1722866909328food_24.png",
+    "public_id": "fastfoodonline/uploads/1722866909328food_24",
+    "asset_id": "ae50d795571b75f22e4ea2df29d7b32d",
+    "bytes": 204432,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722866948105food_25.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824377/fastfoodonline/uploads/1722866948105food_25.png",
+    "public_id": "fastfoodonline/uploads/1722866948105food_25",
+    "asset_id": "aefdad5281799767e7febd1c14cd78e1",
+    "bytes": 186268,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867018540food_26.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824378/fastfoodonline/uploads/1722867018540food_26.png",
+    "public_id": "fastfoodonline/uploads/1722867018540food_26",
+    "asset_id": "8f095bf97397c6ceec68341ffa526a1c",
+    "bytes": 204967,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867053413food_27.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824379/fastfoodonline/uploads/1722867053413food_27.png",
+    "public_id": "fastfoodonline/uploads/1722867053413food_27",
+    "asset_id": "26cfbe066613fab72c432cec53bca24c",
+    "bytes": 154430,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867110108food_28.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824380/fastfoodonline/uploads/1722867110108food_28.png",
+    "public_id": "fastfoodonline/uploads/1722867110108food_28",
+    "asset_id": "234da86db498d2795f88e3839756aada",
+    "bytes": 222285,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867144188food_29.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824381/fastfoodonline/uploads/1722867144188food_29.png",
+    "public_id": "fastfoodonline/uploads/1722867144188food_29",
+    "asset_id": "de724156c5828043a760e339355c4c71",
+    "bytes": 182585,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867222977food_30.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824382/fastfoodonline/uploads/1722867222977food_30.png",
+    "public_id": "fastfoodonline/uploads/1722867222977food_30",
+    "asset_id": "7b9d55cff49610b3b28f3022f666c438",
+    "bytes": 139491,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867254829food_31.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824383/fastfoodonline/uploads/1722867254829food_31.png",
+    "public_id": "fastfoodonline/uploads/1722867254829food_31",
+    "asset_id": "50f81ce15c555d85a14eb614bb48f503",
+    "bytes": 148139,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1722867630288food_32.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824384/fastfoodonline/uploads/1722867630288food_32.png",
+    "public_id": "fastfoodonline/uploads/1722867630288food_32",
+    "asset_id": "82165a0231c2a808d796430e3df758c8",
+    "bytes": 195852,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1723633913074shopnest.PNG",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824385/fastfoodonline/uploads/1723633913074shopnest.png",
+    "public_id": "fastfoodonline/uploads/1723633913074shopnest",
+    "asset_id": "21ee943d187402e55885063d63d6ae58",
+    "bytes": 114102,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1760809688969-!! â reze.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824386/fastfoodonline/uploads/1760809688969-_______reze.jpg",
+    "public_id": "fastfoodonline/uploads/1760809688969-_______reze",
+    "asset_id": "7edb6cebfde3ca827daee08a8f86e3a2",
+    "bytes": 49061,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761025675096-do-uong.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824387/fastfoodonline/uploads/1761025675096-do-uong.jpg",
+    "public_id": "fastfoodonline/uploads/1761025675096-do-uong",
+    "asset_id": "df0054123ee913fdbb13d74575980e01",
+    "bytes": 127543,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761037814111-ðð¾ðð¾_ âËËà¼Ø.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824388/fastfoodonline/uploads/1761037814111-______________________________.jpg",
+    "public_id": "fastfoodonline/uploads/1761037814111-______________________________",
+    "asset_id": "8141ae4d7cd9c4cd5ce82863cbc1d66e",
+    "bytes": 41758,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761037858253-8bf7242adf178edf1ce6d354c19cfe05.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824388/fastfoodonline/uploads/1761037858253-8bf7242adf178edf1ce6d354c19cfe05.jpg",
+    "public_id": "fastfoodonline/uploads/1761037858253-8bf7242adf178edf1ce6d354c19cfe05",
+    "asset_id": "db88315d3d32bec31438466e2775d608",
+    "bytes": 109270,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761038169042-!! â reze.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824390/fastfoodonline/uploads/1761038169042-_______reze.jpg",
+    "public_id": "fastfoodonline/uploads/1761038169042-_______reze",
+    "asset_id": "ecd206c011268a8427db5b571130b256",
+    "bytes": 49061,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761069234621-ðð¾ðð¾_ âËËà¼Ø.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824391/fastfoodonline/uploads/1761069234621-______________________________.jpg",
+    "public_id": "fastfoodonline/uploads/1761069234621-______________________________",
+    "asset_id": "faed817ca2cfeb062bdab03ce5e7d3ca",
+    "bytes": 41758,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761142930556-aa4bc861f2d2c4e327d8c3e62bf57cf4.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824392/fastfoodonline/uploads/1761142930556-aa4bc861f2d2c4e327d8c3e62bf57cf4.jpg",
+    "public_id": "fastfoodonline/uploads/1761142930556-aa4bc861f2d2c4e327d8c3e62bf57cf4",
+    "asset_id": "6909e568c48bf0b78cac61d877c1d157",
+    "bytes": 75131,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761391628714-food_14.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824393/fastfoodonline/uploads/1761391628714-food_14.png",
+    "public_id": "fastfoodonline/uploads/1761391628714-food_14",
+    "asset_id": "02d2decc1717bd21df72da3dc93df661",
+    "bytes": 185318,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1761587207255-Pepperoni.webp",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824394/fastfoodonline/uploads/1761587207255-Pepperoni.webp",
+    "public_id": "fastfoodonline/uploads/1761587207255-Pepperoni",
+    "asset_id": "32711f2e249f3559203eb0abc42ac4fc",
+    "bytes": 147218,
+    "format": "webp"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1763381553659-pizza_ca_hoi_40877bb913ae49c4b9e08975b7ad1680_1024x1024.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824395/fastfoodonline/uploads/1763381553659-pizza_ca_hoi_40877bb913ae49c4b9e08975b7ad1680_1024x1024.jpg",
+    "public_id": "fastfoodonline/uploads/1763381553659-pizza_ca_hoi_40877bb913ae49c4b9e08975b7ad1680_1024x1024",
+    "asset_id": "e6707aaa683670d7df4cc4d31beec9b3",
+    "bytes": 124964,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1763400579735-budweiser5percent.jpeg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824396/fastfoodonline/uploads/1763400579735-budweiser5percent.jpg",
+    "public_id": "fastfoodonline/uploads/1763400579735-budweiser5percent",
+    "asset_id": "49c4a96491cb56c81c95f57286d481a3",
+    "bytes": 261061,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1763405778613-nuoc-tinh-khiet-aquafina-350ml.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824397/fastfoodonline/uploads/1763405778613-nuoc-tinh-khiet-aquafina-350ml.jpg",
+    "public_id": "fastfoodonline/uploads/1763405778613-nuoc-tinh-khiet-aquafina-350ml",
+    "asset_id": "6f588f77b5e92f9dc1c4988f6bd5d388",
+    "bytes": 94169,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\backend\\uploads\\1763435721030-Salad_platter.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824399/fastfoodonline/uploads/1763435721030-Salad_platter.jpg",
+    "public_id": "fastfoodonline/uploads/1763435721030-Salad_platter",
+    "asset_id": "c740dadbd864f308e9a5fad62f79d8ff",
+    "bytes": 152658,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\1211.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824400/fastfoodonline/frontend/1211.png",
+    "public_id": "fastfoodonline/frontend/1211",
+    "asset_id": "95bf43cc2956ee93197545a23984f057",
+    "bytes": 1916,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\add_icon_green.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824401/fastfoodonline/frontend/add_icon_green.png",
+    "public_id": "fastfoodonline/frontend/add_icon_green",
+    "asset_id": "e7fd164d9d26864ca968838b2547da75",
+    "bytes": 810,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\add_icon_white.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824403/fastfoodonline/frontend/add_icon_white.png",
+    "public_id": "fastfoodonline/frontend/add_icon_white",
+    "asset_id": "a51a4d47754bb10637a00d4f99e4063b",
+    "bytes": 1656,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\app_store.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824404/fastfoodonline/frontend/app_store.png",
+    "public_id": "fastfoodonline/frontend/app_store",
+    "asset_id": "8c5c8866313e9cbd56df042bcd5916bc",
+    "bytes": 6110,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\bag_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824405/fastfoodonline/frontend/bag_icon.png",
+    "public_id": "fastfoodonline/frontend/bag_icon",
+    "asset_id": "bf0de84f8fca42e881f47dc4e2dc0ac8",
+    "bytes": 735,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\basket_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824406/fastfoodonline/frontend/basket_icon.png",
+    "public_id": "fastfoodonline/frontend/basket_icon",
+    "asset_id": "ddca67bac9b3bdef40b914622089259f",
+    "bytes": 721,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\bocongthuong.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824408/fastfoodonline/frontend/bocongthuong.png",
+    "public_id": "fastfoodonline/frontend/bocongthuong",
+    "asset_id": "33b24fc2f7abbc25f65f1b51d870699e",
+    "bytes": 56065,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\cross_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824410/fastfoodonline/frontend/cross_icon.png",
+    "public_id": "fastfoodonline/frontend/cross_icon",
+    "asset_id": "df4a16e4079618c3e69880f3dcd91261",
+    "bytes": 616,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\facebook_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824411/fastfoodonline/frontend/facebook_icon.png",
+    "public_id": "fastfoodonline/frontend/facebook_icon",
+    "asset_id": "f3a3448ba9dc5b55fdb4b37caa442032",
+    "bytes": 780,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\ac9491b2bee2bff0142684fcd51f84e1.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824413/fastfoodonline/frontend/ac9491b2bee2bff0142684fcd51f84e1.jpg",
+    "public_id": "fastfoodonline/frontend/ac9491b2bee2bff0142684fcd51f84e1",
+    "asset_id": "38db3e38875d7faa98b97bb4cdf3fb8a",
+    "bytes": 304147,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\bo_nuong_259388242df242dfa49817c9cdd1da9b_master.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824414/fastfoodonline/frontend/bo_nuong_259388242df242dfa49817c9cdd1da9b_master.jpg",
+    "public_id": "fastfoodonline/frontend/bo_nuong_259388242df242dfa49817c9cdd1da9b_master",
+    "asset_id": "9f66ee5734e5d6fd21832fb1e37302bf",
+    "bytes": 67669,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\budweiser5percent.jpeg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824415/fastfoodonline/frontend/budweiser5percent.jpg",
+    "public_id": "fastfoodonline/frontend/budweiser5percent",
+    "asset_id": "5446ac7f2368af6a2711e51b6c24f93c",
+    "bytes": 261061,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\burger_2_43d436faf77d4ba198bc1d3fe0b4f74a_master.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824416/fastfoodonline/frontend/burger_2_43d436faf77d4ba198bc1d3fe0b4f74a_master.png",
+    "public_id": "fastfoodonline/frontend/burger_2_43d436faf77d4ba198bc1d3fe0b4f74a_master",
+    "asset_id": "5bc668dddd8eea03487003fd249a2e43",
+    "bytes": 1624738,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\cach-lam-khoai-tay-chien-gion-5.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824418/fastfoodonline/frontend/cach-lam-khoai-tay-chien-gion-5.jpg",
+    "public_id": "fastfoodonline/frontend/cach-lam-khoai-tay-chien-gion-5",
+    "asset_id": "1e0716e41cb011f87768f3d566db4888",
+    "bytes": 723196,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\Cheese20with%20honey.webp",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824419/fastfoodonline/frontend/Cheese20with_20honey.webp",
+    "public_id": "fastfoodonline/frontend/Cheese20with_20honey",
+    "asset_id": "23619fde674f8a481fc051b66ae093de",
+    "bytes": 116918,
+    "format": "webp"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\hieuunganh.com_62dfa0f96afcd_fd8206bbf97f496086daf37735a4db3f.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824420/fastfoodonline/frontend/hieuunganh_com_62dfa0f96afcd_fd8206bbf97f496086daf37735a4db3f.png",
+    "public_id": "fastfoodonline/frontend/hieuunganh_com_62dfa0f96afcd_fd8206bbf97f496086daf37735a4db3f",
+    "asset_id": "6e88ef5e53094b0e35fa6bab26fa3dd0",
+    "bytes": 254006,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\images.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824421/fastfoodonline/frontend/images.jpg",
+    "public_id": "fastfoodonline/frontend/images",
+    "asset_id": "ebba9d89019273014951344254943f52",
+    "bytes": 11647,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\nuoc-tinh-khiet-aquafina-350ml.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824423/fastfoodonline/frontend/nuoc-tinh-khiet-aquafina-350ml.jpg",
+    "public_id": "fastfoodonline/frontend/nuoc-tinh-khiet-aquafina-350ml",
+    "asset_id": "7261c8b46eaa9c8f0a659669ec371895",
+    "bytes": 94169,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\Pepperoni.webp",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824424/fastfoodonline/frontend/Pepperoni.webp",
+    "public_id": "fastfoodonline/frontend/Pepperoni",
+    "asset_id": "8f9a6741f22ba26bf6923196c2911616",
+    "bytes": 147218,
+    "format": "webp"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\PestoE1A3iE1A3n.webp",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824427/fastfoodonline/frontend/PestoE1A3iE1A3n.webp",
+    "public_id": "fastfoodonline/frontend/PestoE1A3iE1A3n",
+    "asset_id": "2bafa1806be759831969d97526a7d7f0",
+    "bytes": 123678,
+    "format": "webp"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\pizza_ca_hoi_40877bb913ae49c4b9e08975b7ad1680_1024x1024.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824428/fastfoodonline/frontend/pizza_ca_hoi_40877bb913ae49c4b9e08975b7ad1680_1024x1024.jpg",
+    "public_id": "fastfoodonline/frontend/pizza_ca_hoi_40877bb913ae49c4b9e08975b7ad1680_1024x1024",
+    "asset_id": "5a65163fa12f9da2d5b297c0d2b06362",
+    "bytes": 124964,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\Salad_platter.jpg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824430/fastfoodonline/frontend/Salad_platter.jpg",
+    "public_id": "fastfoodonline/frontend/Salad_platter",
+    "asset_id": "3c0a327751c4a40ca8cb3d985d793fcf",
+    "bytes": 152658,
+    "format": "jpg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\sandwich_bo_pho_mai_1_ca0f07e79f29453c9b33e0725c0e219d.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824432/fastfoodonline/frontend/sandwich_bo_pho_mai_1_ca0f07e79f29453c9b33e0725c0e219d.png",
+    "public_id": "fastfoodonline/frontend/sandwich_bo_pho_mai_1_ca0f07e79f29453c9b33e0725c0e219d",
+    "asset_id": "ff7ad6ee85e4d6d049694d07f4d16bd0",
+    "bytes": 1442695,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\FoodImage\\ShrimpBurger.webp",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824435/fastfoodonline/frontend/ShrimpBurger.webp",
+    "public_id": "fastfoodonline/frontend/ShrimpBurger",
+    "asset_id": "aec21a5f199b97a611f1c82b5aa8116f",
+    "bytes": 369746,
+    "format": "webp"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\header_img.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824437/fastfoodonline/frontend/header_img.png",
+    "public_id": "fastfoodonline/frontend/header_img",
+    "asset_id": "4270d12a32ee02907d47312cc4876162",
+    "bytes": 1814649,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\head_img.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824439/fastfoodonline/frontend/head_img.png",
+    "public_id": "fastfoodonline/frontend/head_img",
+    "asset_id": "5bd1b5488bcaf87549bb40d0aa7de559",
+    "bytes": 2566251,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\add-to-cart.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824440/fastfoodonline/frontend/add-to-cart.png",
+    "public_id": "fastfoodonline/frontend/add-to-cart",
+    "asset_id": "452ac1ce5a948d50def757db6db6e42c",
+    "bytes": 11516,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\add.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824441/fastfoodonline/frontend/add.png",
+    "public_id": "fastfoodonline/frontend/add",
+    "asset_id": "2517b4059180be9cd0fef18355f5634d",
+    "bytes": 11668,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\admins.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824442/fastfoodonline/frontend/admins.png",
+    "public_id": "fastfoodonline/frontend/admins",
+    "asset_id": "0bae815c28a1c954bc272d3b496526a1",
+    "bytes": 14443,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\categories.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824443/fastfoodonline/frontend/categories.png",
+    "public_id": "fastfoodonline/frontend/categories",
+    "asset_id": "2f2dbd37413b6f854574d843e7278ef2",
+    "bytes": 10529,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\customers.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824445/fastfoodonline/frontend/customers.png",
+    "public_id": "fastfoodonline/frontend/customers",
+    "asset_id": "eea05b82b1ef5f18656f4c3321e102d1",
+    "bytes": 25433,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\inventory.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824446/fastfoodonline/frontend/inventory.png",
+    "public_id": "fastfoodonline/frontend/inventory",
+    "asset_id": "7a68ee73b1421da839e41597db799655",
+    "bytes": 6770,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\list-item.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824448/fastfoodonline/frontend/list-item.png",
+    "public_id": "fastfoodonline/frontend/list-item",
+    "asset_id": "3938527b85cec1b89d0768eb61ce5daf",
+    "bytes": 6914,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\orders.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824449/fastfoodonline/frontend/orders.png",
+    "public_id": "fastfoodonline/frontend/orders",
+    "asset_id": "9b5d1345618681a4a93140ecb846b7d1",
+    "bytes": 10741,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\profile.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824451/fastfoodonline/frontend/profile.png",
+    "public_id": "fastfoodonline/frontend/profile",
+    "asset_id": "bcabebc0dc665f9574cf67627995a0de",
+    "bytes": 11096,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\restaurant.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824452/fastfoodonline/frontend/restaurant.png",
+    "public_id": "fastfoodonline/frontend/restaurant",
+    "asset_id": "3e48b93a5e8dcffa9ef26f5717a7660b",
+    "bytes": 22749,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\shippers.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824453/fastfoodonline/frontend/shippers.png",
+    "public_id": "fastfoodonline/frontend/shippers",
+    "asset_id": "a337a3085a1016690b5c5f758b0442fe",
+    "bytes": 13573,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\shopping-cart.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824454/fastfoodonline/frontend/shopping-cart.png",
+    "public_id": "fastfoodonline/frontend/shopping-cart",
+    "asset_id": "69803c655e8544b1fc6de10c94841771",
+    "bytes": 8617,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\Icon\\staffs.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824455/fastfoodonline/frontend/staffs.png",
+    "public_id": "fastfoodonline/frontend/staffs",
+    "asset_id": "84f7718a49d25b8e045900c81f96d3a1",
+    "bytes": 8859,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\linkedin_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824457/fastfoodonline/frontend/linkedin_icon.png",
+    "public_id": "fastfoodonline/frontend/linkedin_icon",
+    "asset_id": "c6a3d4612c5be17a86b51000c45bab18",
+    "bytes": 818,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\logo.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824460/fastfoodonline/frontend/logo.png",
+    "public_id": "fastfoodonline/frontend/logo",
+    "asset_id": "79ab3c05a4d4c0ca6e9ab0ee64781cd2",
+    "bytes": 939186,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\logout_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824461/fastfoodonline/frontend/logout_icon.png",
+    "public_id": "fastfoodonline/frontend/logout_icon",
+    "asset_id": "9c683003104b9570c31598afbc22d3e7",
+    "bytes": 232,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_1.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824462/fastfoodonline/frontend/menu_1.png",
+    "public_id": "fastfoodonline/frontend/menu_1",
+    "asset_id": "1ab971ae61c3e64865ac7409d20bf3f1",
+    "bytes": 37565,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_2.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824464/fastfoodonline/frontend/menu_2.png",
+    "public_id": "fastfoodonline/frontend/menu_2",
+    "asset_id": "387b995be090650debe1c656685dc55c",
+    "bytes": 32216,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_3.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824466/fastfoodonline/frontend/menu_3.png",
+    "public_id": "fastfoodonline/frontend/menu_3",
+    "asset_id": "8287614ffdbcf51459eb12208a57fd42",
+    "bytes": 35253,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_4.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824468/fastfoodonline/frontend/menu_4.png",
+    "public_id": "fastfoodonline/frontend/menu_4",
+    "asset_id": "f3b37e11c84133b0b40a146646ed0b65",
+    "bytes": 31989,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_5.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824469/fastfoodonline/frontend/menu_5.png",
+    "public_id": "fastfoodonline/frontend/menu_5",
+    "asset_id": "b9373d4c36680b8b180ea0a655932da1",
+    "bytes": 37604,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_6.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824470/fastfoodonline/frontend/menu_6.png",
+    "public_id": "fastfoodonline/frontend/menu_6",
+    "asset_id": "d62b1398befa61330a4ce64a78529dbb",
+    "bytes": 40092,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_7.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824471/fastfoodonline/frontend/menu_7.png",
+    "public_id": "fastfoodonline/frontend/menu_7",
+    "asset_id": "8cc586b7a4b2eefbfe9ece7b56c14a96",
+    "bytes": 39558,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\menu_8.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824472/fastfoodonline/frontend/menu_8.png",
+    "public_id": "fastfoodonline/frontend/menu_8",
+    "asset_id": "d887ed47f8480596df6ad554648f6d97",
+    "bytes": 38028,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\parcel_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824474/fastfoodonline/frontend/parcel_icon.png",
+    "public_id": "fastfoodonline/frontend/parcel_icon",
+    "asset_id": "f4dd50d63ff373a15e42c495df1be37d",
+    "bytes": 709,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\play_store.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824476/fastfoodonline/frontend/play_store.png",
+    "public_id": "fastfoodonline/frontend/play_store",
+    "asset_id": "201e004b945006c755ade16f29cf56ca",
+    "bytes": 7507,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\profile_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824478/fastfoodonline/frontend/profile_icon.png",
+    "public_id": "fastfoodonline/frontend/profile_icon",
+    "asset_id": "68a7b54082f5f41deddd163886b03d42",
+    "bytes": 673,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\rating_starts.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824479/fastfoodonline/frontend/rating_starts.png",
+    "public_id": "fastfoodonline/frontend/rating_starts",
+    "asset_id": "a5300675fd394405d795cdb1dfe23d3f",
+    "bytes": 756,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\remove_icon_red.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824480/fastfoodonline/frontend/remove_icon_red.png",
+    "public_id": "fastfoodonline/frontend/remove_icon_red",
+    "asset_id": "c263ceff9bd80545a4ff9faa92f75636",
+    "bytes": 629,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\right-arrow.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824482/fastfoodonline/frontend/right-arrow.png",
+    "public_id": "fastfoodonline/frontend/right-arrow",
+    "asset_id": "c44dd5ad47e5190eb001fe9d07d939fd",
+    "bytes": 7573,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\search_dark.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824484/fastfoodonline/frontend/search_dark.png",
+    "public_id": "fastfoodonline/frontend/search_dark",
+    "asset_id": "1013511d52027c90a0fbcedd7aa0e683",
+    "bytes": 796,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\search_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824485/fastfoodonline/frontend/search_icon.png",
+    "public_id": "fastfoodonline/frontend/search_icon",
+    "asset_id": "63bfee110b08501a7885488a406e66fc",
+    "bytes": 796,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\selector_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824486/fastfoodonline/frontend/selector_icon.png",
+    "public_id": "fastfoodonline/frontend/selector_icon",
+    "asset_id": "eef8375143ba30074a5d6bc95170f45f",
+    "bytes": 524,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\frontend_assets\\twitter_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824487/fastfoodonline/frontend/twitter_icon.png",
+    "public_id": "fastfoodonline/frontend/twitter_icon",
+    "asset_id": "a2f8c5c074ccabeedee58be150c8a9a3",
+    "bytes": 880,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\frontend\\src\\assets\\react.svg",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824490/fastfoodonline/frontend/react.svg",
+    "public_id": "fastfoodonline/frontend/react",
+    "asset_id": "1037eb8c434590f27397ca2dc73870da",
+    "bytes": 4126,
+    "format": "svg"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\add_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824492/fastfoodonline/admin/add_icon.png",
+    "public_id": "fastfoodonline/admin/add_icon",
+    "asset_id": "23155a3c0dd0826fda21ccfeadf5759f",
+    "bytes": 676,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\add.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824496/fastfoodonline/admin/add.png",
+    "public_id": "fastfoodonline/admin/add",
+    "asset_id": "97c6b2107d51c2844b737eaef8e4f6f3",
+    "bytes": 11668,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\admins.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824497/fastfoodonline/admin/admins.png",
+    "public_id": "fastfoodonline/admin/admins",
+    "asset_id": "6523d5a4da781e004c8b6344c0a8712e",
+    "bytes": 14443,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\categories.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824500/fastfoodonline/admin/categories.png",
+    "public_id": "fastfoodonline/admin/categories",
+    "asset_id": "8e3cc4213f46e051861cf8b8e8e390d4",
+    "bytes": 10529,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\customers.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824501/fastfoodonline/admin/customers.png",
+    "public_id": "fastfoodonline/admin/customers",
+    "asset_id": "8ed101ecc79d5874d6f63a5a945a9648",
+    "bytes": 25433,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\inventory.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824502/fastfoodonline/admin/inventory.png",
+    "public_id": "fastfoodonline/admin/inventory",
+    "asset_id": "444383c97a1939d2ddb6e61c88a09f1e",
+    "bytes": 6770,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\list-item.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824503/fastfoodonline/admin/list-item.png",
+    "public_id": "fastfoodonline/admin/list-item",
+    "asset_id": "80b95a74ee3b0f1db8b32d8cb811c97b",
+    "bytes": 6914,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\orders.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824505/fastfoodonline/admin/orders.png",
+    "public_id": "fastfoodonline/admin/orders",
+    "asset_id": "3ed2dccca4a1bda3e7266d7b7a82b1e0",
+    "bytes": 10741,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\profile.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824507/fastfoodonline/admin/profile.png",
+    "public_id": "fastfoodonline/admin/profile",
+    "asset_id": "a00f4ec247dd97058325c89ad33a3c09",
+    "bytes": 11096,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\restaurant.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824510/fastfoodonline/admin/restaurant.png",
+    "public_id": "fastfoodonline/admin/restaurant",
+    "asset_id": "33230a255441921f5689a802a44248c4",
+    "bytes": 22749,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\shippers.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824511/fastfoodonline/admin/shippers.png",
+    "public_id": "fastfoodonline/admin/shippers",
+    "asset_id": "52b85534932a72798f1b068e2854ee97",
+    "bytes": 13573,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\Icon\\staffs.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824513/fastfoodonline/admin/staffs.png",
+    "public_id": "fastfoodonline/admin/staffs",
+    "asset_id": "1e985b1432e809be2ec062e5341e752e",
+    "bytes": 8859,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\logo.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824524/fastfoodonline/admin/logo.png",
+    "public_id": "fastfoodonline/admin/logo",
+    "asset_id": "08f0f90c26d3c5600ecf1c84b75483c2",
+    "bytes": 939186,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\order_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824526/fastfoodonline/admin/order_icon.png",
+    "public_id": "fastfoodonline/admin/order_icon",
+    "asset_id": "1f653d772146f76b0b87ab9808d126f5",
+    "bytes": 378,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\parcel_icon.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824527/fastfoodonline/admin/parcel_icon.png",
+    "public_id": "fastfoodonline/admin/parcel_icon",
+    "asset_id": "2c3bbf38e050421ab2277a0ef52618cc",
+    "bytes": 888,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\profile_image.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824529/fastfoodonline/admin/profile_image.png",
+    "public_id": "fastfoodonline/admin/profile_image",
+    "asset_id": "b2ef9e110778595a07fe11cd467fe00c",
+    "bytes": 6221,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\right-arrow.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824530/fastfoodonline/admin/right-arrow.png",
+    "public_id": "fastfoodonline/admin/right-arrow",
+    "asset_id": "8b72bcd343b282d5076628143d9dcc31",
+    "bytes": 7573,
+    "format": "png"
+  },
+  {
+    "source": "D:\\FastFoodOnline\\FastFoodOnline\\admin\\src\\assets\\upload_area.png",
+    "secure_url": "https://res.cloudinary.com/dmw1zruzd/image/upload/v1763824532/fastfoodonline/admin/upload_area.png",
+    "public_id": "fastfoodonline/admin/upload_area",
+    "asset_id": "315eeefe457c111989b14f08686d40de",
+    "bytes": 1514,
+    "format": "png"
+  }
+]
