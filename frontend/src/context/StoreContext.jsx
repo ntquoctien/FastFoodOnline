@@ -72,7 +72,7 @@ const StoreContextProvider = (props) => {
     if (token) {
       try {
         const response = await axios.post(
-          `${apiBaseUrl}/api/cart/add`,
+          `${apiBaseUrl}/api/v2/cart/add`,
           { itemId: variantId },
           { headers: { token } }
         );
@@ -98,7 +98,7 @@ const StoreContextProvider = (props) => {
     if (token) {
       try {
         const response = await axios.post(
-          `${apiBaseUrl}/api/cart/remove`,
+          `${apiBaseUrl}/api/v2/cart/remove`,
           { itemId: variantId },
           { headers: { token } }
         );
@@ -158,7 +158,7 @@ const StoreContextProvider = (props) => {
 
   const loadCardData = async (authToken) => {
     const response = await axios.post(
-      `${apiBaseUrl}/api/cart/get`,
+      `${apiBaseUrl}/api/v2/cart/get`,
       {},
       { headers: { token: authToken } }
     );

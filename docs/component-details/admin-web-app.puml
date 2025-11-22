@@ -1,0 +1,81 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+title Admin Web App Component Diagram
+
+package "Admin Web App\n(admin/src)" {
+  component "App Router\n(React Router v6)" as AdminRouter
+  component "StoreContext\n(auth token, profile,\nadmin/src/context/StoreContext.jsx)" as AdminStore
+  component "Layout Shell\n(Navbar + Sidebar,\nresponsive drawer)" as LayoutShell
+
+  package "Admin-only Modules" {
+    component "Restaurant Settings\n/pages/Restaurant" as AdminRestaurant
+    component "Menu Builder\n/pages/Add, List, Categories" as AdminMenu
+    component "Branch & Staff Ops\n/pages/Branches,\nStaff, Shippers" as BranchStaff
+    component "Inventory Control\n/pages/Inventory" as AdminInventory
+    component "Central Orders\n/pages/Orders" as AdminOrders
+    component "Admin Management\n/pages/Admins,\nCustomers" as AdminPeople
+  }
+
+  package "Branch Role Modules" {
+    component "Branch Menu\n/pages/Branch/Menu" as BranchMenu
+    component "Branch Inventory\n/pages/Branch/Inventory" as BranchInv
+    component "Branch Orders\n/pages/Branch/Orders" as BranchOrders
+    component "Shared Profile page" as AdminProfile
+  }
+
+  AdminRouter --> LayoutShell
+  LayoutShell --> AdminStore
+  LayoutShell --> AdminRouter
+
+  AdminRouter --> AdminRestaurant
+  AdminRouter --> AdminMenu
+  AdminRouter --> BranchStaff
+  AdminRouter --> AdminInventory
+  AdminRouter --> AdminOrders
+  AdminRouter --> AdminPeople
+  AdminRouter --> BranchMenu
+  AdminRouter --> BranchInv
+  AdminRouter --> BranchOrders
+  AdminRouter --> AdminProfile
+
+  AdminRestaurant --> AdminStore
+  AdminMenu --> AdminStore
+  BranchStaff --> AdminStore
+  AdminInventory --> AdminStore
+  AdminOrders --> AdminStore
+  AdminPeople --> AdminStore
+  BranchMenu --> AdminStore
+  BranchInv --> AdminStore
+  BranchOrders --> AdminStore
+  AdminProfile --> AdminStore
+}
+
+interface "REST/JSON API\nHTTPS :4000/api/v2/**" as AdminRestPort
+interface "Legacy API\nHTTPS :4000/api/**" as AdminLegacyPort
+interface "Static Media\nHTTPS :4000/images/**" as AdminImagesPort
+component "Browser LocalStorage /\nSessionStorage" as AdminStorage
+
+AdminStore --> AdminRestPort
+AdminStore --> AdminLegacyPort
+AdminStore --> AdminStorage
+AdminRouter --> AdminImagesPort
+AdminMenu --> AdminImagesPort
+AdminProfile --> AdminImagesPort
+
+note right of AdminRestPort
+  CRUD endpoints:
+  /api/v2/menu, /api/v2/orders,
+  /api/v2/branches, /api/v2/staff,
+  /api/v2/notifications, etc.
+end note
+
+note bottom of AdminStorage
+  Persist { token, role, branchId,
+  user profile, remember flag }
+end note
+
+@enduml

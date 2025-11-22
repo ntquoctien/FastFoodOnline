@@ -161,7 +161,7 @@ const StoreContextProvider = (props) => {
     if (!token || profileLoading) return null;
     setProfileLoading(true);
     try {
-      const response = await axios.get(`${apiBaseUrl}/api/user/profile`, {
+      const response = await axios.get(`${apiBaseUrl}/api/v2/user/profile`, {
         headers: { token },
       });
       if (response.data?.success) {
@@ -213,7 +213,7 @@ const StoreContextProvider = (props) => {
       if (!token) {
         throw new Error("Not authenticated");
       }
-      const response = await axios.put(`${apiBaseUrl}/api/user/profile`, payload, {
+      const response = await axios.put(`${apiBaseUrl}/api/v2/user/profile`, payload, {
         headers: { token },
       });
       if (response.data?.success) {

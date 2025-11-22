@@ -24,9 +24,9 @@ const LoginPopup = ({ setShowLogin }) => {
     event.preventDefault();
     let newUrl = url;
     if (currentState === "Login") {
-      newUrl += "/api/user/login";
+      newUrl += "/api/v2/user/login";
     } else {
-      newUrl += "/api/user/register";
+      newUrl += "/api/v2/user/register";
     }
     const response = await axios.post(newUrl, data);
     if (response.data.success) {

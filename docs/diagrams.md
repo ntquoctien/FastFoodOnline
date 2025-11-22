@@ -1,4 +1,4 @@
-﻿# So do he thong (Mermaid)
+# So do he thong (Mermaid)
 
 ## Kien truc trien khai
 ```mermaid
@@ -275,3 +275,20 @@ Ghi ch├║ `USER.branchId`:
 
 
 
+## Component Diagram Chi Tiet
+
+Cac so do PlantUML moi (nam trong `docs/component-details/`) de phuc vu bao cao va onboarding:
+
+- `overall-website-component.puml / .png`: So do tong hop website (Customer SPA, Admin SPA, Router, Controllers, Services, Repo, Mongo, Payment).
+- `customer-web-app.puml / .png`: Kien truc SPA khach hang, Router <-> StoreContext <-> API `/api/v2/**`, LocalStorage, Geolocation.
+- `admin-web-app.puml / .png`: Portal quan tri, StoreContext, layout Navbar/Sidebar va cac module rieng cho admin vs. chi nhanh.
+- `ordering-payment-service.puml / .png`: Dich vu dat hang & thanh toan `/api/v2/orders`, service layer va ket noi Stripe/MoMo/VNPAY.
+- `inventory-branch-ops-service.puml / .png`: Controller/Service Inventory, Branch, Restaurant va cac repository phu thuoc.
+- `menu-catalog-service.puml / .png`: Luong danh muc -> mon -> bien the, thong bao va storage hinh anh.
+- `people-notification-service.puml / .png`: Dich vu tai khoan, staff/admin/customer + notification feed & JWT auth.
+
+De cap nhat toan bo hinh anh, chay:
+
+```
+java -jar tools/plantuml.jar docs/component-diagram.puml docs/component-details/*.puml
+```

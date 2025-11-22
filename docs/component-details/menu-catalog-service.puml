@@ -1,0 +1,71 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+title Menu & Catalog Service Component Diagram
+
+node "API Server (:4000)" as ApiHost {
+  interface "REST Port\n/api/v2/menu/**\n/api/v2/categories/**" as MenuPort
+
+  component "menuV2Router\n(routes/menuV2Route.js)" as MenuRouter
+  component "categoryV2Router\n(routes/categoryV2Route.js)" as CategoryRouter
+
+  component "menuController\n(controllers/v2/menuController.js)" as MenuController
+  component "categoryController\n(controllers/v2/categoryController.js)" as CategoryController
+
+  component "menuService\n(services/v2/menuService.js)" as MenuService
+  component "categoryService\n(services/v2/categoryService.js)" as CategoryService
+}
+
+MenuPort --> MenuRouter
+MenuPort --> CategoryRouter
+MenuRouter --> MenuController
+CategoryRouter --> CategoryController
+MenuController --> MenuService
+CategoryController --> CategoryService
+
+package "Repositories" {
+  component "foodRepository" as FoodRepo
+  component "foodVariantRepository" as VariantRepo
+  component "categoryRepository" as CategoryRepo
+  component "inventoryRepository" as InventoryRepo
+  component "branchRepository" as BranchRepo
+}
+
+database "MongoDB / Mongoose" as Mongo
+
+MenuService --> FoodRepo
+MenuService --> VariantRepo
+MenuService --> CategoryRepo
+MenuService --> InventoryRepo
+MenuService --> BranchRepo
+CategoryService --> CategoryRepo
+
+FoodRepo --> Mongo
+VariantRepo --> Mongo
+CategoryRepo --> Mongo
+InventoryRepo --> Mongo
+BranchRepo --> Mongo
+
+component "Notification Service\n(services/v2/notificationService.js)" as NotificationSvc
+MenuController --> NotificationSvc : publish catalog events
+CategoryController --> NotificationSvc
+
+component "Media Storage\nuploads + /images" as MediaStorage
+MenuService --> MediaStorage : image path resolution
+
+note right of MenuPort
+  - GET /menu/default?branchId=...
+  - POST /menu/:id/variants
+  - PATCH /menu/:id/toggle
+  - CRUD /categories/*
+end note
+
+note bottom of MenuService
+  Aggregates Category → Food → FoodVariant
+  + branch-specific pricing/status
+end note
+
+@enduml

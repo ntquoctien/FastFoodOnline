@@ -1,0 +1,75 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+title Inventory & Branch Ops Service Component Diagram
+
+node "API Server (:4000)" as ApiHost {
+  interface "REST Port\n/api/v2/inventory\n/api/v2/branches\n/api/v2/restaurant" as OpsPort
+
+  component "inventoryV2Router\n(routes/inventoryV2Route.js)" as InventoryRouter
+  component "branchV2Router\n(routes/branchV2Route.js)" as BranchRouter
+  component "restaurantV2Router\n(routes/restaurantV2Route.js)" as RestaurantRouter
+
+  component "inventoryController\n(controllers/v2/inventoryController.js)" as InventoryController
+  component "branchController\n(controllers/v2/branchController.js)" as BranchController
+  component "restaurantController\n(controllers/v2/restaurantController.js)" as RestaurantController
+
+  component "inventoryService\n(services/v2/inventoryService.js)" as InventoryService
+  component "branchService\n(services/v2/branchService.js)" as BranchService
+  component "restaurantService\n(services/v2/restaurantService.js)" as RestaurantService
+
+  InventoryRouter --> InventoryController
+  BranchRouter --> BranchController
+  RestaurantRouter --> RestaurantController
+  InventoryController --> InventoryService
+  BranchController --> BranchService
+  RestaurantController --> RestaurantService
+}
+
+OpsPort --> InventoryRouter
+OpsPort --> BranchRouter
+OpsPort --> RestaurantRouter
+
+package "Repositories" {
+  component "inventoryRepository" as InventoryRepo
+  component "foodVariantRepository" as VariantRepo
+  component "foodRepository" as FoodRepo
+  component "branchRepository" as BranchRepo
+  component "restaurantRepository" as RestaurantRepo
+}
+
+database "MongoDB / Mongoose Models" as Mongo
+
+InventoryService --> InventoryRepo
+InventoryService --> VariantRepo
+InventoryService --> FoodRepo
+InventoryService --> BranchRepo
+BranchService --> BranchRepo
+BranchService --> RestaurantRepo
+RestaurantService --> RestaurantRepo
+
+InventoryRepo --> Mongo
+VariantRepo --> Mongo
+FoodRepo --> Mongo
+BranchRepo --> Mongo
+RestaurantRepo --> Mongo
+
+component "User Repository\n(repositories/userRepository.js)" as UserRepo
+InventoryService --> UserRepo
+
+note right of OpsPort
+  Primary operations
+  - GET/POST /api/v2/inventory
+  - GET/POST /api/v2/branches
+  - GET/PUT /api/v2/restaurant
+end note
+
+note bottom of InventoryService
+  Authorises by user role:
+  admins choose branch, branch staff locked
+end note
+
+@enduml

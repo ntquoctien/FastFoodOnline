@@ -5,10 +5,8 @@ import swaggerJsdoc from "swagger-jsdoc";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
-import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
-import orderRouter from "./routes/orderRoute.js";
 import menuV2Router from "./routes/menuV2Route.js";
 import orderV2Router from "./routes/orderV2Route.js";
 import inventoryV2Router from "./routes/inventoryV2Route.js";
@@ -87,11 +85,9 @@ app.get("/api-docs.json", (req, res) => {
 connectDB();
 
 // api endpoints
-app.use("/api/food", foodRouter);
 app.use("/images", express.static("uploads"));
-app.use("/api/user", userRouter);
-app.use("/api/cart", cartRouter);
-app.use("/api/order", orderRouter);
+app.use("/api/v2/user", userRouter);
+app.use("/api/v2/cart", cartRouter);
 app.use("/api/v2/menu", menuV2Router);
 app.use("/api/v2/orders", orderV2Router);
 app.use("/api/v2/inventory", inventoryV2Router);

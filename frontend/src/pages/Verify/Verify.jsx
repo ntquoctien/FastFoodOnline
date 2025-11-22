@@ -14,7 +14,7 @@ const Verify = () => {
     const momoRequestId = searchParams.get("requestId");
     const vnpResponseCode = searchParams.get("vnp_ResponseCode");
     const queryString = window.location.search.substring(1);
-    const {url, setCartItems} =useContext(StoreContext);
+    const {url, setCartItems, token} =useContext(StoreContext);
     const navigate= useNavigate();
 
     const verifyPayment=async()=>{
@@ -79,18 +79,28 @@ const Verify = () => {
                 }
                 return;
             }
-            if(success!==null && orderId){
-                const response= await axios.post(url+"/api/order/verify",{success,orderId});
-                if(response.data.success){
-                    setCartItems({});
-                    toast.success("Order Placed Successfully");
-                    navigate("/myorders");
-                }else{
-                    toast.error("Something went wrong");
-                    navigate("/");
+            if (success !== null && orderId) {
+                const response = await axios.post(
+                  `${url}/api/v2/orders/confirm-payment`,
+                  {
+                    orderId,
+                    provider: provider || "cash",
+                    meta: { legacySuccess: success },
+                  },
+                  token
+                    ? { headers: { token } }
+                    : undefined
+                );
+                if (response.data.success) {
+                  setCartItems({});
+                  toast.success("Order placed successfully");
+                  navigate("/myorders");
+                } else {
+                  toast.error(response.data.message || "Unable to confirm order");
+                  navigate("/");
                 }
                 return;
-            }
+              }
             toast.error("Payment session not found");
             navigate("/");
         }catch(error){

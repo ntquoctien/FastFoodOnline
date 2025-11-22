@@ -28,7 +28,7 @@ const Login = ({ url }) => {
     if (loading) return;
     setLoading(true);
     try {
-      const response = await axios.post(url + "/api/user/login", data);
+      const response = await axios.post(url + "/api/v2/user/login", data);
       if (response.data.success) {
         const userRole = response.data.role;
         if (!allowedRoles.includes(userRole)) {

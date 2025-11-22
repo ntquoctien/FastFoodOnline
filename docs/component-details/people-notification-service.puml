@@ -1,0 +1,101 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+title People & Notification Service Component Diagram
+
+node "API Server (:4000)" as ApiHost {
+  interface "REST Port\n/api/user/**\n/api/v2/staff/**\n/api/v2/admins/**\n/api/v2/customers/**\n/api/v2/notifications/**" as PeoplePort
+
+  component "userRouter\n(routes/userRoute.js)" as UserRouter
+  component "staffV2Router\n(routes/staffV2Route.js)" as StaffRouter
+  component "adminAccountRouter\n(routes/adminAccountRoute.js)" as AdminRouter
+  component "customerRouter\n(routes/customerRoute.js)" as CustomerRouter
+  component "notificationV2Router\n(routes/notificationV2Route.js)" as NotificationRouter
+
+  component "JWT Auth Middleware\n(middleware/auth.js)" as AuthMW
+
+  component "userController\n(controllers/userController.js)" as UserController
+  component "staffController\n(controllers/v2/staffController.js)" as StaffController
+  component "adminAccountController\n(controllers/v2/adminAccountController.js)" as AdminController
+  component "customerController\n(controllers/v2/customerController.js)" as CustomerController
+  component "notificationController\n(controllers/v2/notificationController.js)" as NotificationController
+
+  component "userService\n(services/userService.js)" as UserService
+  component "staffService\n(services/v2/staffService.js)" as StaffService
+  component "adminAccountService\n(services/v2/adminAccountService.js)" as AdminService
+  component "customerService\n(services/v2/customerService.js)" as CustomerService
+  component "notificationService\n(services/v2/notificationService.js)" as NotificationService
+}
+
+PeoplePort --> UserRouter
+PeoplePort --> StaffRouter
+PeoplePort --> AdminRouter
+PeoplePort --> CustomerRouter
+PeoplePort --> NotificationRouter
+
+UserRouter --> UserController
+StaffRouter --> AuthMW
+AdminRouter --> AuthMW
+CustomerRouter --> AuthMW
+NotificationRouter --> AuthMW
+
+AuthMW --> StaffController
+AuthMW --> AdminController
+AuthMW --> CustomerController
+AuthMW --> NotificationController
+UserRouter --> UserController
+
+UserController --> UserService
+StaffController --> StaffService
+AdminController --> AdminService
+CustomerController --> CustomerService
+NotificationController --> NotificationService
+UserController --> NotificationService : publish login/profile events
+
+package "Repositories" {
+  component "userRepository\n(repositories/userRepository.js)" as UserRepo
+  component "orderRepository\n(repositories/v2/orderRepository.js)" as OrderRepo
+  component "branchRepository\n(repositories/v2/branchRepository.js)" as BranchRepo
+  component "notificationRepository\n(repositories/v2/notificationRepository.js)" as NotificationRepo
+}
+
+database "MongoDB / Mongoose" as Mongo
+
+UserService --> UserRepo
+StaffService --> UserRepo
+AdminService --> UserRepo
+CustomerService --> UserRepo
+CustomerService --> OrderRepo
+StaffService --> BranchRepo
+NotificationService --> NotificationRepo
+UserRepo --> Mongo
+OrderRepo --> Mongo
+BranchRepo --> Mongo
+NotificationRepo --> Mongo
+
+component "Token Issuer\n(JWT + bcrypt)" as TokenIssuer
+UserService --> TokenIssuer
+AdminService --> TokenIssuer
+StaffService --> TokenIssuer
+
+component "Notification Targets\n(admin / branch roles)" as NotificationTargets
+NotificationService --> NotificationTargets
+
+note right of PeoplePort
+  Examples:
+  - POST /api/user/login
+  - GET /api/user/profile
+  - CRUD /api/v2/staff
+  - CRUD /api/v2/admins
+  - GET /api/v2/notifications
+end note
+
+note bottom of TokenIssuer
+  Generates token stored by SPA
+  header "token"
+end note
+
+@enduml

@@ -1,0 +1,91 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+title Ordering & Payment Service Component Diagram
+
+node "API Server (:4000)" as ApiHost {
+  interface "REST Port\n/api/v2/orders/**" as OrdersPort
+  interface "Webhook /verify endpoints" as WebhookPort
+
+  component "orderV2Router\n(routes/orderV2Route.js)" as OrderRouter
+  component "JWT Auth Middleware\n(middleware/auth.js)" as AuthMW
+  component "orderController\n(controllers/v2/orderController.js)" as OrderController
+  component "orderService\n(services/v2/orderService.js)" as OrderService
+}
+
+OrdersPort --> OrderRouter
+WebhookPort --> OrderRouter
+OrderRouter --> AuthMW
+AuthMW --> OrderController
+OrderController --> OrderService
+
+package "Repositories" {
+  component "orderRepository" as OrderRepo
+  component "paymentRepository" as PaymentRepo
+  component "foodVariantRepository" as VariantRepo
+  component "inventoryRepository" as InventoryRepo
+  component "branchRepository" as BranchRepo
+  component "shipperRepository" as ShipperRepo
+  component "deliveryAssignmentRepository" as DeliveryRepo
+}
+
+database "MongoDB / Mongoose Models" as Mongo
+
+OrderService --> OrderRepo
+OrderService --> PaymentRepo
+OrderService --> VariantRepo
+OrderService --> InventoryRepo
+OrderService --> BranchRepo
+OrderService --> ShipperRepo
+OrderService --> DeliveryRepo
+
+OrderRepo --> Mongo
+PaymentRepo --> Mongo
+VariantRepo --> Mongo
+InventoryRepo --> Mongo
+BranchRepo --> Mongo
+ShipperRepo --> Mongo
+DeliveryRepo --> Mongo
+
+package "Payment Gateways" {
+  component "Stripe Checkout\n(utils/stripe.js)" as Stripe
+  component "MoMo Gateway\n(utils/momo.js)" as Momo
+  component "VNPAY Sandbox\n(utils/vnpay.js)" as Vnpay
+}
+
+OrderService --> Stripe
+OrderService --> Momo
+OrderService --> Vnpay
+
+component "Frontend Return URL Builder\n(FRONTEND_BASE_URL)" as FrontendUrl
+OrderService --> FrontendUrl
+
+note right of OrdersPort
+  - POST /api/v2/orders
+  - POST /api/v2/orders/pay/{stripe|momo|vnpay}
+  - GET /api/v2/orders/me
+  - PATCH /api/v2/orders/{id}/status
+end note
+
+note bottom of WebhookPort
+  Client-side redirect returns
+  /api/v2/orders/pay/{provider}/verify
+end note
+
+note bottom of Stripe
+  Uses checkout session + payment intent
+  via Stripe secret key
+end note
+
+note bottom of Momo
+  createPayment + queryPaymentStatus
+end note
+
+note bottom of Vnpay
+  createPaymentUrl + verifyReturnParams
+end note
+
+@enduml

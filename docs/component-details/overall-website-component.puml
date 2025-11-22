@@ -1,0 +1,87 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+
+title FastFoodOnline – Consolidated Component Diagram
+
+component "Customer Web App\n(frontend/src, React SPA)" as CustomerApp
+component "Admin Web App\n(admin/src, React SPA)" as AdminApp
+
+interface "REST API\nHTTPS :4000/api/** & /api/v2/**" as RestPort
+interface "Static Media\nHTTPS :4000/images/**" as MediaPort
+interface "OpenAPI Docs\nHTTPS :4000/api-docs" as DocsPort
+
+CustomerApp --> RestPort
+AdminApp --> RestPort
+CustomerApp --> MediaPort
+AdminApp --> MediaPort
+AdminApp --> DocsPort
+
+package "Presentation / API Layer" {
+  component "Express Router Layer\nbackend/routes/*.js" as Router
+  component "JWT Auth Middleware\nmiddleware/auth.js" as Auth
+  component "Public Controllers\n(food, user, cart, order)" as ControllersV1
+  component "v2 Controllers\n(menu, orders, inventory,\nbranch, staff, notification, etc.)" as ControllersV2
+  component "Swagger/OpenAPI Publisher\nswagger-jsdoc + swagger-ui" as Swagger
+}
+
+RestPort --> Router
+Router --> Auth
+Router --> ControllersV1
+Router --> ControllersV2
+Auth --> ControllersV2
+
+package "Business / Domain Services" {
+  component "Menu & Catalog Service\n(services/v2/menuService.js,\ncategoryService.js)" as MenuSvc
+  component "Ordering & Payment Service\n(services/v2/orderService.js)" as OrderSvc
+  component "Inventory & Branch Ops Service\n(services/v2/inventoryService.js,\nbranchService.js,\nrestaurantService.js)" as InventorySvc
+  component "People & Access Service\n(services/userService.js,\nv2/staffService.js,\nadminAccountService.js,\ncustomerService.js)" as PeopleSvc
+  component "Notification Service\n(services/v2/notificationService.js)" as NotificationSvc
+}
+
+ControllersV1 --> MenuSvc
+ControllersV1 --> OrderSvc
+ControllersV1 --> PeopleSvc
+ControllersV2 --> MenuSvc
+ControllersV2 --> OrderSvc
+ControllersV2 --> InventorySvc
+ControllersV2 --> PeopleSvc
+ControllersV2 --> NotificationSvc
+
+package "Data Access Layer" {
+  component "Repositories\n(repositories/**/*.js)" as Repos
+  component "Mongoose Models\n(models/**/*.js)" as Models
+}
+
+MenuSvc --> Repos
+OrderSvc --> Repos
+InventorySvc --> Repos
+PeopleSvc --> Repos
+NotificationSvc --> Repos
+
+Repos --> Models
+
+database "MongoDB Atlas\n(fooddeliverydb cluster)" as Mongo
+Models --> Mongo
+
+component "Static Media Handler\n/uploads + multer pipeline" as MediaHandler
+MediaHandler --> MediaPort
+
+Swagger --> DocsPort
+
+component "Payment Provider Integrations\nStripe Checkout, MoMo, VNPAY" as PaymentAdapters
+OrderSvc --> PaymentAdapters
+
+note right of RestPort
+  JSON/REST API consumed by both SPAs.
+  All requests include token header when authenticated.
+end note
+
+note bottom of PaymentAdapters
+  Each adapter encapsulates provider-specific
+  signing logic and callback verification.
+end note
+
+@enduml
