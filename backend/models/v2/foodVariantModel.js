@@ -24,6 +24,7 @@ const foodVariantSchema = new mongoose.Schema(
     unitSymbol: { type: String, trim: true },
     unitOrder: { type: Number },
     isDefault: { type: Boolean, default: false },
+    weightKg: { type: Number },
     isActive: { type: Boolean, default: true },
     isManuallyDisabled: { type: Boolean, default: false },
     isArchived: { type: Boolean, default: false },

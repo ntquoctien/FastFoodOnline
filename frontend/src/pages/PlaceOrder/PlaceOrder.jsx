@@ -20,16 +20,12 @@ const PlaceOrder = () => {
   } = useContext(StoreContext);
 
   const [data, setData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    street: "",
-    city: "",
-    state: "",
-    zipcode: "",
-    country: "",
+    fullName: "",
+    fullAddress: "",
     phone: "",
   });
+  const [dropoffLat, setDropoffLat] = useState("");
+  const [dropoffLng, setDropoffLng] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [submitting, setSubmitting] = useState(false);
   const paymentOptions = [
@@ -64,7 +60,11 @@ const PlaceOrder = () => {
 
   const onChangeHandler = (event) => {
     const { name, value } = event.target;
-    setData((prev) => ({ ...prev, [name]: value }));
+    setData((prev) => {
+      const next = { ...prev, [name]: value };
+      localStorage.setItem("deliveryInfo", JSON.stringify(next));
+      return next;
+    });
   };
 
   const branchLookup = useMemo(() => {
@@ -147,11 +147,17 @@ const PlaceOrder = () => {
       const orderResponse = await axios.post(
         `${url}/api/v2/orders`,
         {
-          branchId,
-          items: orderItems,
-          address: data,
-        },
-        { headers: { token } }
+      branchId,
+      items: orderItems,
+      address: data.fullAddress,
+      dropoffLat: dropoffLat ? Number(dropoffLat) : undefined,
+      dropoffLng: dropoffLng ? Number(dropoffLng) : undefined,
+      contact: {
+        name: data.fullName,
+        phone: data.phone,
+      },
+    },
+    { headers: { token } }
       );
       if (!orderResponse.data.success) {
         toast.error(orderResponse.data.message || "Unable to create order");
@@ -264,82 +270,48 @@ const PlaceOrder = () => {
       toast.error("Your cart is empty");
       navigate("/cart");
     }
+    const cached = localStorage.getItem("deliveryInfo");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setData((prev) => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.warn("Failed to parse cached delivery info", error);
+      }
+    }
   }, [token, totalAmount, navigate]);
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported on this device");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setDropoffLat(pos.coords.latitude);
+        setDropoffLng(pos.coords.longitude);
+        toast.success("Location captured");
+      },
+      (err) => {
+        console.error("Geolocation error", err);
+        toast.error("Unable to get location, please enter address manually");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   return (
     <form className="place-order" onSubmit={placeOrder}>
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
-        <div className="multi-fields">
-          <input
-            required
-            name="firstName"
-            value={data.firstName}
-            onChange={onChangeHandler}
-            type="text"
-            placeholder="First name"
-          />
-          <input
-            required
-            name="lastName"
-            value={data.lastName}
-            onChange={onChangeHandler}
-            type="text"
-            placeholder="Last name"
-          />
-        </div>
         <input
           required
-          name="email"
-          value={data.email}
-          onChange={onChangeHandler}
-          type="email"
-          placeholder="Email Address"
-        />
-        <input
-          required
-          name="street"
-          value={data.street}
+          name="fullName"
+          value={data.fullName}
           onChange={onChangeHandler}
           type="text"
-          placeholder="Street"
+          placeholder="Full name"
         />
-        <div className="multi-fields">
-          <input
-            required
-            name="city"
-            value={data.city}
-            onChange={onChangeHandler}
-            type="text"
-            placeholder="City"
-          />
-          <input
-            required
-            name="state"
-            value={data.state}
-            onChange={onChangeHandler}
-            type="text"
-            placeholder="State"
-          />
-        </div>
-        <div className="multi-fields">
-          <input
-            required
-            name="zipcode"
-            value={data.zipcode}
-            onChange={onChangeHandler}
-            type="text"
-            placeholder="Zip Code"
-          />
-          <input
-            required
-            name="country"
-            value={data.country}
-            onChange={onChangeHandler}
-            type="text"
-            placeholder="Country"
-          />
-        </div>
         <input
           required
           name="phone"
@@ -348,6 +320,35 @@ const PlaceOrder = () => {
           type="text"
           placeholder="Phone"
         />
+        <textarea
+          required
+          name="fullAddress"
+          value={data.fullAddress}
+          onChange={onChangeHandler}
+          placeholder="Địa chỉ đầy đủ: Số nhà, Đường, Phường/Xã, Quận/Huyện, Tỉnh/Thành, Việt Nam"
+          rows={3}
+        />
+        <div className="multi-fields">
+          <input
+            name="dropoffLat"
+            value={dropoffLat}
+            onChange={(e) => setDropoffLat(e.target.value)}
+            type="number"
+            step="0.000001"
+            placeholder="Lat (tuỳ chọn)"
+          />
+          <input
+            name="dropoffLng"
+            value={dropoffLng}
+            onChange={(e) => setDropoffLng(e.target.value)}
+            type="number"
+            step="0.000001"
+            placeholder="Lng (tuỳ chọn)"
+          />
+          <button type="button" className="btn-secondary" onClick={useMyLocation}>
+            Dùng vị trí của tôi
+          </button>
+        </div>
         <div className="payment-method">
           <p className="title">Payment Method</p>
           <div className="payment-method-options">

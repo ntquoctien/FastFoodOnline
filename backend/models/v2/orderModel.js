@@ -20,8 +20,9 @@ const orderItemSchema = new mongoose.Schema(
 const deliveryTimelineSchema = new mongoose.Schema(
   {
     status: { type: String, required: true },
+    actorType: { type: String, enum: ["user", "admin", "staff", "system", "drone"], default: "system" },
     at: { type: Date, default: Date.now },
-    actor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    actor: { type: mongoose.Schema.Types.ObjectId },
   },
   { _id: false }
 );
@@ -43,12 +44,35 @@ const orderSchema = new mongoose.Schema(
       type: Object,
       required: true,
     },
+    deliveryMethod: {
+      type: String,
+      enum: ["drone"],
+      default: "drone",
+    },
+    pickupBranchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Branch",
+    },
+    pickupLat: { type: Number },
+    pickupLng: { type: Number },
+    dropoffAddress: { type: String },
+    dropoffLat: { type: Number },
+    dropoffLng: { type: Number },
     subtotal: { type: Number, required: true },
     deliveryFee: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
+    orderWeightKg: { type: Number },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "preparing", "in_transit", "delivered", "cancelled"],
+      enum: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "in_transit",
+        "delivered",
+        "cancelled",
+        "delivery_failed",
+      ],
       default: "pending",
     },
     cancellationReason: { type: String, maxlength: 500 },
@@ -60,6 +84,9 @@ const orderSchema = new mongoose.Schema(
       default: "unpaid",
     },
     timeline: { type: [deliveryTimelineSchema], default: [] },
+    needsDroneAssignment: { type: Boolean, default: false },
+    lastDroneAssignAttemptAt: { type: Date },
+    droneAssignRetries: { type: Number, default: 0 },
   },
   {
     collection: "orders",

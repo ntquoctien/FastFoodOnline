@@ -12,7 +12,6 @@
     "install:admin": "npm install --prefix admin",
     "install:all": "node tools/install-all.js",
     "postinstall": "node -e \"const fs=require('fs');const path=require('path');const script=path.join(process.cwd(),'tools','install-all.js');if(fs.existsSync(script)){require(script);}else{console.log('[install-all] tools/install-all.js missing; skipping.');}\"",
-    "seed:v2": "node backend/scripts/seedV2.js",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f backend"

@@ -10,7 +10,6 @@ import cartRouter from "./routes/cartRoute.js";
 import menuV2Router from "./routes/menuV2Route.js";
 import orderV2Router from "./routes/orderV2Route.js";
 import inventoryV2Router from "./routes/inventoryV2Route.js";
-import shipperV2Router from "./routes/shipperV2Route.js";
 import branchV2Router from "./routes/branchV2Route.js";
 import staffV2Router from "./routes/staffV2Route.js";
 import notificationV2Router from "./routes/notificationV2Route.js";
@@ -19,6 +18,8 @@ import restaurantV2Router from "./routes/restaurantV2Route.js";
 import adminAccountRouter from "./routes/adminAccountRoute.js";
 import customerRouter from "./routes/customerRoute.js";
 import measurementUnitRouter from "./routes/measurementUnitRoute.js";
+import droneV2Router from "./routes/droneV2Route.js";
+import { startDroneAssignRetry } from "./jobs/droneAssignmentRetry.js";
 
 // app config
 const app = express();
@@ -90,7 +91,6 @@ app.use("/api/v2/cart", cartRouter);
 app.use("/api/v2/menu", menuV2Router);
 app.use("/api/v2/orders", orderV2Router);
 app.use("/api/v2/inventory", inventoryV2Router);
-app.use("/api/v2/shippers", shipperV2Router);
 app.use("/api/v2/branches", branchV2Router);
 app.use("/api/v2/staff", staffV2Router);
 app.use("/api/v2/notifications", notificationV2Router);
@@ -99,6 +99,7 @@ app.use("/api/v2/restaurant", restaurantV2Router);
 app.use("/api/v2/admins", adminAccountRouter);
 app.use("/api/v2/customers", customerRouter);
 app.use("/api/v2/units", measurementUnitRouter);
+app.use("/api/v2/drones", droneV2Router);
 
 app.get("/", (req, res) => {
   res.send("API Working");
@@ -107,3 +108,6 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server Started on port: ${port}`);
 });
+
+// Background cron: retry drone assignment for confirmed orders
+startDroneAssignRetry();

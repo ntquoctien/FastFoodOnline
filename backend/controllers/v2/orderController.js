@@ -43,13 +43,15 @@ const getClientIp = (req) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { branchId, items, address } = req.body;
+    const { branchId, items, address, dropoffLat, dropoffLng } = req.body;
     const userId = req.body.userId || req.userId;
     const result = await orderService.createOrder({
       userId,
       branchId,
       items,
       address,
+      dropoffLat,
+      dropoffLng,
     });
     res.json(result);
   } catch (error) {

@@ -7,8 +7,8 @@ import BranchModel from "../models/v2/branchModel.js";
 import CategoryModel from "../models/v2/categoryModel.js";
 import FoodModel from "../models/v2/foodModel.js";
 import FoodVariantModel from "../models/v2/foodVariantModel.js";
-import ShipperProfileModel from "../models/v2/shipperProfileModel.js";
 import userModel from "../models/userModel.js";
+import DroneModel from "../models/v2/droneModel.js";
 import bcrypt from "bcrypt";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,8 +25,6 @@ const dropLegacyCollections = async () => {
     "foodvariants",
     "inventory",
     "orders",
-    "shipperprofiles",
-    "deliveryassignments",
     "payments",
   ];
 
@@ -215,17 +213,17 @@ const seed = async () => {
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
-  await ShipperProfileModel.deleteMany({});
+  await DroneModel.deleteMany({});
   if (shipperUser) {
-    await ShipperProfileModel.create({
-      userId: shipperUser._id,
+    await DroneModel.create({
+      code: "DRN-SEED-01",
       branchId: centralBranch._id,
-      vehicleType: "drone",
-      licensePlate: "DRONE-01",
       status: "available",
+      batteryLevel: 100,
+      maxPayloadKg: 3,
     });
   } else {
-    console.warn("Failed to seed shipper profile because shipper user missing");
+    console.warn("Failed to seed drone because shipper user missing");
   }
 
   if (!admin) {

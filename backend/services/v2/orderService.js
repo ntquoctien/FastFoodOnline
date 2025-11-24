@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 import * as orderRepo from "../../repositories/v2/orderRepository.js";
 import * as paymentRepo from "../../repositories/v2/paymentRepository.js";
 import * as foodVariantRepo from "../../repositories/v2/foodVariantRepository.js";
-import * as shipperRepo from "../../repositories/v2/shipperRepository.js";
-import * as deliveryRepo from "../../repositories/v2/deliveryAssignmentRepository.js";
+import * as droneRepo from "../../repositories/v2/droneRepository.js";
+import * as droneAssignmentRepo from "../../repositories/v2/droneAssignmentRepository.js";
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
+import * as geocodeCacheRepo from "../../repositories/v2/geocodeCacheRepository.js";
 import { createPaymentUrl, verifyReturnParams } from "../../utils/vnpay.js";
 import {
   createCheckoutSession,
@@ -15,6 +16,12 @@ import {
   createPayment as createMomoPayment,
   queryPaymentStatus as queryMomoPaymentStatus,
 } from "../../utils/momo.js";
+import { resolveAddress } from "../../utils/geocode.js";
+import { createMission, cancelMission } from "../../utils/droneGateway.js";
+
+const MAX_DRONE_ASSIGN_RETRIES =
+  Number(process.env.DRONE_ASSIGN_MAX_RETRIES || 3) || 3;
+const MIN_DRONE_BATTERY = Number(process.env.DRONE_MIN_BATTERY || 40) || 40;
 
 const buildUrlWithParams = (base, params) => {
   if (!base) {
@@ -52,6 +59,73 @@ const getFrontendBaseUrl = () => {
 const getStripeCurrency = () =>
   (process.env.STRIPE_CURRENCY || "vnd").toLowerCase();
 
+const PAYLOAD_SAFETY_FACTOR =
+  Math.min(
+    Math.max(Number(process.env.DRONE_PAYLOAD_SAFETY || 0.85), 0.5),
+    1.0
+  ) || 0.85;
+const PACKAGING_ALLOWANCE_KG =
+  Number(process.env.DRONE_PACKAGING_KG || 0.1) || 0;
+const DEFAULT_ITEM_WEIGHT_KG =
+  Number(process.env.DRONE_DEFAULT_ITEM_WEIGHT_KG || 0.3) || 0;
+
+const parseCoordinate = (value) => {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (typeof value === "string" && value.trim() === "") {
+    return null;
+  }
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+};
+
+const getBranchCoordinates = (branch) => {
+  const lat = parseCoordinate(branch?.latitude ?? branch?.lat);
+  const lng = parseCoordinate(branch?.longitude ?? branch?.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return { lat: null, lng: null };
+  }
+  return { lat, lng };
+};
+
+const resolveDropoffCoordinates = async ({ address, dropoffLat, dropoffLng }) => {
+  const lat = parseCoordinate(dropoffLat);
+  const lng = parseCoordinate(dropoffLng);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { lat, lng };
+  }
+
+  const addressKey = (address || "").trim().toLowerCase();
+  if (!addressKey) {
+    const error = new Error("DROP_OFF_LOCATION_REQUIRED");
+    throw error;
+  }
+
+  const cached = await geocodeCacheRepo.findByAddressKey(addressKey);
+  if (cached && Number.isFinite(cached.lat) && Number.isFinite(cached.lng)) {
+    return { lat: cached.lat, lng: cached.lng };
+  }
+
+  const geocoded = await resolveAddress(address);
+  if (
+    geocoded &&
+    Number.isFinite(geocoded.lat) &&
+    Number.isFinite(geocoded.lng)
+  ) {
+    const resolved = { lat: Number(geocoded.lat), lng: Number(geocoded.lng) };
+    await geocodeCacheRepo.upsert({
+      addressKey,
+      lat: resolved.lat,
+      lng: resolved.lng,
+      provider: "nominatim",
+    });
+    return resolved;
+  }
+  const error = new Error("DROP_OFF_LOCATION_REQUIRED");
+  throw error;
+};
+
 const calculateItems = async (items) => {
   const variantIds = items.map((item) => new mongoose.Types.ObjectId(item.variantId));
   const variants = await foodVariantRepo
@@ -64,15 +138,26 @@ const calculateItems = async (items) => {
 
   let subtotal = 0;
   const normalizedItems = [];
+  let totalWeightKg = 0;
 
   for (const item of items) {
-    const variant = variantMap.get(item.variantId);
+    const variantKey = String(item.variantId);
+    const variant = variantMap.get(variantKey);
     if (!variant) {
       throw new Error(`Variant ${item.variantId} not found`);
     }
     const quantity = Number(item.quantity || 1);
     const itemTotal = variant.price * quantity;
     subtotal += itemTotal;
+    // Weight: prefer explicit weightKg; fallback to unitValue; then default
+    const variantWeight =
+      Number(variant.weightKg) && Number.isFinite(Number(variant.weightKg))
+        ? Number(variant.weightKg)
+        : Number(variant.unitValue) && Number.isFinite(Number(variant.unitValue))
+        ? Number(variant.unitValue)
+        : DEFAULT_ITEM_WEIGHT_KG;
+    const itemWeight = Math.max(variantWeight, 0) * quantity;
+    totalWeightKg += itemWeight;
     normalizedItems.push({
       foodVariantId: variant._id,
       title: variant.foodId.name,
@@ -83,57 +168,176 @@ const calculateItems = async (items) => {
       notes: item.notes || "",
     });
   }
-  return { subtotal, normalizedItems };
+  const totalWithPackaging = totalWeightKg + PACKAGING_ALLOWANCE_KG;
+  return { subtotal, normalizedItems, totalWeightKg: totalWithPackaging };
 };
 
-const assignDrone = async ({ order, branchId }) => {
-  const available = await shipperRepo.findAvailable({
-    vehicleType: "drone",
-    ...(branchId ? { branchId } : {}),
+const haversineKm = (a, b) => {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad((b.lat || 0) - (a.lat || 0));
+  const dLng = toRad((b.lng || 0) - (a.lng || 0));
+  const lat1 = toRad(a.lat || 0);
+  const lat2 = toRad(b.lat || 0);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h =
+    sinLat * sinLat +
+    sinLng * sinLng * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+
+export const assignDrone = async ({ order, branchId }) => {
+  const existing = await droneAssignmentRepo.findByOrderId(order._id);
+  if (existing) {
+    return existing;
+  }
+
+  const resolvedBranchId =
+    branchId ||
+    order.pickupBranchId ||
+    order.branchId?._id ||
+    order.branchId;
+  const availableDrones = await droneRepo.findAvailable({
+    branchId: resolvedBranchId,
+    minBattery: MIN_DRONE_BATTERY,
+    minPayloadKg:
+      (order.orderWeightKg || 0) * PAYLOAD_SAFETY_FACTOR,
   });
 
-  if (!available.length) {
+  if (!availableDrones.length) {
+    await orderRepo.updateById(order._id, {
+      needsDroneAssignment: true,
+      lastDroneAssignAttemptAt: new Date(),
+    });
     return null;
   }
 
-  const drone = available[0];
-  await shipperRepo.updateById(drone._id, { status: "busy" });
-  const assignment = await deliveryRepo.create({
+  const pickupPoint = {
+    lat: order.pickupLat,
+    lng: order.pickupLng,
+  };
+  const scored = availableDrones.map((drone) => {
+    const dronePoint = {
+      lat: drone.lastKnownLat ?? order.pickupLat,
+      lng: drone.lastKnownLng ?? order.pickupLng,
+    };
+    const distance = haversineKm(pickupPoint, dronePoint);
+    return { drone, distance };
+  });
+
+  scored.sort((a, b) => a.distance - b.distance);
+  const best = scored[0]?.drone;
+  if (!best) {
+    await orderRepo.updateById(order._id, {
+      needsDroneAssignment: true,
+      lastDroneAssignAttemptAt: new Date(),
+    });
+    return null;
+  }
+
+  await droneRepo.updateById(best._id, { status: "busy" });
+  const now = new Date();
+  const assignment = await droneAssignmentRepo.create({
     orderId: order._id,
-    shipperId: drone._id,
+    droneId: best._id,
     status: "assigned",
-    assignedAt: new Date(),
+    assignedAt: now,
+  });
+
+  await orderRepo.updateById(order._id, {
+    needsDroneAssignment: false,
+    lastDroneAssignAttemptAt: now,
   });
 
   await orderRepo.pushTimeline(order._id, {
-    status: "assigned",
-    actor: drone.userId,
+    status: "drone_assigned",
+    actorType: "system",
+    actor: best._id,
+    at: now,
   });
+
+  try {
+    await createMission({
+      assignmentId: assignment._id,
+      droneId: best._id,
+      pickup: { lat: order.pickupLat, lng: order.pickupLng },
+      dropoff: { lat: order.dropoffLat, lng: order.dropoffLng },
+    });
+  } catch (gatewayError) {
+    console.error("Drone mission create failed", gatewayError);
+  }
 
   return assignment;
 };
 
-export const createOrder = async ({ userId, branchId, items, address }) => {
+export const createOrder = async ({
+  userId,
+  branchId,
+  items,
+  address,
+  dropoffLat,
+  dropoffLng,
+}) => {
   const branch = await branchRepo.findById(branchId);
   if (!branch) {
     return { success: false, message: "Branch not found" };
   }
 
-  const { subtotal, normalizedItems } = await calculateItems(items);
+  const dropoffAddressValue =
+    typeof address === "string" ? address : address?.address || "";
+  const { lat: pickupLat, lng: pickupLng } = getBranchCoordinates(branch);
+  if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) {
+    return { success: false, message: "Branch missing coordinates" };
+  }
+
+  let dropoff;
+  try {
+    dropoff = await resolveDropoffCoordinates({
+      address: dropoffAddressValue,
+      dropoffLat,
+      dropoffLng,
+    });
+  } catch (error) {
+    if (error.message === "DROP_OFF_LOCATION_REQUIRED") {
+      return {
+        success: false,
+        message: "Drop-off location is required for drone delivery",
+      };
+    }
+    throw error;
+  }
+
+  const { subtotal, normalizedItems, totalWeightKg } = await calculateItems(items);
   const deliveryFee = 2;
   const totalAmount = subtotal + deliveryFee;
 
   const order = await orderRepo.create({
     userId,
     branchId,
+    pickupBranchId: branchId,
+    pickupLat,
+    pickupLng,
+    dropoffAddress: dropoffAddressValue,
+    dropoffLat: dropoff.lat,
+    dropoffLng: dropoff.lng,
+    deliveryMethod: "drone",
     items: normalizedItems,
     address,
     subtotal,
     deliveryFee,
     totalAmount,
+    orderWeightKg: totalWeightKg || 0,
     status: "pending",
     paymentStatus: "unpaid",
-    timeline: [{ status: "pending", at: new Date(), actor: userId }],
+    timeline: [
+      {
+        status: "pending",
+        at: new Date(),
+        actor: userId,
+        actorType: "user",
+      },
+    ],
   });
 
   for (const item of normalizedItems) {
@@ -158,6 +362,10 @@ export const confirmPayment = async ({
   const order = existingOrder || (await orderRepo.findById(orderId));
   if (!order) {
     return { success: false, message: "Order not found" };
+  }
+
+  if (!provider) {
+    return { success: false, message: "Payment provider is required" };
   }
 
   if (order.paymentStatus === "paid") {
@@ -210,6 +418,8 @@ export const confirmPayment = async ({
   await orderRepo.pushTimeline(orderId, {
     status: "confirmed",
     actor: order.userId,
+    actorType: "user",
+    at: new Date(),
   });
 
   const assignment = await assignDrone({ order, branchId: order.branchId });
@@ -757,6 +967,7 @@ export const updateStatus = async ({
   role,
   branchId,
   cancellationReason,
+  actorType,
 }) => {
   const existing = await orderRepo.findById(orderId);
   if (!existing) {
@@ -770,9 +981,49 @@ export const updateStatus = async ({
     }
   }
 
+  const allowedStatuses = [
+    "pending",
+    "confirmed",
+    "preparing",
+    "in_transit",
+    "delivered",
+    "cancelled",
+    "delivery_failed",
+  ];
+  if (!allowedStatuses.includes(status)) {
+    return { success: false, message: "Invalid status" };
+  }
+
+  const orderFlow = [
+    "pending",
+    "confirmed",
+    "preparing",
+    "in_transit",
+    "delivered",
+  ];
+  const isAdmin = role === "admin";
+  const currentIndex = orderFlow.indexOf(existing.status);
+  const nextIndex = orderFlow.indexOf(status);
+  const isForwardStep =
+    currentIndex !== -1 &&
+    nextIndex !== -1 &&
+    (nextIndex === currentIndex || nextIndex === currentIndex + 1);
+  const canCancel =
+    status === "cancelled" &&
+    ["pending", "confirmed", "preparing", "in_transit"].includes(existing.status);
+  if (
+    !isAdmin &&
+    existing.deliveryMethod === "drone" &&
+    !isForwardStep &&
+    !canCancel
+  ) {
+    return { success: false, message: "Invalid status transition for drone delivery" };
+  }
+
+  const now = new Date();
   const updatePayload = { status };
   if (status === "cancelled") {
-    updatePayload.cancelledAt = new Date();
+    updatePayload.cancelledAt = now;
     updatePayload.cancelledBy = actorId || existing.userId;
     if (typeof cancellationReason === "string") {
       const trimmed = cancellationReason.trim();
@@ -791,25 +1042,61 @@ export const updateStatus = async ({
   await orderRepo.pushTimeline(orderId, {
     status,
     actor: actorId || order.userId,
+    actorType:
+      actorType ||
+      (role === "admin" ? "admin" : role === "staff" ? "staff" : "system"),
+    at: now,
   });
+
+  const assignment = await droneAssignmentRepo.findByOrderId(orderId);
   if (status === "delivered") {
-    const assignment = await deliveryRepo.updateByOrderId(orderId, {
-      status: "delivered",
-      deliveredAt: new Date(),
-    });
-    if (assignment?.shipperId) {
-      await shipperRepo.updateById(assignment.shipperId, {
-        status: "available",
+    if (assignment) {
+      await droneAssignmentRepo.updateByOrderId(orderId, {
+        status: "delivered",
+        deliveredAt: now,
       });
+      if (assignment.droneId) {
+        await droneRepo.updateById(assignment.droneId._id || assignment.droneId, {
+          status: "available",
+        });
+      }
     }
   } else if (status === "cancelled") {
-    const assignment = await deliveryRepo.updateByOrderId(orderId, {
-      status: "cancelled",
-      cancelledAt: new Date(),
-    });
-    if (assignment?.shipperId) {
-      await shipperRepo.updateById(assignment.shipperId, {
-        status: "available",
+    if (assignment && !["delivered", "cancelled", "failed"].includes(assignment.status)) {
+      await droneAssignmentRepo.updateByOrderId(orderId, {
+        status: "cancelled",
+        cancelledAt: now,
+      });
+      try {
+        await cancelMission({
+          assignmentId: assignment._id,
+          droneId: assignment.droneId?._id || assignment.droneId,
+        });
+      } catch (missionError) {
+        console.error("Drone mission cancel failed", missionError);
+      }
+      if (assignment.droneId) {
+        await droneRepo.updateById(assignment.droneId._id || assignment.droneId, {
+          status: "available",
+        });
+      }
+    }
+    // Restock inventory if not already cancelled/delivered before
+    if (!["cancelled", "delivered"].includes(existing.status)) {
+      const branchToRestock = existing.branchId?._id || existing.branchId || branchId;
+      for (const item of existing.items || []) {
+        await inventoryRepo.adjustQuantity({
+          branchId: branchToRestock,
+          foodVariantId: item.foodVariantId,
+          delta: Number(item.quantity || 0),
+        });
+      }
+    }
+  } else if (status === "in_transit") {
+    if (assignment) {
+      await droneAssignmentRepo.updateByOrderId(orderId, {
+        status: "en_route_dropoff",
+        enRouteDropoffAt: now,
       });
     }
   }
@@ -836,6 +1123,7 @@ export const cancelOrder = async ({ orderId, userId, reason }) => {
     status: "cancelled",
     actorId: userId,
     role: "admin",
+    actorType: "user",
     cancellationReason: reason,
   });
 };
@@ -862,6 +1150,7 @@ export const confirmReceipt = async ({ orderId, userId }) => {
     status: "delivered",
     actorId: userId,
     role: "admin",
+    actorType: "user",
   });
 };
 

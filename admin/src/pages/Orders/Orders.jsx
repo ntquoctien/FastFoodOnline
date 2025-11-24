@@ -54,9 +54,6 @@ const Orders = ({ url }) => {
   const [loading, setLoading] = useState(false);
   const [branches, setBranches] = useState([]);
   const [branchFilter, setBranchFilter] = useState("");
-  const [shippers, setShippers] = useState([]);
-  const [shipperEndpointAvailable, setShipperEndpointAvailable] = useState(true);
-  const [assignments, setAssignments] = useState({});
   const [detailOrderId, setDetailOrderId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("in_progress");
 
@@ -75,24 +72,6 @@ const Orders = ({ url }) => {
       }
     } catch (error) {
       console.warn("Failed to load branch options", error);
-    }
-  }, [token, url]);
-
-  const fetchShippers = useCallback(async () => {
-    try {
-      const response = await axios.get(`${url}/api/v2/shippers`, {
-        headers: { token },
-      });
-      if (response.data?.success) {
-        setShippers(response.data.data || []);
-        setShipperEndpointAvailable(true);
-      } else {
-        setShippers([]);
-      }
-    } catch (error) {
-      console.warn("Failed to load shippers", error);
-      setShippers([]);
-      setShipperEndpointAvailable(false);
     }
   }, [token, url]);
 
@@ -124,8 +103,7 @@ const Orders = ({ url }) => {
       return;
     }
     fetchBranches();
-    fetchShippers();
-  }, [token, role, navigate, fetchBranches, fetchShippers]);
+  }, [token, role, navigate, fetchBranches]);
 
   useEffect(() => {
     if (token && role === "admin") {
@@ -147,121 +125,12 @@ const Orders = ({ url }) => {
     );
   }, [orders, statusFilter]);
 
-  const availableDroneForBranch = useCallback(
-    (branchId) =>
-      shippers.find(
-        (shipper) =>
-          shipper.status === "available" &&
-          (shipper.vehicleType || "").toLowerCase() === "drone" &&
-          String(shipper.branchId?._id || shipper.branchId || "") ===
-            String(branchId || "")
-      ),
-    [shippers]
-  );
-
-  const assignDrone = useCallback(
-    async (order) => {
-      const branchId = order.branchId?._id || order.branchId;
-      const selected = availableDroneForBranch(branchId);
-      if (!selected) {
-        return null;
-      }
-      if (shipperEndpointAvailable) {
-        try {
-          await axios.patch(
-            `${url}/api/v2/shippers/${selected._id}/status`,
-            { status: "busy" },
-            { headers: { token } }
-          );
-        } catch (error) {
-          console.warn("Unable to update shipper status via API", error);
-          setShipperEndpointAvailable(false);
-        }
-      }
-      setAssignments((prev) => ({ ...prev, [order._id]: selected._id }));
-      setShippers((prev) =>
-        prev.map((shipper) =>
-          shipper._id === selected._id
-            ? { ...shipper, status: "busy" }
-            : shipper
-        )
-      );
-      toast.success(
-        `Drone ${selected.userId?.name || selected._id} assigned to order`
-      );
-      try {
-        await axios.patch(
-          `${url}/api/v2/orders/${order._id}/status`,
-          { status: "in_transit" },
-          { headers: { token } }
-        );
-        fetchAllOrders();
-      } catch (error) {
-        console.warn("Unable to mark order in transit", error);
-      }
-      return selected._id;
-    },
-    [
-      availableDroneForBranch,
-      shipperEndpointAvailable,
-      token,
-      url,
-      fetchAllOrders,
-    ]
-  );
-
-  const releaseDrone = useCallback(
-    async (shipperId) => {
-      if (!shipperId) return;
-      if (shipperEndpointAvailable) {
-        try {
-          await axios.patch(
-            `${url}/api/v2/shippers/${shipperId}/status`,
-            { status: "available" },
-            { headers: { token } }
-          );
-        } catch (error) {
-          console.warn("Unable to release shipper via API", error);
-          setShipperEndpointAvailable(false);
-        }
-      }
-      setAssignments((prev) => {
-        const next = { ...prev };
-        Object.keys(next).forEach((orderId) => {
-          if (next[orderId] === shipperId) {
-            delete next[orderId];
-          }
-        });
-        return next;
-      });
-      setShippers((prev) =>
-        prev.map((shipper) =>
-          shipper._id === shipperId
-            ? { ...shipper, status: "available" }
-            : shipper
-        )
-      );
-    },
-    [shipperEndpointAvailable, token]
-  );
-
   const statusHandler = async (order, nextStatus) => {
     if (["delivered", "cancelled"].includes(order.status)) {
       toast.info("Finalised orders cannot be updated.");
       return;
     }
     if (nextStatus === order.status) return;
-
-    let assignedShipperId = assignments[order._id];
-
-    if (nextStatus === "delivered") {
-      assignedShipperId = assignedShipperId || (await assignDrone(order));
-      if (!assignedShipperId) {
-        toast.error("No available drone for this branch");
-        fetchAllOrders();
-        return;
-      }
-    }
 
     try {
       const response = await axios.patch(
@@ -271,14 +140,7 @@ const Orders = ({ url }) => {
       );
       if (response.data?.success) {
         toast.success("Status updated");
-        if (nextStatus === "delivered" && assignedShipperId) {
-          await releaseDrone(assignedShipperId);
-        }
-        if (nextStatus === "cancelled" && assignments[order._id]) {
-          await releaseDrone(assignments[order._id]);
-        }
         fetchAllOrders();
-        fetchShippers();
       } else {
         toast.error(response.data?.message || "Unable to update status");
         fetchAllOrders();
@@ -297,14 +159,6 @@ const Orders = ({ url }) => {
 
   const formatDateTime = (timestamp) =>
     timestamp ? new Date(timestamp).toLocaleString() : "-";
-
-  const assignedLabel = (order) => {
-    const shipperId = assignments[order._id];
-    if (!shipperId) return null;
-    const shipper = shippers.find((entry) => entry._id === shipperId) || null;
-    if (!shipper) return null;
-    return shipper.userId?.name || shipper.licensePlate || shipperId;
-  };
 
   const renderStatusBadge = (status) => {
     const className = statusBadgeMap[status] || statusBadgeMap.default;
@@ -382,12 +236,6 @@ const Orders = ({ url }) => {
                     <span className="text-muted">Items</span>
                     <span className="fw-semibold">{order.items?.length || 0}</span>
                   </div>
-                  {assignedLabel(order) ? (
-                    <div className="d-flex justify-content-between">
-                      <span className="text-muted">Assigned drone</span>
-                      <span className="fw-semibold">{assignedLabel(order)}</span>
-                    </div>
-                  ) : null}
                 </div>
                 <div className="card-footer border-0 d-flex flex-column gap-2">
                   <select
@@ -462,14 +310,26 @@ const Orders = ({ url }) => {
                         Recipient
                       </p>
                       <p className="fw-semibold mb-0">
-                        {detailOrder.address?.firstName}{" "}
-                        {detailOrder.address?.lastName}
+                        {detailOrder.contact?.name ||
+                          detailOrder.address?.fullName ||
+                          detailOrder.address?.firstName ||
+                          "-"}
                       </p>
                       <p className="text-muted mb-0">
-                        {formatAddress(detailOrder.address)}
+                        {detailOrder.contact?.phone ||
+                          detailOrder.address?.phone ||
+                          "-"}
                       </p>
                       <p className="text-muted mb-0">
-                        {detailOrder.address?.phone || "-"}
+                        {detailOrder.dropoffAddress ||
+                          formatAddress(detailOrder.address) ||
+                          "-"}
+                      </p>
+                      <p className="text-muted small mb-0">
+                        Lat/Lng:{" "}
+                        {detailOrder.dropoffLat && detailOrder.dropoffLng
+                          ? `${detailOrder.dropoffLat}, ${detailOrder.dropoffLng}`
+                          : "Not set"}
                       </p>
                     </div>
                   </div>
@@ -488,6 +348,9 @@ const Orders = ({ url }) => {
                       </p>
                       <p className="fw-semibold mb-0">
                         {detailOrder.paymentStatus}
+                      </p>
+                      <p className="text-muted mb-0">
+                        Method: {detailOrder.deliveryMethod || "drone"}
                       </p>
                     </div>
                   </div>
@@ -549,33 +412,6 @@ const Orders = ({ url }) => {
                   onClick={() => setDetailOrderId(null)}
                 >
                   Close
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={async () => {
-                    if (
-                      ["delivered", "cancelled"].includes(detailOrder.status)
-                    ) {
-                      toast.info("Finalised orders cannot be assigned.");
-                      return;
-                    }
-                    const assigned = assignments[detailOrder._id];
-                    if (assigned) {
-                      toast.info("Drone already assigned to this order");
-                      return;
-                    }
-                    const result = await assignDrone(detailOrder);
-                    if (!result) {
-                      toast.error("No available drone for this branch");
-                    }
-                  }}
-                  disabled={
-                    detailOrder.status === "delivered" ||
-                    detailOrder.status === "cancelled"
-                  }
-                >
-                  Assign drone
                 </button>
               </div>
             </div>

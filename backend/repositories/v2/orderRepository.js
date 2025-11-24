@@ -6,14 +6,26 @@ export const findById = (id) =>
     .populate("branchId")
     .populate("userId", "name email phone")
     .populate("items.foodVariantId");
-export const updateById = (id, update) =>
-  OrderModel.findByIdAndUpdate(id, update, { new: true });
-export const pushTimeline = (id, entry) =>
-  OrderModel.findByIdAndUpdate(
+export const updateById = (id, update, options = {}) =>
+  OrderModel.findByIdAndUpdate(id, update, {
+    new: true,
+    runValidators: true,
+    ...options,
+  });
+export const pushTimeline = (id, entry) => {
+  const payload = { ...entry };
+  if (!payload.at) {
+    payload.at = new Date();
+  }
+  if (!payload.actorType) {
+    payload.actorType = "system";
+  }
+  return OrderModel.findByIdAndUpdate(
     id,
-    { $push: { timeline: entry } },
+    { $push: { timeline: payload } },
     { new: true }
   );
+};
 
 export const find = (filter = {}, options = {}) =>
   OrderModel.find(filter, null, options)
