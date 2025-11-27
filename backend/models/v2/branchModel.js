@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { addressSchema, locationSchema } from "./commonSchemas.js";
 
 const branchSchema = new mongoose.Schema(
   {
@@ -7,13 +8,25 @@ const branchSchema = new mongoose.Schema(
       ref: "Restaurant",
       required: true,
     },
+    hubId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hub",
+    },
     name: { type: String, required: true, trim: true },
-    street: { type: String },
-    district: { type: String },
-    city: { type: String },
+
+    // Structured address + legacy flat fields for backward compatibility
+    address: { type: addressSchema, default: {} },
+    street: { type: String }, // LEGACY - use address.street instead
+    district: { type: String }, // LEGACY - use address.district instead
+    city: { type: String }, // LEGACY - use address.city instead
+    country: { type: String, default: "Vietnam" },
     phone: { type: String },
-    latitude: { type: Number },
-    longitude: { type: Number },
+
+    // GeoJSON point + legacy lat/lng
+    location: { type: locationSchema },
+    latitude: { type: Number }, // LEGACY - use location.coordinates[1]
+    longitude: { type: Number }, // LEGACY - use location.coordinates[0]
+
     isPrimary: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
   },
@@ -27,6 +40,8 @@ branchSchema.index(
   { restaurantId: 1, name: 1 },
   { unique: true, partialFilterExpression: { isActive: true } }
 );
+branchSchema.index({ hubId: 1, isActive: 1 });
+branchSchema.index({ location: "2dsphere" });
 
 const BranchModel =
   mongoose.models.Branch || mongoose.model("Branch", branchSchema);

@@ -6,25 +6,38 @@ import { formatCurrency } from "../../utils/currency";
 
 const initialFormValues = {
   name: "",
+  hubId: "",
   street: "",
+  ward: "",
   district: "",
   city: "",
+  country: "Vietnam",
   phone: "",
-  latitude: "",
-  longitude: "",
   isPrimary: false,
+  isActive: true,
   managerName: "",
   managerEmail: "",
   managerPassword: "",
 };
 
-const formatAddress = (branch) =>
-  [branch.street, branch.district, branch.city].filter(Boolean).join(", ");
+const formatAddress = (branch) => {
+  if (branch.address?.fullText) return branch.address.fullText;
+  return [
+    branch.address?.street,
+    branch.address?.ward,
+    branch.address?.district,
+    branch.address?.city,
+    branch.address?.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
+};
 
 const Branches = ({ url }) => {
   const { token } = useContext(StoreContext);
   const [branches, setBranches] = useState([]);
   const [restaurantName, setRestaurantName] = useState("");
+  const [hubs, setHubs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [menuLoading, setMenuLoading] = useState(false);
   const [selectedBranchId, setSelectedBranchId] = useState("");
@@ -45,15 +58,20 @@ const Branches = ({ url }) => {
       if (!token) return;
       setLoading(true);
       try {
-        const response = await axios.get(`${url}/api/v2/branches`, {
-          headers: { token },
-        });
-        if (response.data.success) {
-          const payload = response.data.data || {};
-          const list = payload.branches || [];
-          setBranches(list);
-          setRestaurantName(payload.restaurant?.name || "");
-          const branchIds = list.map((branch) => branch._id);
+      const response = await axios.get(`${url}/api/v2/branches`, {
+        headers: { token },
+      });
+      if (response.data.success) {
+        const payload = response.data.data || {};
+        const list = payload.branches || [];
+        setBranches(list);
+        setRestaurantName(payload.restaurant?.name || "");
+        if (payload.hubs) {
+          setHubs(payload.hubs);
+        } else {
+          fetchHubs();
+        }
+        const branchIds = list.map((branch) => branch._id);
           setSelectedBranchId((current) => {
             const preferred =
               preferredBranchId && branchIds.includes(preferredBranchId)
@@ -107,6 +125,21 @@ const Branches = ({ url }) => {
     [url]
   );
 
+  const fetchHubs = async () => {
+    try {
+      const res = await axios.get(`${url}/api/v2/hubs`, { headers: { token } });
+      if (res.data?.success) {
+        setHubs(res.data.data || []);
+        setFormValues((prev) => ({
+          ...prev,
+          hubId: prev.hubId || res.data.data?.[0]?._id || "",
+        }));
+      }
+    } catch (error) {
+      console.warn("Failed to load hubs", error);
+    }
+  };
+
   useEffect(() => {
     if (token) {
       fetchBranches();
@@ -140,19 +173,15 @@ const Branches = ({ url }) => {
     setEditingBranchId(branch._id);
     setFormValues({
       name: branch.name || "",
-      street: branch.street || "",
-      district: branch.district || "",
-      city: branch.city || "",
+      hubId: branch.hubId?._id || branch.hubId || "",
+      street: branch.address?.street || "",
+      ward: branch.address?.ward || "",
+      district: branch.address?.district || "",
+      city: branch.address?.city || "",
+      country: branch.address?.country || "Vietnam",
       phone: branch.phone || "",
-      latitude:
-        branch.latitude === undefined || branch.latitude === null
-          ? ""
-          : String(branch.latitude),
-      longitude:
-        branch.longitude === undefined || branch.longitude === null
-          ? ""
-          : String(branch.longitude),
       isPrimary: Boolean(branch.isPrimary),
+      isActive: branch.isActive !== false,
       managerName: branch.manager?.name || "",
       managerEmail: branch.manager?.email || "",
       managerPassword: "",
@@ -190,13 +219,20 @@ const Branches = ({ url }) => {
       toast.error("Branch name is required");
       return;
     }
+    if (!formValues.hubId) {
+      toast.error("Select a hub for this branch");
+      return;
+    }
     const {
       managerName,
       managerEmail,
       managerPassword,
       ...branchFields
     } = formValues;
-    const payload = { ...branchFields };
+    const payload = {
+      ...branchFields,
+      country: branchFields.country || "Vietnam",
+    };
     if (managerName || managerEmail || managerPassword) {
       payload.manager = {
         name: managerName || undefined,
@@ -305,11 +341,37 @@ const Branches = ({ url }) => {
                       />
                     </div>
                     <div className="col-12">
+                      <label className="form-label">Hub</label>
+                      <select
+                        className="form-select"
+                        name="hubId"
+                        value={formValues.hubId}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Select hub</option>
+                        {hubs.map((hub) => (
+                          <option key={hub._id} value={hub._id}>
+                            {hub.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-12">
                       <label className="form-label">Street</label>
                       <input
                         className="form-control"
                         name="street"
                         value={formValues.street}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Ward</label>
+                      <input
+                        className="form-control"
+                        name="ward"
+                        value={formValues.ward}
                         onChange={handleInputChange}
                       />
                     </div>
@@ -332,6 +394,15 @@ const Branches = ({ url }) => {
                       />
                     </div>
                     <div className="col-md-6">
+                      <label className="form-label">Country</label>
+                      <input
+                        className="form-control"
+                        name="country"
+                        value={formValues.country}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-6">
                       <label className="form-label">Phone</label>
                       <input
                         className="form-control"
@@ -340,27 +411,33 @@ const Branches = ({ url }) => {
                         onChange={handleInputChange}
                       />
                     </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Latitude</label>
-                      <input
-                        className="form-control"
-                        name="latitude"
-                        type="number"
-                        step="any"
-                        value={formValues.latitude}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Longitude</label>
-                      <input
-                        className="form-control"
-                        name="longitude"
-                        type="number"
-                        step="any"
-                        value={formValues.longitude}
-                        onChange={handleInputChange}
-                      />
+                    <div className="col-12 d-flex flex-wrap gap-3 align-items-center">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="branch-is-primary"
+                          name="isPrimary"
+                          checked={formValues.isPrimary}
+                          onChange={handleInputChange}
+                        />
+                        <label className="form-check-label" htmlFor="branch-is-primary">
+                          Primary branch
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="branch-is-active"
+                          name="isActive"
+                          checked={formValues.isActive}
+                          onChange={handleInputChange}
+                        />
+                        <label className="form-check-label" htmlFor="branch-is-active">
+                          Active
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <hr className="my-4" />
@@ -479,6 +556,7 @@ const Branches = ({ url }) => {
                 <thead className="text-muted small text-uppercase">
                   <tr>
                     <th>Name</th>
+                    <th>Hub</th>
                     <th>Address</th>
                     <th>Phone</th>
                     <th>Status</th>
@@ -509,6 +587,10 @@ const Branches = ({ url }) => {
                               Primary
                             </span>
                           ) : null}
+                        </td>
+                        <td className="text-muted">
+                          {hubs.find((h) => h._id === (branch.hubId?._id || branch.hubId))
+                            ?.name || "-"}
                         </td>
                         <td className="text-muted">
                           {formatAddress(branch) || "-"}

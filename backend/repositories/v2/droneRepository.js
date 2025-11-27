@@ -3,13 +3,14 @@ import DroneModel from "../../models/v2/droneModel.js";
 export const create = (payload) => DroneModel.create(payload);
 
 export const findAvailable = ({
-  branchId,
+  hubId,
   minBattery = 0,
   minPayloadKg = 0,
+  near, // { lat, lng, maxDistanceMeters? }
 } = {}) => {
-  const filter = { status: "available" };
-  if (branchId) {
-    filter.branchId = branchId;
+  const filter = { status: { $in: ["available", "AVAILABLE"] }, isActive: { $ne: false } };
+  if (hubId) {
+    filter.hubId = hubId;
   }
   if (Number.isFinite(minBattery) && minBattery > 0) {
     filter.batteryLevel = { $gte: minBattery };
@@ -18,7 +19,17 @@ export const findAvailable = ({
     filter.maxPayloadKg = { $gte: minPayloadKg };
   }
 
-  return DroneModel.find(filter).sort({ updatedAt: 1, batteryLevel: -1 });
+  const query = DroneModel.find(filter);
+  if (near && Number.isFinite(near.lat) && Number.isFinite(near.lng)) {
+    query.where("location").near({
+      $geometry: { type: "Point", coordinates: [near.lng, near.lat] },
+      ...(Number.isFinite(near.maxDistanceMeters)
+        ? { $maxDistance: near.maxDistanceMeters }
+        : {}),
+    });
+  }
+
+  return query.sort({ updatedAt: 1, batteryLevel: -1 });
 };
 
 export const findById = (id) => DroneModel.findById(id);

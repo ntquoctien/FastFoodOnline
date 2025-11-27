@@ -11,3 +11,5 @@ export { default as GeocodeCacheModel } from "./geocodeCacheModel.js";
 export { default as PaymentModel } from "./paymentModel.js";
 export { default as NotificationModel } from "./notificationModel.js";
 export { default as MeasurementUnitModel } from "./measurementUnitModel.js";
+export { default as HubModel } from "./hubModel.js";
+export { default as MissionModel } from "./missionModel.js";

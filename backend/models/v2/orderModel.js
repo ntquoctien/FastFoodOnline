@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { addressSchema, locationSchema } from "./commonSchemas.js";
 
 const orderItemSchema = new mongoose.Schema(
   {
@@ -39,11 +40,22 @@ const orderSchema = new mongoose.Schema(
       ref: "Branch",
       required: true,
     },
-    items: { type: [orderItemSchema], default: [] },
-    address: {
-      type: Object,
-      required: true,
+    hubId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hub",
     },
+    items: { type: [orderItemSchema], default: [] },
+
+    // New structured address + GeoJSON for customer drop-off
+    customerAddress: { type: addressSchema, default: {} },
+    customerLocation: { type: locationSchema },
+
+    // Legacy fields retained for backward compatibility
+    address: { type: Object }, // LEGACY - use customerAddress/customerLocation instead
+    dropoffAddress: { type: String },
+    dropoffLat: { type: Number },
+    dropoffLng: { type: Number },
+
     deliveryMethod: {
       type: String,
       enum: ["drone"],
@@ -55,16 +67,26 @@ const orderSchema = new mongoose.Schema(
     },
     pickupLat: { type: Number },
     pickupLng: { type: Number },
-    dropoffAddress: { type: String },
-    dropoffLat: { type: Number },
-    dropoffLng: { type: Number },
+
     subtotal: { type: Number, required: true },
     deliveryFee: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     orderWeightKg: { type: Number },
+    payloadWeightKg: { type: Number },
+
     status: {
       type: String,
       enum: [
+        "CREATED",
+        "ASSIGNED",
+        "COMPLETED",
+        "PREPARING",
+        "PICKING_UP",
+        "DELIVERING",
+        "DELIVERED",
+        "CANCELED",
+        "WAITING_FOR_DRONE",
+        // legacy statuses
         "pending",
         "confirmed",
         "preparing",
@@ -73,18 +95,28 @@ const orderSchema = new mongoose.Schema(
         "cancelled",
         "delivery_failed",
       ],
-      default: "pending",
+      default: "CREATED",
     },
     cancellationReason: { type: String, maxlength: 500 },
     cancelledAt: { type: Date },
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+    paymentMethod: {
+      type: String,
+      enum: ["COD", "ONLINE", "MOMO", "STRIPE", "VNPAY", "OTHER"],
+      default: "ONLINE",
+    },
     paymentStatus: {
       type: String,
-      enum: ["unpaid", "paid", "refunded"],
-      default: "unpaid",
+      enum: ["unpaid", "paid", "refunded", "PENDING", "PAID", "FAILED", "REFUNDED"],
+      default: "PENDING",
     },
     timeline: { type: [deliveryTimelineSchema], default: [] },
-    needsDroneAssignment: { type: Boolean, default: false },
+
+    droneId: { type: mongoose.Schema.Types.ObjectId, ref: "Drone" },
+    missionId: { type: mongoose.Schema.Types.ObjectId, ref: "Mission" },
+    etaMinutes: { type: Number },
+
+    needsDroneAssignment: { type: Boolean, default: true },
     lastDroneAssignAttemptAt: { type: Date },
     droneAssignRetries: { type: Number, default: 0 },
   },
@@ -95,6 +127,7 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ customerLocation: "2dsphere" });
 
 const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
 

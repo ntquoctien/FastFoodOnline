@@ -26,6 +26,7 @@ PORT=4000
 MONGO_URL=mongodb+srv://<user>:<pass>@<cluster-host>/fooddeliverydb
 SALT=10
 JWT_SECRET=your_jwt_secret
+MAPTILER_KEY=oFQ2QWBEZhgrPxVs2Ewh
 ```
 - Cài dependencies và chạy:
 ```
@@ -43,6 +44,7 @@ npm run dev
 ```
 - Truy cập http://localhost:5173
 - Đặt `VITE_API_URL` (qua môi trường hoặc `.env`) nếu cần.
+- Map tiles (Leaflet/MapTiler): dùng style `https://api.maptiler.com/maps/openstreetmap/{z}/{x}/{y}.png?key=oFQ2QWBEZhgrPxVs2Ewh` hoặc viewer `https://api.maptiler.com/maps/openstreetmap/?key=oFQ2QWBEZhgrPxVs2Ewh#0.7/22.80535/2.86559`.
 
 ### 3.3 Admin
 ```

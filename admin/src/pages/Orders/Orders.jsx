@@ -53,6 +53,7 @@ const Orders = ({ url }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [branches, setBranches] = useState([]);
+  const [hubs, setHubs] = useState([]);
   const [branchFilter, setBranchFilter] = useState("");
   const [detailOrderId, setDetailOrderId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("in_progress");
@@ -69,9 +70,25 @@ const Orders = ({ url }) => {
       });
       if (response.data?.success) {
         setBranches(response.data.data?.branches || []);
+        if (response.data.data?.hubs) {
+          setHubs(response.data.data.hubs || []);
+        } else {
+          fetchHubs();
+        }
       }
     } catch (error) {
       console.warn("Failed to load branch options", error);
+    }
+  }, [token, url]);
+
+  const fetchHubs = useCallback(async () => {
+    try {
+      const res = await axios.get(`${url}/api/v2/hubs`, { headers: { token } });
+      if (res.data?.success) {
+        setHubs(res.data.data || []);
+      }
+    } catch (error) {
+      console.warn("Failed to load hubs", error);
     }
   }, [token, url]);
 
@@ -116,6 +133,11 @@ const Orders = ({ url }) => {
     branches.forEach((branch) => map.set(branch._id, branch.name));
     return map;
   }, [branches]);
+  const hubNameMap = useMemo(() => {
+    const map = new Map();
+    hubs.forEach((hub) => map.set(hub._id, hub.name));
+    return map;
+  }, [hubs]);
 
   const filteredOrders = useMemo(() => {
     if (statusFilter === "all") return orders;
@@ -153,7 +175,8 @@ const Orders = ({ url }) => {
   };
 
   const formatAddress = (address = {}) =>
-    [address.street, address.city, address.state, address.country, address.zipcode]
+    address.fullText ||
+    [address.street, address.ward, address.district, address.city, address.country]
       .filter(Boolean)
       .join(", ");
 
@@ -221,9 +244,21 @@ const Orders = ({ url }) => {
                     <span className="fw-semibold">{branchName || "-"}</span>
                   </div>
                   <div className="d-flex justify-content-between">
+                    <span className="text-muted">Hub</span>
+                    <span className="fw-semibold">
+                      {hubNameMap.get(order.hubId) || "-"}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between">
                     <span className="text-muted">Recipient</span>
                     <span className="fw-semibold text-end">
-                      {order.address?.firstName} {order.address?.lastName}
+                      {order.contact?.name || order.customerAddress?.fullName || order.userId}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <span className="text-muted">Address</span>
+                    <span className="fw-semibold text-end">
+                      {formatAddress(order.customerAddress || {}) || "-"}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between">
@@ -311,37 +346,31 @@ const Orders = ({ url }) => {
                       </p>
                       <p className="fw-semibold mb-0">
                         {detailOrder.contact?.name ||
-                          detailOrder.address?.fullName ||
-                          detailOrder.address?.firstName ||
+                          detailOrder.customerAddress?.fullName ||
+                          detailOrder.userId ||
                           "-"}
                       </p>
                       <p className="text-muted mb-0">
-                        {detailOrder.contact?.phone ||
-                          detailOrder.address?.phone ||
-                          "-"}
+                        {detailOrder.contact?.phone || "-"}
                       </p>
                       <p className="text-muted mb-0">
-                        {detailOrder.dropoffAddress ||
-                          formatAddress(detailOrder.address) ||
-                          "-"}
-                      </p>
-                      <p className="text-muted small mb-0">
-                        Lat/Lng:{" "}
-                        {detailOrder.dropoffLat && detailOrder.dropoffLng
-                          ? `${detailOrder.dropoffLat}, ${detailOrder.dropoffLng}`
-                          : "Not set"}
+                        {formatAddress(detailOrder.customerAddress || {}) || "-"}
                       </p>
                     </div>
                   </div>
                   <div className="col-md-4">
                     <div className="border rounded-4 p-3 h-100">
                       <p className="text-uppercase text-muted small mb-1">
-                        Branch
+                        Locations
                       </p>
-                      <p className="fw-semibold mb-3">
+                      <p className="fw-semibold mb-2">
+                        Branch:{" "}
                         {branchNameMap.get(
                           detailOrder.branchId?._id || detailOrder.branchId
                         ) || "-"}
+                      </p>
+                      <p className="fw-semibold mb-3">
+                        Hub: {hubNameMap.get(detailOrder.hubId) || "-"}
                       </p>
                       <p className="text-uppercase text-muted small mb-1">
                         Payment
@@ -352,6 +381,26 @@ const Orders = ({ url }) => {
                       <p className="text-muted mb-0">
                         Method: {detailOrder.deliveryMethod || "drone"}
                       </p>
+                      {detailOrder.needsDroneAssignment ? (
+                        <p className="text-danger small mb-0">
+                          Waiting for drone assignment
+                        </p>
+                      ) : null}
+                      {detailOrder.etaMinutes ? (
+                        <p className="text-muted small mb-0">
+                          ETA: {detailOrder.etaMinutes} minutes
+                        </p>
+                      ) : null}
+                      {detailOrder.droneId ? (
+                        <p className="text-muted small mb-0">
+                          Drone: {detailOrder.droneId}
+                        </p>
+                      ) : null}
+                      {detailOrder.missionId ? (
+                        <p className="text-muted small mb-0">
+                          Mission: {detailOrder.missionId}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                   <div className="col-md-4">

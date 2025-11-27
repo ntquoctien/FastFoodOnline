@@ -7,6 +7,18 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/frontend_assets/assets";
 import { formatCurrency } from "../../utils/currency";
 
+const defaultAddress = {
+  firstName: "",
+  lastName: "",
+  phone: "",
+  email: "",
+  street: "",
+  ward: "",
+  district: "",
+  city: "",
+  country: "Vietnam",
+};
+
 const PlaceOrder = () => {
   const navigate = useNavigate();
   const {
@@ -19,15 +31,12 @@ const PlaceOrder = () => {
     branches,
   } = useContext(StoreContext);
 
-  const [data, setData] = useState({
-    fullName: "",
-    fullAddress: "",
-    phone: "",
-  });
+  const [data, setData] = useState(defaultAddress);
   const [dropoffLat, setDropoffLat] = useState("");
   const [dropoffLng, setDropoffLng] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [submitting, setSubmitting] = useState(false);
+
   const paymentOptions = [
     {
       id: "cash",
@@ -67,6 +76,19 @@ const PlaceOrder = () => {
     });
   };
 
+  const buildFullAddress = (payload) => {
+    const parts = [
+      payload.street,
+      payload.ward,
+      payload.district,
+      payload.city,
+      payload.country || "Vietnam",
+    ]
+      .map((part) => (part || "").trim())
+      .filter(Boolean);
+    return parts.join(", ");
+  };
+
   const branchLookup = useMemo(() => {
     const lookup = {};
     (branches || []).forEach((branch) => {
@@ -94,7 +116,7 @@ const PlaceOrder = () => {
           variantId,
           quantity,
           branchId,
-          name: variant.foodName || variant.name || "Món ăn",
+          name: variant.foodName || variant.name || "Dish",
           size: variant.size,
           price: variant.price,
           total: (variant.price || 0) * quantity,
@@ -142,22 +164,28 @@ const PlaceOrder = () => {
       quantity: item.quantity,
     }));
 
+    const contactName = `${data.firstName} ${data.lastName}`.trim();
+
     setSubmitting(true);
     try {
       const orderResponse = await axios.post(
         `${url}/api/v2/orders`,
         {
-      branchId,
-      items: orderItems,
-      address: data.fullAddress,
-      dropoffLat: dropoffLat ? Number(dropoffLat) : undefined,
-      dropoffLng: dropoffLng ? Number(dropoffLng) : undefined,
-      contact: {
-        name: data.fullName,
-        phone: data.phone,
-      },
-    },
-    { headers: { token } }
+          branchId,
+          items: orderItems,
+          address: {
+            address: buildFullAddress(data),
+            ...data,
+          },
+          dropoffLat: dropoffLat ? Number(dropoffLat) : undefined,
+          dropoffLng: dropoffLng ? Number(dropoffLng) : undefined,
+          contact: {
+            name: contactName || data.firstName || data.lastName,
+            phone: data.phone,
+            email: data.email,
+          },
+        },
+        { headers: { token } }
       );
       if (!orderResponse.data.success) {
         toast.error(orderResponse.data.message || "Unable to create order");
@@ -304,30 +332,92 @@ const PlaceOrder = () => {
     <form className="place-order" onSubmit={placeOrder}>
       <div className="place-order-left">
         <p className="title">Delivery Information</p>
-        <input
-          required
-          name="fullName"
-          value={data.fullName}
-          onChange={onChangeHandler}
-          type="text"
-          placeholder="Full name"
-        />
-        <input
-          required
-          name="phone"
-          value={data.phone}
-          onChange={onChangeHandler}
-          type="text"
-          placeholder="Phone"
-        />
-        <textarea
-          required
-          name="fullAddress"
-          value={data.fullAddress}
-          onChange={onChangeHandler}
-          placeholder="Địa chỉ đầy đủ: Số nhà, Đường, Phường/Xã, Quận/Huyện, Tỉnh/Thành, Việt Nam"
-          rows={3}
-        />
+
+        <div className="form-card">
+          <div className="form-card-header">Customer Information</div>
+          <div className="multi-fields">
+            <input
+              required
+              name="firstName"
+              value={data.firstName}
+              onChange={onChangeHandler}
+              type="text"
+              placeholder="First name"
+            />
+            <input
+              required
+              name="lastName"
+              value={data.lastName}
+              onChange={onChangeHandler}
+              type="text"
+              placeholder="Last name"
+            />
+          </div>
+          <input
+            required
+            name="phone"
+            value={data.phone}
+            onChange={onChangeHandler}
+            type="tel"
+            placeholder="Phone"
+          />
+          <input
+            name="email"
+            value={data.email}
+            onChange={onChangeHandler}
+            type="email"
+            placeholder="Email"
+          />
+        </div>
+
+        <div className="form-card">
+          <div className="form-card-header">Shipping Address</div>
+          <div className="multi-fields">
+            <input
+              required
+              name="street"
+              value={data.street}
+              onChange={onChangeHandler}
+              type="text"
+              placeholder="Street"
+            />
+            <input
+              required
+              name="ward"
+              value={data.ward}
+              onChange={onChangeHandler}
+              type="text"
+              placeholder="Ward"
+            />
+          </div>
+          <div className="multi-fields">
+            <input
+              required
+              name="district"
+              value={data.district}
+              onChange={onChangeHandler}
+              type="text"
+              placeholder="District"
+            />
+            <input
+              required
+              name="city"
+              value={data.city}
+              onChange={onChangeHandler}
+              type="text"
+              placeholder="City"
+            />
+          </div>
+          <input
+            required
+            name="country"
+            value={data.country}
+            onChange={onChangeHandler}
+            type="text"
+            placeholder="Country (default Vietnam)"
+          />
+        </div>
+
         <div className="multi-fields">
           <input
             name="dropoffLat"
@@ -335,7 +425,7 @@ const PlaceOrder = () => {
             onChange={(e) => setDropoffLat(e.target.value)}
             type="number"
             step="0.000001"
-            placeholder="Lat (tuỳ chọn)"
+            placeholder="Lat (optional)"
           />
           <input
             name="dropoffLng"
@@ -343,12 +433,13 @@ const PlaceOrder = () => {
             onChange={(e) => setDropoffLng(e.target.value)}
             type="number"
             step="0.000001"
-            placeholder="Lng (tuỳ chọn)"
+            placeholder="Lng (optional)"
           />
           <button type="button" className="btn-secondary" onClick={useMyLocation}>
-            Dùng vị trí của tôi
+            Use my location
           </button>
         </div>
+
         <div className="payment-method">
           <p className="title">Payment Method</p>
           <div className="payment-method-options">
@@ -378,13 +469,14 @@ const PlaceOrder = () => {
           </div>
         </div>
       </div>
+
       <div className="place-order-right">
         <div className="order-summary">
           <div className="order-summary-header">
-            <h2>Đơn hàng của bạn</h2>
+            <h2>Your order</h2>
             {activeBranchName && checkoutItems.length > 0 && (
               <span className="order-summary-branch">
-                Giao từ: <strong>{activeBranchName}</strong>
+                From: <strong>{activeBranchName}</strong>
               </span>
             )}
           </div>
@@ -392,7 +484,7 @@ const PlaceOrder = () => {
           <div className="order-summary-list">
             {checkoutItems.length === 0 ? (
               <p className="order-summary-empty">
-                Giỏ hàng của bạn đang trống. Hãy thêm món trước khi thanh toán.
+                Your cart is empty. Please add items before checking out.
               </p>
             ) : (
               checkoutItems.map((item) => (
@@ -433,15 +525,15 @@ const PlaceOrder = () => {
 
           <div className="order-summary-totals">
             <div className="order-summary-row">
-              <span>Tạm tính</span>
+              <span>Subtotal</span>
               <span>{formatCurrency(totalAmount)}</span>
             </div>
             <div className="order-summary-row">
-              <span>Phí giao hàng</span>
+              <span>Delivery fee</span>
               <span>{formatCurrency(deliveryFee)}</span>
             </div>
             <div className="order-summary-row order-summary-row-total">
-              <span>Tổng cộng</span>
+              <span>Total</span>
               <span>{formatCurrency(totalAmount + deliveryFee)}</span>
             </div>
             <button
@@ -449,7 +541,7 @@ const PlaceOrder = () => {
               className="order-summary-action"
               disabled={submitting || checkoutItems.length === 0}
             >
-              {submitting ? "Đang xử lý..." : "Xác nhận đặt món"}
+              {submitting ? "Processing..." : "Confirm order"}
             </button>
           </div>
         </div>
@@ -459,4 +551,3 @@ const PlaceOrder = () => {
 };
 
 export default PlaceOrder;
-

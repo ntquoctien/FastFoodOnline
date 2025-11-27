@@ -1,5 +1,6 @@
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as restaurantRepo from "../../repositories/v2/restaurantRepository.js";
+import { resolveAddress, buildFullAddress } from "../../utils/geocode.js";
 
 const resolveRestaurant = async () =>
   (await restaurantRepo.findOne({ isActive: true })) ||
@@ -25,11 +26,24 @@ const toBooleanOrUndefined = (value) => {
 };
 
 const buildBranchPayload = (payload = {}) => {
-  const branchPayload = {
-    name: payload.name?.trim(),
+  const address = {
     street: payload.street?.trim(),
+    ward: payload.ward?.trim(),
     district: payload.district?.trim(),
     city: payload.city?.trim(),
+    country: payload.country?.trim() || "Vietnam",
+  };
+  const fullText = payload.fullAddress?.trim() || buildFullAddress(address);
+  if (fullText) address.fullText = fullText;
+
+  const branchPayload = {
+    name: payload.name?.trim(),
+    hubId: payload.hubId,
+    address,
+    street: address.street,
+    district: address.district,
+    city: address.city,
+    country: address.country,
     phone: payload.phone?.trim(),
     latitude: toNumberOrUndefined(payload.latitude),
     longitude: toNumberOrUndefined(payload.longitude),
@@ -88,6 +102,23 @@ export const createBranch = async (payload) => {
     return { success: false, message: "Branch name already exists" };
   }
 
+  let coordinates = null;
+  if (branchPayload.address?.fullText) {
+    const geocoded = await resolveAddress(branchPayload.address);
+    if (geocoded) {
+      coordinates = geocoded;
+    }
+  }
+
+  if (coordinates) {
+    branchPayload.location = {
+      type: "Point",
+      coordinates: [coordinates.lng, coordinates.lat],
+    };
+    branchPayload.latitude = coordinates.lat;
+    branchPayload.longitude = coordinates.lng;
+  }
+
   const branch = await branchRepo.create({
     restaurantId: restaurant._id,
     ...branchPayload,
@@ -119,6 +150,18 @@ export const updateBranch = async ({ branchId, payload }) => {
     });
     if (duplicate) {
       return { success: false, message: "Branch name already exists" };
+    }
+  }
+
+  if (branchPayload.address && Object.keys(branchPayload.address).length) {
+    const geocoded = await resolveAddress(branchPayload.address);
+    if (geocoded) {
+      branchPayload.location = {
+        type: "Point",
+        coordinates: [geocoded.lng, geocoded.lat],
+      };
+      branchPayload.latitude = geocoded.lat;
+      branchPayload.longitude = geocoded.lng;
     }
   }
 

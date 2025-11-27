@@ -7,6 +7,7 @@ import List from "./pages/List/List";
 import Orders from "./pages/Orders/Orders";
 import Inventory from "./pages/Inventory/Inventory";
 import Shippers from "./pages/Shippers/Shippers";
+import Hubs from "./pages/Hubs/Hubs";
 import BranchMenu from "./pages/Branch/Menu";
 import BranchInventory from "./pages/Branch/Inventory";
 import BranchOrders from "./pages/Branch/Orders";
@@ -67,7 +68,9 @@ const App = () => {
                   <Route path="/categories" element={<Categories url={apiBaseUrl} />} />
                   <Route path="/staff" element={<Staff url={apiBaseUrl} />} />
                   <Route path="/inventory" element={<Inventory url={apiBaseUrl} />} />
-                  <Route path="/shippers" element={<Shippers url={apiBaseUrl} />} />
+                  <Route path="/drones" element={<Shippers url={apiBaseUrl} />} />
+                  <Route path="/hubs" element={<Hubs url={apiBaseUrl} />} />
+                  <Route path="/shippers" element={<Navigate to="/drones" replace />} />
                   <Route path="/orders" element={<Orders url={apiBaseUrl} />} />
                   <Route path="/admins" element={<Admins url={apiBaseUrl} />} />
                   <Route path="/customers" element={<Customers url={apiBaseUrl} />} />

@@ -19,6 +19,8 @@ import adminAccountRouter from "./routes/adminAccountRoute.js";
 import customerRouter from "./routes/customerRoute.js";
 import measurementUnitRouter from "./routes/measurementUnitRoute.js";
 import droneV2Router from "./routes/droneV2Route.js";
+import hubV2Router from "./routes/hubV2Route.js";
+import missionV2Router from "./routes/missionV2Route.js";
 import { startDroneAssignRetry } from "./jobs/droneAssignmentRetry.js";
 
 // app config
@@ -100,6 +102,8 @@ app.use("/api/v2/admins", adminAccountRouter);
 app.use("/api/v2/customers", customerRouter);
 app.use("/api/v2/units", measurementUnitRouter);
 app.use("/api/v2/drones", droneV2Router);
+app.use("/api/v2/hubs", hubV2Router);
+app.use("/api/v2/missions", missionV2Router);
 
 app.get("/", (req, res) => {
   res.send("API Working");

@@ -3,7 +3,7 @@ import * as droneRepo from "../../repositories/v2/droneRepository.js";
 import * as droneAssignmentRepo from "../../repositories/v2/droneAssignmentRepository.js";
 import * as orderRepo from "../../repositories/v2/orderRepository.js";
 import * as userRepo from "../../repositories/userRepository.js";
-import * as branchRepo from "../../repositories/v2/branchRepository.js";
+import * as hubRepo from "../../repositories/v2/hubRepository.js";
 import { cancelMission, createMission } from "../../utils/droneGateway.js";
 import { assignDrone } from "./orderService.js";
 
@@ -32,12 +32,11 @@ export const listDrones = async ({ userId }) => {
 export const createDrone = async ({
   userId,
   code,
-  branchId,
+  hubId,
   maxPayloadKg,
   batteryLevel = 100,
-  status = "available",
-  lastKnownLat,
-  lastKnownLng,
+  status = "AVAILABLE",
+  location,
 }) => {
   await ensureAdmin(userId);
   const trimmedCode = (code || "").trim();
@@ -49,23 +48,23 @@ export const createDrone = async ({
   if (!Number.isFinite(battery) || battery < 0 || battery > 100) {
     throw new Error("INVALID_BATTERY");
   }
-  const allowedStatus = ["available", "busy", "offline", "maintenance"];
+  const allowedStatus = ["available", "busy", "offline", "maintenance", "AVAILABLE", "BUSY", "OFFLINE", "MAINTENANCE", "ASSIGNED", "DELIVERING", "RETURNING", "CHARGING"];
   if (!allowedStatus.includes(status)) {
     throw new Error("INVALID_STATUS");
   }
-  if (!branchId || !mongoose.isValidObjectId(branchId)) {
-    throw new Error("INVALID_BRANCH");
+  if (!hubId || !mongoose.isValidObjectId(hubId)) {
+    throw new Error("INVALID_HUB");
   }
-  const branch = await branchRepo.findById(branchId);
-  if (!branch) {
-    throw new Error("BRANCH_NOT_FOUND");
+  const hub = await hubRepo.findById(hubId);
+  if (!hub) {
+    throw new Error("HUB_NOT_FOUND");
   }
 
   let finalCode = trimmedCode;
   if (!finalCode) {
     const prefix = process.env.DRONE_CODE_PREFIX || "DRN";
-    const branchSuffix = String(branch._id || branchId).slice(-4);
-    finalCode = `${prefix}-${branchSuffix}-${Date.now().toString().slice(-5)}`;
+    const hubSuffix = String(hub._id || hubId).slice(-4);
+    finalCode = `${prefix}-${hubSuffix}-${Date.now().toString().slice(-5)}`;
   } else {
     const existingCode = await droneRepo.findAll({ code: finalCode });
     if (existingCode.length) {
@@ -73,15 +72,20 @@ export const createDrone = async ({
     }
   }
 
+  let resolvedLocation = location;
+  if (!resolvedLocation && Array.isArray(hub.location?.coordinates)) {
+    const [lng, lat] = hub.location.coordinates;
+    resolvedLocation = { type: "Point", coordinates: [lng, lat] };
+  }
+
   const drone = await droneRepo.create({
     code: finalCode,
     serialNumber: finalCode,
-    branchId: branch._id,
+    hubId: hub._id,
     maxPayloadKg: payload,
     batteryLevel: battery,
     status,
-    lastKnownLat: Number.isFinite(Number(lastKnownLat)) ? Number(lastKnownLat) : undefined,
-    lastKnownLng: Number.isFinite(Number(lastKnownLng)) ? Number(lastKnownLng) : undefined,
+    location: resolvedLocation,
   });
 
   return { success: true, data: drone };
@@ -91,17 +95,16 @@ export const updateDrone = async ({
   userId,
   droneId,
   code,
-  branchId,
+  hubId,
   status,
   batteryLevel,
-  lastKnownLat,
-  lastKnownLng,
+  location,
   maxPayloadKg,
 }) => {
   await ensureAdmin(userId);
   const update = {};
   if (status) {
-    const allowed = ["available", "busy", "offline", "maintenance"];
+    const allowed = ["available", "busy", "offline", "maintenance", "AVAILABLE", "BUSY", "OFFLINE", "MAINTENANCE", "ASSIGNED", "DELIVERING", "RETURNING", "CHARGING"];
     if (!allowed.includes(status)) {
       throw new Error("INVALID_STATUS");
     }
@@ -114,18 +117,6 @@ export const updateDrone = async ({
     }
     update.batteryLevel = val;
   }
-  if (lastKnownLat !== undefined) {
-    const val = Number(lastKnownLat);
-    if (Number.isFinite(val)) {
-      update.lastKnownLat = val;
-    }
-  }
-  if (lastKnownLng !== undefined) {
-    const val = Number(lastKnownLng);
-    if (Number.isFinite(val)) {
-      update.lastKnownLng = val;
-    }
-  }
   if (maxPayloadKg !== undefined) {
     const val = Number(maxPayloadKg);
     if (!Number.isFinite(val) || val <= 0) {
@@ -133,15 +124,23 @@ export const updateDrone = async ({
     }
     update.maxPayloadKg = val;
   }
-  if (branchId) {
-    if (!mongoose.isValidObjectId(branchId)) {
-      throw new Error("INVALID_BRANCH");
+  if (hubId) {
+    if (!mongoose.isValidObjectId(hubId)) {
+      throw new Error("INVALID_HUB");
     }
-    const branch = await branchRepo.findById(branchId);
-    if (!branch) {
-      throw new Error("BRANCH_NOT_FOUND");
+    const hub = await hubRepo.findById(hubId);
+    if (!hub) {
+      throw new Error("HUB_NOT_FOUND");
     }
-    update.branchId = branch._id;
+    update.hubId = hub._id;
+    if (!location && Array.isArray(hub.location?.coordinates)) {
+      const [lng, lat] = hub.location.coordinates;
+      update.location = { type: "Point", coordinates: [lng, lat] };
+    }
+  }
+  if (location && Array.isArray(location.coordinates)) {
+    const [lng, lat] = location.coordinates;
+    update.location = { type: "Point", coordinates: [lng, lat] };
   }
   if (code !== undefined) {
     const trimmedCode = (code || "").trim();
@@ -184,46 +183,52 @@ export const deleteDrone = async ({ userId, droneId }) => {
 
 export const seedSampleDrones = async ({
   userId,
-  branchId,
+  hubId,
   count = 3,
   prefix = "DRN",
   maxPayloadKg,
 }) => {
   await ensureAdmin(userId);
-  const branch = await branchRepo.findById(branchId);
-  if (!branch) {
-    return { success: false, message: "Branch not found" };
+  const hub = await hubRepo.findById(hubId);
+  if (!hub) {
+    return { success: false, message: "Hub not found" };
   }
   const safeCount = Math.min(Math.max(Number(count) || 1, 1), 20);
   const payload = Number(maxPayloadKg);
   const effectivePayload = Number.isFinite(payload) && payload > 0 ? payload : 3;
   const created = [];
   for (let i = 0; i < safeCount; i += 1) {
-    const code = `${prefix}-${String(branchId).slice(-4)}-${Date.now().toString().slice(-5)}-${i + 1}`;
+    const code = `${prefix}-${String(hubId).slice(-4)}-${Date.now().toString().slice(-5)}-${i + 1}`;
     try {
       // eslint-disable-next-line no-await-in-loop
       const drone = await droneRepo.create({
         code,
-        branchId: branch._id,
-        status: "available",
+        hubId: hub._id,
+        status: "AVAILABLE",
         batteryLevel: 100,
         maxPayloadKg: effectivePayload,
+        location: Array.isArray(hub.location?.coordinates)
+          ? { type: "Point", coordinates: [hub.location.coordinates[0], hub.location.coordinates[1]] }
+          : undefined,
       });
       created.push(drone);
     } catch (error) {
       if (error.code === 11000) {
         // retry with another code once
-        const retryCode = `${prefix}-${String(branchId).slice(-4)}-${Date.now().toString().slice(-6)}-${Math.floor(
+        const retryCode = `${prefix}-${String(hubId).slice(-4)}-${Date.now().toString().slice(-6)}-${Math.floor(
           Math.random() * 1000
         )}`;
         try {
           // eslint-disable-next-line no-await-in-loop
           const drone = await droneRepo.create({
             code: retryCode,
-            branchId: branch._id,
-            status: "available",
+            hubId: hub._id,
+            status: "AVAILABLE",
             batteryLevel: 100,
             maxPayloadKg: effectivePayload,
+            location: Array.isArray(hub.location?.coordinates)
+              ? { type: "Point", coordinates: [hub.location.coordinates[0], hub.location.coordinates[1]] }
+              : undefined,
           });
           created.push(drone);
           continue;

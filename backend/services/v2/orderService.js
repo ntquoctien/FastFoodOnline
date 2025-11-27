@@ -7,6 +7,8 @@ import * as droneAssignmentRepo from "../../repositories/v2/droneAssignmentRepos
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as geocodeCacheRepo from "../../repositories/v2/geocodeCacheRepository.js";
+import * as hubRepo from "../../repositories/v2/hubRepository.js";
+import { assignDroneForOrder } from "./droneAssignmentService.js";
 import { createPaymentUrl, verifyReturnParams } from "../../utils/vnpay.js";
 import {
   createCheckoutSession,
@@ -16,12 +18,16 @@ import {
   createPayment as createMomoPayment,
   queryPaymentStatus as queryMomoPaymentStatus,
 } from "../../utils/momo.js";
-import { resolveAddress } from "../../utils/geocode.js";
+import { resolveAddress, buildFullAddress } from "../../utils/geocode.js";
 import { createMission, cancelMission } from "../../utils/droneGateway.js";
+import { haversineDistanceKm } from "../../utils/geoDistance.js";
 
 const MAX_DRONE_ASSIGN_RETRIES =
   Number(process.env.DRONE_ASSIGN_MAX_RETRIES || 3) || 3;
 const MIN_DRONE_BATTERY = Number(process.env.DRONE_MIN_BATTERY || 40) || 40;
+const DEFAULT_DRONE_SPEED_KMH =
+  Number(process.env.DRONE_DEFAULT_SPEED_KMH || 40) || 40;
+const ETA_BUFFER_MINUTES = Number(process.env.DRONE_ETA_BUFFER_MIN || 5) || 5;
 
 const buildUrlWithParams = (base, params) => {
   if (!base) {
@@ -69,6 +75,10 @@ const PACKAGING_ALLOWANCE_KG =
 const DEFAULT_ITEM_WEIGHT_KG =
   Number(process.env.DRONE_DEFAULT_ITEM_WEIGHT_KG || 0.3) || 0;
 
+const isPaidStatus = (value) =>
+  String(value || "").toUpperCase() === "PAID" ||
+  String(value || "").toLowerCase() === "paid";
+
 const parseCoordinate = (value) => {
   if (value === undefined || value === null) {
     return null;
@@ -81,8 +91,15 @@ const parseCoordinate = (value) => {
 };
 
 const getBranchCoordinates = (branch) => {
-  const lat = parseCoordinate(branch?.latitude ?? branch?.lat);
-  const lng = parseCoordinate(branch?.longitude ?? branch?.lng);
+  const locCoords = branch?.location?.coordinates;
+  const locLng = Array.isArray(locCoords) ? parseCoordinate(locCoords[0]) : null;
+  const locLat = Array.isArray(locCoords) ? parseCoordinate(locCoords[1]) : null;
+  const lat = Number.isFinite(locLat)
+    ? locLat
+    : parseCoordinate(branch?.latitude ?? branch?.lat);
+  const lng = Number.isFinite(locLng)
+    ? locLng
+    : parseCoordinate(branch?.longitude ?? branch?.lng);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return { lat: null, lng: null };
   }
@@ -96,7 +113,8 @@ const resolveDropoffCoordinates = async ({ address, dropoffLat, dropoffLng }) =>
     return { lat, lng };
   }
 
-  const addressKey = (address || "").trim().toLowerCase();
+  const fullAddress = buildFullAddress(address);
+  const addressKey = (fullAddress || "").trim().toLowerCase();
   if (!addressKey) {
     const error = new Error("DROP_OFF_LOCATION_REQUIRED");
     throw error;
@@ -104,21 +122,25 @@ const resolveDropoffCoordinates = async ({ address, dropoffLat, dropoffLng }) =>
 
   const cached = await geocodeCacheRepo.findByAddressKey(addressKey);
   if (cached && Number.isFinite(cached.lat) && Number.isFinite(cached.lng)) {
-    return { lat: cached.lat, lng: cached.lng };
+    return { lat: cached.lat, lng: cached.lng, fullText: fullAddress };
   }
 
-  const geocoded = await resolveAddress(address);
+  const geocoded = await resolveAddress(fullAddress);
   if (
     geocoded &&
     Number.isFinite(geocoded.lat) &&
     Number.isFinite(geocoded.lng)
   ) {
-    const resolved = { lat: Number(geocoded.lat), lng: Number(geocoded.lng) };
+    const resolved = {
+      lat: Number(geocoded.lat),
+      lng: Number(geocoded.lng),
+      fullText: geocoded.fullText || fullAddress,
+    };
     await geocodeCacheRepo.upsert({
       addressKey,
       lat: resolved.lat,
       lng: resolved.lng,
-      provider: "nominatim",
+      provider: "maptiler",
     });
     return resolved;
   }
@@ -197,12 +219,24 @@ export const assignDrone = async ({ order, branchId }) => {
     branchId ||
     order.pickupBranchId ||
     order.branchId?._id ||
-    order.branchId;
+    order.branchId ||
+    null;
+  let resolvedHubId = order.hubId || order.branchId?.hubId || null;
+  if (!resolvedHubId && resolvedBranchId) {
+    const branch = await branchRepo.findById(resolvedBranchId);
+    if (branch) {
+      resolvedHubId = branch.hubId || resolvedHubId;
+    }
+  }
   const availableDrones = await droneRepo.findAvailable({
-    branchId: resolvedBranchId,
+    hubId: resolvedHubId,
     minBattery: MIN_DRONE_BATTERY,
     minPayloadKg:
       (order.orderWeightKg || 0) * PAYLOAD_SAFETY_FACTOR,
+    near: {
+      lat: order.pickupLat,
+      lng: order.pickupLng,
+    },
   });
 
   if (!availableDrones.length) {
@@ -218,7 +252,10 @@ export const assignDrone = async ({ order, branchId }) => {
     lng: order.pickupLng,
   };
   const scored = availableDrones.map((drone) => {
-    const dronePoint = {
+    const loc = Array.isArray(drone.location?.coordinates)
+      ? { lng: drone.location.coordinates[0], lat: drone.location.coordinates[1] }
+      : null;
+    const dronePoint = loc || {
       lat: drone.lastKnownLat ?? order.pickupLat,
       lng: drone.lastKnownLng ?? order.pickupLng,
     };
@@ -271,6 +308,49 @@ export const assignDrone = async ({ order, branchId }) => {
   return assignment;
 };
 
+const selectHubForOrder = async ({ customerLocation, fallbackHubId }) => {
+  try {
+    const coords = Array.isArray(customerLocation?.coordinates)
+      ? customerLocation.coordinates
+      : [];
+    if (coords.length < 2 || !Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) {
+      return fallbackHubId;
+    }
+    const hubs = await hubRepo.findAll({});
+    if (!Array.isArray(hubs) || !hubs.length) {
+      return fallbackHubId;
+    }
+    const [customerLng, customerLat] = coords;
+    const eligible = hubs
+      .map((hub) => {
+        const [hubLng, hubLat] = hub?.location?.coordinates || [];
+        if (!Number.isFinite(hubLng) || !Number.isFinite(hubLat)) {
+          return null;
+        }
+        const distanceKm = haversineDistanceKm(
+          [hubLng, hubLat],
+          [customerLng, customerLat]
+        );
+        return { hub, distanceKm };
+      })
+      .filter(Boolean)
+      .filter(({ hub, distanceKm }) => {
+        if (!Number.isFinite(hub?.serviceRadiusKm)) {
+          return true;
+        }
+        return distanceKm <= hub.serviceRadiusKm;
+      });
+    if (!eligible.length) {
+      return fallbackHubId;
+    }
+    eligible.sort((a, b) => a.distanceKm - b.distanceKm);
+    return eligible[0].hub?._id || fallbackHubId;
+  } catch (error) {
+    console.warn("selectHubForOrder fallback to branch hub", error);
+    return fallbackHubId;
+  }
+};
+
 export const createOrder = async ({
   userId,
   branchId,
@@ -278,14 +358,28 @@ export const createOrder = async ({
   address,
   dropoffLat,
   dropoffLng,
+  paymentMethod,
 }) => {
   const branch = await branchRepo.findById(branchId);
   if (!branch) {
     return { success: false, message: "Branch not found" };
   }
 
-  const dropoffAddressValue =
-    typeof address === "string" ? address : address?.address || "";
+  const customerAddress =
+    typeof address === "object"
+      ? {
+          street: address.street?.trim(),
+          ward: address.ward?.trim(),
+          district: address.district?.trim(),
+          city: address.city?.trim(),
+          country: address.country?.trim() || "Vietnam",
+        }
+      : {};
+  customerAddress.fullText =
+    (address?.fullText && String(address.fullText).trim()) ||
+    buildFullAddress(customerAddress);
+
+  let dropoffAddressValue = customerAddress.fullText || "";
   const { lat: pickupLat, lng: pickupLng } = getBranchCoordinates(branch);
   if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) {
     return { success: false, message: "Branch missing coordinates" };
@@ -294,7 +388,7 @@ export const createOrder = async ({
   let dropoff;
   try {
     dropoff = await resolveDropoffCoordinates({
-      address: dropoffAddressValue,
+      address: customerAddress,
       dropoffLat,
       dropoffLng,
     });
@@ -308,31 +402,58 @@ export const createOrder = async ({
     throw error;
   }
 
+  // If geocoder returned normalized full text, prefer it
+  if (dropoff?.fullText) {
+    customerAddress.fullText = dropoff.fullText;
+    dropoffAddressValue = dropoff.fullText;
+  }
+
+  const customerLocation = {
+    type: "Point",
+    coordinates: [dropoff.lng, dropoff.lat],
+  };
+
+  const resolvedHubId = await selectHubForOrder({
+    customerLocation,
+    fallbackHubId: branch.hubId,
+  });
+
   const { subtotal, normalizedItems, totalWeightKg } = await calculateItems(items);
   const deliveryFee = 2;
   const totalAmount = subtotal + deliveryFee;
+  const paymentMethodValue =
+    typeof paymentMethod === "string"
+      ? paymentMethod.toUpperCase()
+      : "ONLINE";
+  const initialPaymentStatus = paymentMethodValue === "COD" ? "PAID" : "PENDING";
 
   const order = await orderRepo.create({
     userId,
     branchId,
+    hubId: resolvedHubId || branch.hubId,
     pickupBranchId: branchId,
     pickupLat,
     pickupLng,
     dropoffAddress: dropoffAddressValue,
     dropoffLat: dropoff.lat,
     dropoffLng: dropoff.lng,
+    customerAddress,
+    customerLocation,
     deliveryMethod: "drone",
     items: normalizedItems,
-    address,
+    address: { ...customerAddress, lat: dropoff.lat, lng: dropoff.lng }, // legacy payload compatibility
     subtotal,
     deliveryFee,
     totalAmount,
     orderWeightKg: totalWeightKg || 0,
-    status: "pending",
-    paymentStatus: "unpaid",
+    payloadWeightKg: totalWeightKg || 0,
+    paymentMethod: paymentMethodValue,
+    paymentStatus: initialPaymentStatus,
+    status: "CREATED",
+    needsDroneAssignment: true,
     timeline: [
       {
-        status: "pending",
+        status: "CREATED",
         at: new Date(),
         actor: userId,
         actorType: "user",
@@ -348,7 +469,11 @@ export const createOrder = async ({
     });
   }
 
-  return { success: true, data: order };
+  // try auto-assign a drone; do not block order creation on failure
+  await assignDroneForOrder(order);
+  const refreshedOrder = await orderRepo.findById(order._id);
+
+  return { success: true, data: refreshedOrder || order };
 };
 
 export const confirmPayment = async ({
@@ -368,7 +493,10 @@ export const confirmPayment = async ({
     return { success: false, message: "Payment provider is required" };
   }
 
-  if (order.paymentStatus === "paid") {
+  const isAlreadyPaid =
+    String(order.paymentStatus || "").toUpperCase() === "PAID" ||
+    String(order.paymentStatus || "").toLowerCase() === "paid";
+  if (isAlreadyPaid) {
     return { success: true, message: "Order already paid" };
   }
 
@@ -410,19 +538,32 @@ export const confirmPayment = async ({
     });
   }
 
-  await orderRepo.updateById(orderId, {
-    paymentStatus: "paid",
-    status: "confirmed",
+  const updatedOrder = await orderRepo.updateById(orderId, {
+    paymentStatus: "PAID",
+    status: order.droneId ? order.status : "WAITING_FOR_DRONE",
+    needsDroneAssignment: order.droneId ? false : true,
   });
 
   await orderRepo.pushTimeline(orderId, {
-    status: "confirmed",
+    status: "PAID",
     actor: order.userId,
     actorType: "user",
     at: new Date(),
   });
 
-  const assignment = await assignDrone({ order, branchId: order.branchId });
+  const orderForAssignment = updatedOrder || order;
+  let assignment = null;
+  try {
+    assignment = await assignDroneForOrder(orderForAssignment);
+  } catch (assignError) {
+    console.error("assignDroneForOrder after payment failed", assignError);
+  }
+  if (!assignment) {
+    await orderRepo.updateById(orderId, {
+      status: orderForAssignment.droneId ? orderForAssignment.status : "WAITING_FOR_DRONE",
+      needsDroneAssignment: orderForAssignment.droneId ? false : true,
+    });
+  }
 
   return {
     success: true,
@@ -439,7 +580,7 @@ export const initializeStripePayment = async ({ orderId, amount }) => {
     if (!order) {
       return { success: false, message: "Order not found" };
     }
-    if (order.paymentStatus === "paid") {
+    if (isPaidStatus(order.paymentStatus)) {
       return { success: false, message: "Order already paid" };
     }
 
@@ -659,7 +800,7 @@ export const initializeMomoPayment = async ({ orderId, amount }) => {
     if (!order) {
       return { success: false, message: "Order not found" };
     }
-    if (order.paymentStatus === "paid") {
+    if (isPaidStatus(order.paymentStatus)) {
       return { success: false, message: "Order already paid" };
     }
 
@@ -840,7 +981,7 @@ export const initializeVnpayPayment = async ({ orderId, amount, ipAddress }) => 
     if (!order) {
       return { success: false, message: "Order not found" };
     }
-    if (order.paymentStatus === "paid") {
+    if (isPaidStatus(order.paymentStatus)) {
       return { success: false, message: "Order already paid" };
     }
 

@@ -3,53 +3,72 @@ import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 
-const statusOptions = ["available", "busy", "offline", "maintenance"];
+const statusOptions = [
+  "AVAILABLE",
+  "ASSIGNED",
+  "EN_ROUTE_PICKUP",
+  "DELIVERING",
+  "RETURNING",
+  "CHARGING",
+  "MAINTENANCE",
+];
+
 const statusBadgeMap = {
-  available: "badge bg-success-subtle text-success",
-  busy: "badge bg-warning-subtle text-warning",
-  offline: "badge bg-secondary-subtle text-secondary",
-  maintenance: "badge bg-info-subtle text-info",
+  AVAILABLE: "badge bg-success-subtle text-success",
+  ASSIGNED: "badge bg-primary-subtle text-primary",
+  EN_ROUTE_PICKUP: "badge bg-info-subtle text-info",
+  DELIVERING: "badge bg-info-subtle text-info",
+  RETURNING: "badge bg-warning-subtle text-warning",
+  CHARGING: "badge bg-secondary-subtle text-secondary",
+  MAINTENANCE: "badge bg-danger-subtle text-danger",
 };
 
-const isLocalId = (value) => String(value || "").startsWith("local-");
-
-const Shippers = ({ url }) => {
+const Drones = ({ url }) => {
   const { token } = useContext(StoreContext);
   const [drones, setDrones] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const [hubs, setHubs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [branchFilter, setBranchFilter] = useState("all");
+  const [hubFilter, setHubFilter] = useState("all");
   const [form, setForm] = useState({
-    branchId: "",
+    hubId: "",
+    code: "",
+    name: "",
+    serialNumber: "",
+    status: "AVAILABLE",
+    batteryLevel: "100",
+    speedKmh: "40",
     maxPayloadKg: "3",
+    isActive: true,
   });
   const [saving, setSaving] = useState(false);
   const [endpointAvailable, setEndpointAvailable] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [editingDrone, setEditingDrone] = useState(null);
   const [editForm, setEditForm] = useState({
+    hubId: "",
     code: "",
-    branchId: "",
-    maxPayloadKg: "",
+    name: "",
+    serialNumber: "",
+    status: "AVAILABLE",
     batteryLevel: "",
-    status: "available",
-    lastKnownLat: "",
-    lastKnownLng: "",
+    speedKmh: "",
+    maxPayloadKg: "",
+    isActive: true,
   });
 
   const filteredDrones = useMemo(() => {
-    if (branchFilter === "all") return drones;
+    if (hubFilter === "all") return drones;
     return drones.filter(
-      (drone) =>
-        String(drone.branchId?._id || drone.branchId || "") === branchFilter
+      (drone) => String(drone.hubId?._id || drone.hubId || "") === hubFilter
     );
-  }, [drones, branchFilter]);
+  }, [drones, hubFilter]);
 
   const fetchDrones = async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${url}/api/v2/drones`, {
         headers: { token },
+        params: hubFilter !== "all" && hubFilter ? { hubId: hubFilter } : undefined,
       });
       if (response.data?.success) {
         setDrones(response.data.data || []);
@@ -66,30 +85,39 @@ const Shippers = ({ url }) => {
     }
   };
 
-  const fetchBranches = async () => {
+  const fetchHubs = async () => {
     try {
-      const response = await axios.get(`${url}/api/v2/branches`, {
+      const response = await axios.get(`${url}/api/v2/hubs`, {
         headers: { token },
       });
       if (response.data?.success) {
-        const list = response.data.data?.branches || [];
-        setBranches(list);
+        const list = response.data.data || [];
+        setHubs(list);
         setForm((prev) => ({
           ...prev,
-          branchId: prev.branchId || list[0]?._id || "",
+          hubId: prev.hubId || list[0]?._id || "",
+        }));
+        setEditForm((prev) => ({
+          ...prev,
+          hubId: prev.hubId || list[0]?._id || "",
         }));
       }
     } catch (error) {
-      console.warn("Failed to load branches for drones", error);
+      console.warn("Failed to load hubs for drones", error);
     }
   };
 
   useEffect(() => {
     if (token) {
-      fetchBranches();
+      fetchHubs();
       fetchDrones();
     }
   }, [token]);
+
+  const hubName = (hubId) => {
+    const id = String(hubId || "");
+    return hubs.find((hub) => String(hub._id) === id)?.name || "Unassigned";
+  };
 
   const updateStatus = async (droneId, status) => {
     if (!endpointAvailable || String(droneId).startsWith("local-")) {
@@ -120,68 +148,64 @@ const Shippers = ({ url }) => {
   };
 
   const handleFormChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const resolveBranchName = (drone) => {
-    if (!drone) return "Unassigned";
-    if (drone.branchId?.name) return drone.branchId.name;
-    const branchId =
-      (drone.branchId && drone.branchId._id) || drone.branchId || "";
-    if (!branchId) return "Unassigned";
-    return (
-      branches.find((branch) => branch._id === branchId)?.name || "Unassigned"
-    );
+    const { name, value, type, checked } = event.target;
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   const openEdit = (drone) => {
     if (!drone) return;
     setEditingDrone(drone);
     setEditForm({
+      hubId: drone.hubId?._id || drone.hubId || "",
       code: drone.code || "",
-      branchId: drone.branchId?._id || drone.branchId || "",
+      name: drone.name || "",
+      serialNumber: drone.serialNumber || "",
       maxPayloadKg: drone.maxPayloadKg ?? "",
       batteryLevel: drone.batteryLevel ?? "",
-      status: drone.status || "available",
-      lastKnownLat: drone.lastKnownLat ?? "",
-      lastKnownLng: drone.lastKnownLng ?? "",
+      speedKmh: drone.speedKmh ?? "",
+      status: (drone.status || "AVAILABLE").toUpperCase(),
+      isActive: drone.isActive !== false,
     });
   };
 
   const closeEdit = () => {
     setEditingDrone(null);
     setEditForm({
+      hubId: "",
       code: "",
-      branchId: "",
+      name: "",
+      serialNumber: "",
       maxPayloadKg: "",
       batteryLevel: "",
-      status: "available",
-      lastKnownLat: "",
-      lastKnownLng: "",
+      speedKmh: "",
+      status: "AVAILABLE",
+      isActive: true,
     });
   };
 
   const handleEditChange = (event) => {
-    const { name, value } = event.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setEditForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   const submitEdit = async (event) => {
     event.preventDefault();
     if (!editingDrone) return;
+    const payload = {
+      hubId: editForm.hubId,
+      code: editForm.code,
+      name: editForm.name,
+      serialNumber: editForm.serialNumber,
+      maxPayloadKg: editForm.maxPayloadKg ? Number(editForm.maxPayloadKg) : undefined,
+      batteryLevel: editForm.batteryLevel ? Number(editForm.batteryLevel) : undefined,
+      speedKmh: editForm.speedKmh ? Number(editForm.speedKmh) : undefined,
+      status: editForm.status,
+      isActive: editForm.isActive,
+    };
     try {
       const response = await axios.patch(
         `${url}/api/v2/drones/${editingDrone._id}`,
-        {
-          code: editForm.code,
-          branchId: editForm.branchId,
-          maxPayloadKg: Number(editForm.maxPayloadKg),
-          batteryLevel: Number(editForm.batteryLevel),
-          status: editForm.status,
-          lastKnownLat: editForm.lastKnownLat,
-          lastKnownLng: editForm.lastKnownLng,
-        },
+        payload,
         { headers: { token } }
       );
       if (response.data?.success) {
@@ -197,10 +221,8 @@ const Shippers = ({ url }) => {
     }
   };
 
-  const deleteShipper = async (drone) => {
-    const confirmed = window.confirm(
-      `Delete drone ${drone?.code || ""}?`
-    );
+  const deleteDrone = async (drone) => {
+    const confirmed = window.confirm(`Delete drone ${drone?.code || ""}?`);
     if (!confirmed) return;
     const droneId = drone._id;
     setDeletingId(droneId);
@@ -226,12 +248,19 @@ const Shippers = ({ url }) => {
     event.preventDefault();
     if (saving) return;
     const payload = {
-      branchId: form.branchId,
+      hubId: form.hubId,
+      code: form.code || undefined,
+      name: form.name || undefined,
+      serialNumber: form.serialNumber || undefined,
       maxPayloadKg: Number(form.maxPayloadKg),
+      batteryLevel: form.batteryLevel ? Number(form.batteryLevel) : undefined,
+      speedKmh: form.speedKmh ? Number(form.speedKmh) : undefined,
+      status: form.status || "AVAILABLE",
+      isActive: form.isActive,
     };
 
-    if (!payload.branchId) {
-      toast.error("Select a branch for this drone");
+    if (!payload.hubId) {
+      toast.error("Select a hub for this drone");
       return;
     }
     if (!Number.isFinite(payload.maxPayloadKg) || payload.maxPayloadKg <= 0) {
@@ -264,21 +293,21 @@ const Shippers = ({ url }) => {
     <div className="page-heading">
       <div className="page-title-headings d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-          <h3 className="mb-1">Drone Fleet</h3>
+          <h3 className="mb-1">Drones</h3>
           <p className="text-muted mb-0">
-            Monitor delivery drones by branch and update their availability.
+            Manage delivery drones by hub and update their availability.
           </p>
         </div>
         <div className="w-100 w-lg-auto" style={{ maxWidth: "260px" }}>
           <select
             className="form-select"
-            value={branchFilter}
-            onChange={(event) => setBranchFilter(event.target.value)}
+            value={hubFilter}
+            onChange={(event) => setHubFilter(event.target.value)}
           >
-            <option value="all">All branches</option>
-            {branches.map((branch) => (
-              <option key={branch._id} value={branch._id}>
-                {branch.name}
+            <option value="all">All hubs</option>
+            {hubs.map((hub) => (
+              <option key={hub._id} value={hub._id}>
+                {hub.name}
               </option>
             ))}
           </select>
@@ -297,41 +326,129 @@ const Shippers = ({ url }) => {
             <div className="card-header border-0">
               <h5 className="mb-1">Add drone</h5>
               <small className="text-muted">
-                Seed a new drone for a branch (1 unit).
+                Create a new drone and assign it to a hub.
               </small>
             </div>
             <div className="card-body">
               <form onSubmit={handleCreate} className="d-flex flex-column gap-3">
                 <div>
-                  <label className="form-label">Branch</label>
+                  <label className="form-label">Hub</label>
                   <select
                     className="form-select"
-                    name="branchId"
-                    value={form.branchId}
+                    name="hubId"
+                    value={form.hubId}
                     onChange={handleFormChange}
                   >
-                    {branches.map((branch) => (
-                      <option key={branch._id} value={branch._id}>
-                        {branch.name}
+                    {hubs.map((hub) => (
+                      <option key={hub._id} value={hub._id}>
+                        {hub.name}
                       </option>
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="form-label">Code</label>
+                  <input
+                    className="form-control"
+                    name="code"
+                    value={form.code}
+                    onChange={handleFormChange}
+                    placeholder="Auto-generate if empty"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Name</label>
+                  <input
+                    className="form-control"
+                    name="name"
+                    value={form.name}
+                    onChange={handleFormChange}
+                    placeholder="Optional"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Serial number</label>
+                  <input
+                    className="form-control"
+                    name="serialNumber"
+                    value={form.serialNumber}
+                    onChange={handleFormChange}
+                    placeholder="Optional"
+                  />
+                </div>
+                <div className="row">
+                  <div className="col-6">
+                    <label className="form-label">Max payload (kg)</label>
+                    <input
+                      className="form-control"
+                      name="maxPayloadKg"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={form.maxPayloadKg}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="col-6">
+                    <label className="form-label">Battery (%)</label>
+                    <input
+                      className="form-control"
+                      name="batteryLevel"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={form.batteryLevel}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-6">
+                    <label className="form-label">Speed (km/h)</label>
+                    <input
+                      className="form-control"
+                      name="speedKmh"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={form.speedKmh}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="col-6">
+                    <label className="form-label">Status</label>
+                    <select
+                      className="form-select"
+                      name="status"
+                      value={form.status}
+                      onChange={handleFormChange}
+                    >
+                      {statusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="drone-active"
+                    name="isActive"
+                    checked={form.isActive}
+                    onChange={handleFormChange}
+                  />
+                  <label className="form-check-label" htmlFor="drone-active">
+                    Active
+                  </label>
+                </div>
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? "Creating..." : "Add drone"}
                 </button>
-                <div>
-                  <label className="form-label mb-1">Max payload (kg)</label>
-                  <input
-                    className="form-control"
-                    name="maxPayloadKg"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={form.maxPayloadKg}
-                    onChange={handleFormChange}
-                  />
-                </div>
               </form>
             </div>
           </div>
@@ -349,7 +466,7 @@ const Shippers = ({ url }) => {
                   <p className="text-muted mb-0">Loading fleet...</p>
                 </div>
               ) : filteredDrones.length === 0 ? (
-                <p className="text-muted mb-0">No drones for this branch yet.</p>
+                <p className="text-muted mb-0">No drones for this hub yet.</p>
               ) : (
                 <div className="list-group list-group-flush">
                   {filteredDrones.map((drone) => (
@@ -365,19 +482,32 @@ const Shippers = ({ url }) => {
                           <div>
                             <h6 className="mb-1">{drone.code || "Unnamed drone"}</h6>
                             <small className="text-muted">
-                              Battery: {drone.batteryLevel ?? 0}%
-                              {" · "}Payload: {drone.maxPayloadKg ?? 0} kg
+                              Battery: {drone.batteryLevel ?? 0}% · Payload:{" "}
+                              {drone.maxPayloadKg ?? 0} kg
                             </small>
+                            <div className="text-muted small">
+                              Hub: {hubName(drone.hubId?._id || drone.hubId)}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-muted small">
-                          <strong>Branch:</strong> {resolveBranchName(drone)}
+                        <div className="text-muted small d-flex flex-column align-items-start">
+                          <span>Speed: {drone.speedKmh ?? "-"} km/h</span>
+                          {drone.isActive === false ? (
+                            <span className="badge bg-secondary-subtle text-secondary mt-1">Inactive</span>
+                          ) : (
+                            <span className="badge bg-success-subtle text-success mt-1">Active</span>
+                          )}
                         </div>
                       </div>
                       <div className="d-flex flex-column flex-xl-row gap-2 align-items-xl-center justify-content-between">
                         <div className="d-flex flex-column flex-lg-row gap-2 align-items-lg-center">
-                          <span className={statusBadgeMap[drone.status] || statusBadgeMap.available}>
-                            {drone.status}
+                          <span
+                            className={
+                              statusBadgeMap[(drone.status || "").toUpperCase()] ||
+                              statusBadgeMap.AVAILABLE
+                            }
+                          >
+                            {(drone.status || "").toUpperCase()}
                           </span>
                           <select
                             className="form-select form-select-sm"
@@ -403,7 +533,7 @@ const Shippers = ({ url }) => {
                             type="button"
                             className="btn btn-outline-danger btn-sm"
                             disabled={deletingId === drone._id}
-                            onClick={() => deleteShipper(drone)}
+                            onClick={() => deleteDrone(drone)}
                           >
                             Delete
                           </button>
@@ -437,6 +567,22 @@ const Shippers = ({ url }) => {
                 <form onSubmit={submitEdit}>
                   <div className="modal-body">
                     <div className="mb-3">
+                      <label className="form-label">Hub</label>
+                      <select
+                        className="form-select"
+                        name="hubId"
+                        value={editForm.hubId}
+                        onChange={handleEditChange}
+                        required
+                      >
+                        {hubs.map((hub) => (
+                          <option key={hub._id} value={hub._id}>
+                            {hub.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-3">
                       <label className="form-label">Code</label>
                       <input
                         className="form-control"
@@ -447,20 +593,24 @@ const Shippers = ({ url }) => {
                       />
                     </div>
                     <div className="mb-3">
-                      <label className="form-label">Branch</label>
-                      <select
-                        className="form-select"
-                        name="branchId"
-                        value={editForm.branchId}
+                      <label className="form-label">Name</label>
+                      <input
+                        className="form-control"
+                        name="name"
+                        value={editForm.name}
                         onChange={handleEditChange}
-                        required
-                      >
-                        {branches.map((branch) => (
-                          <option key={branch._id} value={branch._id}>
-                            {branch.name}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Optional"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Serial number</label>
+                      <input
+                        className="form-control"
+                        name="serialNumber"
+                        value={editForm.serialNumber}
+                        onChange={handleEditChange}
+                        placeholder="Optional"
+                      />
                     </div>
                     <div className="row">
                       <div className="col-6 mb-3">
@@ -491,42 +641,48 @@ const Shippers = ({ url }) => {
                     </div>
                     <div className="row">
                       <div className="col-6 mb-3">
-                        <label className="form-label">Last known lat</label>
+                        <label className="form-label">Speed (km/h)</label>
                         <input
                           className="form-control"
-                          name="lastKnownLat"
+                          name="speedKmh"
                           type="number"
-                          step="0.000001"
-                          value={editForm.lastKnownLat}
+                          min="0"
+                          step="1"
+                          value={editForm.speedKmh}
                           onChange={handleEditChange}
                         />
                       </div>
                       <div className="col-6 mb-3">
-                        <label className="form-label">Last known lng</label>
-                        <input
-                          className="form-control"
-                          name="lastKnownLng"
-                          type="number"
-                          step="0.000001"
-                          value={editForm.lastKnownLng}
+                        <label className="form-label">Status</label>
+                        <select
+                          className="form-select"
+                          name="status"
+                          value={editForm.status}
                           onChange={handleEditChange}
-                        />
+                        >
+                          {statusOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
-                    <div className="mb-0">
-                      <label className="form-label">Status</label>
-                      <select
-                        className="form-select"
-                        name="status"
-                        value={editForm.status}
-                        onChange={handleEditChange}
-                      >
-                        {statusOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="form-check form-switch mb-0">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        id="edit-drone-active"
+                        name="isActive"
+                        checked={editForm.isActive}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({ ...prev, isActive: e.target.checked }))
+                        }
+                      />
+                      <label className="form-check-label" htmlFor="edit-drone-active">
+                        Active
+                      </label>
                     </div>
                   </div>
                   <div className="modal-footer border-0">
@@ -552,4 +708,4 @@ const Shippers = ({ url }) => {
   );
 };
 
-export default Shippers;
+export default Drones;

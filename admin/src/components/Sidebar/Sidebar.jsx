@@ -10,6 +10,7 @@ const adminSections = [
     title: "Cấu hình",
     links: [
       { to: "/restaurant", icon: navIcons.restaurant, label: "Restaurant" },
+      { to: "/hubs", icon: navIcons.inventory, label: "Hubs" },
       { to: "/categories", icon: navIcons.categories, label: "Categories" },
       { to: "/staff", icon: navIcons.staffs, label: "Staff" },
     ],
@@ -26,7 +27,7 @@ const adminSections = [
     title: "Vận hành",
     links: [
       { to: "/orders", icon: navIcons.orders, label: "Orders" },
-      { to: "/shippers", icon: navIcons.shippers, label: "Shippers" },
+      { to: "/drones", icon: navIcons.shippers, label: "Drones" },
     ],
   },
   {

@@ -24,6 +24,12 @@ const handleError = (res, error, fallback) => {
   if (error.message === "INVALID_PAYLOAD") {
     return res.status(400).json({ success: false, message: "Invalid payload (kg)" });
   }
+  if (error.message === "INVALID_HUB") {
+    return res.status(400).json({ success: false, message: "Invalid hub" });
+  }
+  if (error.message === "HUB_NOT_FOUND") {
+    return res.status(404).json({ success: false, message: "Hub not found" });
+  }
   if (error.message === "BRANCH_NOT_FOUND") {
     return res.status(404).json({ success: false, message: "Branch not found" });
   }
@@ -48,18 +54,29 @@ export const listDrones = async (req, res) => {
 export const updateDrone = async (req, res) => {
   try {
     const { droneId } = req.params;
-    const { status, batteryLevel, lastKnownLat, lastKnownLng, code, branchId, maxPayloadKg } =
-      req.body;
+    const {
+      status,
+      batteryLevel,
+      code,
+      hubId,
+      maxPayloadKg,
+      name,
+      serialNumber,
+      speedKmh,
+      isActive,
+    } = req.body;
     const result = await droneService.updateDrone({
       userId: req.userId || req.body.userId,
       droneId,
       status,
       batteryLevel,
-      lastKnownLat,
-      lastKnownLng,
       code,
-      branchId,
       maxPayloadKg,
+      hubId,
+      name,
+      serialNumber,
+      speedKmh,
+      isActive,
     });
     res.json(result);
   } catch (error) {
@@ -69,10 +86,10 @@ export const updateDrone = async (req, res) => {
 
 export const seedDrones = async (req, res) => {
   try {
-    const { branchId, count, prefix, maxPayloadKg } = req.body;
+    const { hubId, count, prefix, maxPayloadKg } = req.body;
     const result = await droneService.seedSampleDrones({
       userId: req.userId || req.body.userId,
-      branchId,
+      hubId,
       count,
       prefix,
       maxPayloadKg,
@@ -85,17 +102,28 @@ export const seedDrones = async (req, res) => {
 
 export const createDrone = async (req, res) => {
   try {
-    const { code, branchId, maxPayloadKg, batteryLevel, status, lastKnownLat, lastKnownLng } =
-      req.body;
-    const result = await droneService.createDrone({
-      userId: req.userId || req.body.userId,
+    const {
       code,
-      branchId,
+      hubId,
       maxPayloadKg,
       batteryLevel,
       status,
-      lastKnownLat,
-      lastKnownLng,
+      name,
+      serialNumber,
+      speedKmh,
+      isActive,
+    } = req.body;
+    const result = await droneService.createDrone({
+      userId: req.userId || req.body.userId,
+      code,
+      maxPayloadKg,
+      batteryLevel,
+      status,
+      hubId,
+      name,
+      serialNumber,
+      speedKmh,
+      isActive,
     });
     res.json(result);
   } catch (error) {
