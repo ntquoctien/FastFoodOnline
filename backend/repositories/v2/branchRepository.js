@@ -12,6 +12,7 @@ export const updateMany = (filter = {}, payload = {}) =>
   BranchModel.updateMany(filter, payload);
 export const deactivateById = (id) =>
   BranchModel.findByIdAndUpdate(id, { isActive: false }, { new: true });
+export const deleteById = (id) => BranchModel.findByIdAndDelete(id);
 
 export default {
   create,
@@ -22,4 +23,5 @@ export default {
   updateById,
   updateMany,
   deactivateById,
+  deleteById,
 };

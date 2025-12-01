@@ -5,16 +5,9 @@ import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as orderRepo from "../../repositories/v2/orderRepository.js";
 import { haversineDistanceKm } from "../../utils/geoDistance.js";
 
-const MIN_DRONE_BATTERY =
-  Number(process.env.DRONE_MIN_BATTERY || 40) || 40;
 const DEFAULT_DRONE_SPEED_KMH =
   Number(process.env.DRONE_DEFAULT_SPEED_KMH || 40) || 40;
 const ETA_BUFFER_MINUTES = Number(process.env.DRONE_ETA_BUFFER_MIN || 5) || 5;
-const PAYLOAD_SAFETY_FACTOR =
-  Math.min(
-    Math.max(Number(process.env.DRONE_PAYLOAD_SAFETY || 0.85), 0.5),
-    1.0
-  ) || 0.85;
 
 const toPoint = (location) => {
   if (!location || !Array.isArray(location.coordinates)) return null;
@@ -69,32 +62,46 @@ export const assignDroneForOrder = async (order) => {
       return null;
     }
 
-    const [hub, branch] = await Promise.all([
-      order.hubId ? hubRepo.findById(order.hubId) : null,
-      order.branchId ? branchRepo.findById(order.branchId) : null,
-    ]);
+    const branch = order.branchId ? await branchRepo.findById(order.branchId) : null;
+    if (!branch) {
+      console.warn("assignDroneForOrder missing branch", { orderId: order._id });
+      await markWaitingForDrone(order._id);
+      return null;
+    }
+
+    if (!order.hubId && branch.hubId) {
+      order.hubId = branch.hubId;
+      await orderRepo.updateById(order._id, { hubId: branch.hubId });
+    }
+
+    const hubIdForOrder = order.hubId || branch.hubId || null;
+    if (!hubIdForOrder) {
+      console.warn("assignDroneForOrder missing hubId", { orderId: order._id });
+      await markWaitingForDrone(order._id);
+      return null;
+    }
+
+    const hub = await hubRepo.findById(hubIdForOrder);
 
     const hubPoint = toPoint(hub?.location);
     const branchPoint = toPoint(branch?.location);
     const customerPoint = toPoint(order.customerLocation);
 
     if (!hubPoint || !branchPoint || !customerPoint) {
+      console.warn("assignDroneForOrder missing geocode", {
+        orderId: order._id,
+        hasHubPoint: Boolean(hubPoint),
+        hasBranchPoint: Boolean(branchPoint),
+        hasCustomerPoint: Boolean(customerPoint),
+      });
       await markWaitingForDrone(order._id);
       return null;
     }
 
-    const payloadKg =
-      (order.payloadWeightKg || order.orderWeightKg || 0) *
-      PAYLOAD_SAFETY_FACTOR;
-
-    const candidates = await droneRepo.findAvailable({
-      hubId: order.hubId,
-      minBattery: MIN_DRONE_BATTERY,
-      minPayloadKg: payloadKg > 0 ? payloadKg : undefined,
-      near: {
-        lat: branchPoint.lat,
-        lng: branchPoint.lng,
-      },
+    const candidates = await droneRepo.findAll({
+      hubId: hubIdForOrder,
+      status: { $in: ["AVAILABLE", "available"] },
+      isActive: { $ne: false },
     });
 
     if (!candidates.length) {
@@ -128,7 +135,7 @@ export const assignDroneForOrder = async (order) => {
     const mission = await missionRepo.create({
       orderId: order._id,
       droneId: nearest._id,
-      hubId: order.hubId,
+      hubId: hubIdForOrder,
       status: "PLANNED",
       route: {
         type: "LineString",
@@ -148,6 +155,7 @@ export const assignDroneForOrder = async (order) => {
 
     await Promise.all([
       orderRepo.updateById(order._id, {
+        hubId: hubIdForOrder,
         droneId: nearest._id,
         missionId: mission._id,
         etaMinutes: routeData.estMinutes,

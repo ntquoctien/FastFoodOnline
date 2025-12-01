@@ -1,5 +1,8 @@
+import bcrypt from "bcryptjs";
+import validator from "validator";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as restaurantRepo from "../../repositories/v2/restaurantRepository.js";
+import * as userRepo from "../../repositories/userRepository.js";
 import { resolveAddress, buildFullAddress } from "../../utils/geocode.js";
 
 const resolveRestaurant = async () =>
@@ -64,6 +67,39 @@ const buildBranchPayload = (payload = {}) => {
   return branchPayload;
 };
 
+const buildManagerPayload = async (manager = {}) => {
+  const trimmedName = manager.name?.trim();
+  const normalisedEmail = manager.email?.trim().toLowerCase();
+  const password = manager.password?.trim();
+
+  const provided = trimmedName || normalisedEmail || password;
+  if (!provided) return null;
+
+  if (!trimmedName || !normalisedEmail || !password) {
+    return { error: "Manager name, email and password are required" };
+  }
+  if (!validator.isEmail(normalisedEmail)) {
+    return { error: "Manager email is invalid" };
+  }
+  if (password.length < 8) {
+    return { error: "Manager password must be at least 8 characters" };
+  }
+
+  const existing = await userRepo.findOneByEmail(normalisedEmail);
+  if (existing) {
+    return { error: "Manager email already exists" };
+  }
+
+  const salt = await bcrypt.genSalt(Number(process.env.SALT));
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  return {
+    name: trimmedName,
+    email: normalisedEmail,
+    password: hashedPassword,
+  };
+};
+
 export const listBranches = async ({ includeInactive = false } = {}) => {
   const restaurant = await resolveRestaurant();
   if (!restaurant) {
@@ -110,6 +146,11 @@ export const createBranch = async (payload) => {
     }
   }
 
+  const managerPayload = await buildManagerPayload(payload.manager);
+  if (managerPayload?.error) {
+    return { success: false, message: managerPayload.error };
+  }
+
   if (coordinates) {
     branchPayload.location = {
       type: "Point",
@@ -129,6 +170,25 @@ export const createBranch = async (payload) => {
       { restaurantId: restaurant._id, _id: { $ne: branch._id } },
       { isPrimary: false }
     );
+  }
+
+  if (managerPayload) {
+    try {
+      await userRepo.createUser({
+        ...managerPayload,
+        role: "branch_manager",
+        branchId: branch._id,
+        staffStatus: "active",
+        isActive: true,
+      });
+    } catch (error) {
+      console.error("Manager create failed - rolling back branch", error);
+      await branchRepo.deleteById(branch._id);
+      return {
+        success: false,
+        message: "Failed to create manager account for this branch",
+      };
+    }
   }
 
   return { success: true, data: branch };
@@ -153,7 +213,15 @@ export const updateBranch = async ({ branchId, payload }) => {
     }
   }
 
-  if (branchPayload.address && Object.keys(branchPayload.address).length) {
+  const normaliseFullText = (value) => (value || "").trim();
+  const newFullText = branchPayload.address
+    ? branchPayload.address.fullText || buildFullAddress(branchPayload.address)
+    : "";
+  const currentFullText = branch.address?.fullText || buildFullAddress(branch.address);
+  const addressChanged =
+    normaliseFullText(newFullText) && normaliseFullText(newFullText) !== normaliseFullText(currentFullText);
+
+  if (addressChanged) {
     const geocoded = await resolveAddress(branchPayload.address);
     if (geocoded) {
       branchPayload.location = {

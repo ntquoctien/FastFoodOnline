@@ -22,6 +22,21 @@ const handleCommonError = (res, error, fallback) => {
   if (error.message === "USER_NOT_FOUND") {
     return res.status(401).json({ success: false, message: "User not found" });
   }
+  if (error.message === "ORDER_NOT_FOUND") {
+    return res.status(404).json({ success: false, message: "Order not found" });
+  }
+  if (error.message === "MISSION_NOT_FOUND") {
+    return res.status(404).json({ success: false, message: "Mission not found" });
+  }
+  if (error.message === "DRONE_NOT_FOUND") {
+    return res.status(404).json({ success: false, message: "Drone not found" });
+  }
+  if (error.message === "MISSING_MISSION_OR_DRONE") {
+    return res.status(400).json({
+      success: false,
+      message: "Mission or drone missing for this order",
+    });
+  }
   console.error(fallback, error);
   return res
     .status(500)
@@ -189,6 +204,42 @@ export const listAllOrders = async (req, res) => {
   }
 };
 
+export const acceptOrder = async (req, res) => {
+  try {
+    const userId = req.userId || req.body.userId;
+    const actor = await getUser(userId);
+    const orderId = req.params.id || req.params.orderId;
+    const result = await orderService.acceptOrder(orderId, actor);
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    handleCommonError(res, error, "Order v2 accept error");
+  }
+};
+
+export const markOrderReadyToShip = async (req, res) => {
+  try {
+    const userId = req.userId || req.body.userId;
+    const actor = await getUser(userId);
+    const orderId = req.params.id || req.params.orderId;
+    const result = await orderService.markOrderReadyToShip(orderId, actor);
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    handleCommonError(res, error, "Order v2 ready-to-ship error");
+  }
+};
+
+export const confirmDelivery = async (req, res) => {
+  try {
+    const userId = req.userId || req.body.userId;
+    const actor = await getUser(userId);
+    const orderId = req.params.id || req.params.orderId;
+    const result = await orderService.confirmDelivery(orderId, actor);
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    handleCommonError(res, error, "Order v2 confirm delivery error");
+  }
+};
+
 export const updateStatus = async (req, res) => {
   try {
     const actorId = req.userId || req.body.userId;
@@ -224,6 +275,30 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
+export const getOrderByIdV2 = async (req, res) => {
+  try {
+    const userId = req.userId || req.body.userId;
+    const actor = await getUser(userId);
+    const { id } = req.params;
+    const order = await orderService.getOrderByIdV2(id, actor);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    return res.json({ success: true, data: order });
+  } catch (error) {
+    if (error.message === "NOT_AUTHORISED") {
+      return unauthorised(res);
+    }
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(401).json({ success: false, message: "User not found" });
+    }
+    console.error("Order v2 detail error", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to load order" });
+  }
+};
+
 export const confirmReceipt = async (req, res) => {
   try {
     const userId = req.userId || req.body.userId;
@@ -246,7 +321,11 @@ export default {
   verifyMomoPayment,
   listUserOrders,
   listAllOrders,
+  acceptOrder,
+  markOrderReadyToShip,
+  confirmDelivery,
   updateStatus,
   cancelOrder,
   confirmReceipt,
+  getOrderByIdV2,
 };

@@ -11,9 +11,13 @@ import {
   verifyMomoPayment,
   listUserOrders,
   listAllOrders,
+  acceptOrder,
+  markOrderReadyToShip,
+  confirmDelivery,
   updateStatus,
   confirmReceipt,
   cancelOrder,
+  getOrderByIdV2,
 } from "../controllers/v2/orderController.js";
 
 const orderV2Router = express.Router();
@@ -28,6 +32,10 @@ orderV2Router.get("/pay/momo/verify", verifyMomoPayment);
 orderV2Router.post("/pay/vnpay", authMiddleware, initializeVnpayPayment);
 orderV2Router.get("/pay/vnpay/verify", verifyVnpayPayment);
 orderV2Router.get("/", authMiddleware, listAllOrders);
+orderV2Router.get("/:id", authMiddleware, getOrderByIdV2);
+orderV2Router.post("/:id/accept", authMiddleware, acceptOrder);
+orderV2Router.post("/:id/ready-to-ship", authMiddleware, markOrderReadyToShip);
+orderV2Router.post("/:id/confirm-delivery", authMiddleware, confirmDelivery);
 orderV2Router.patch("/:orderId/cancel", authMiddleware, cancelOrder);
 orderV2Router.patch("/:orderId/confirm-receipt", authMiddleware, confirmReceipt);
 orderV2Router.patch("/:orderId/status", authMiddleware, updateStatus);

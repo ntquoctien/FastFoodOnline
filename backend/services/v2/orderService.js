@@ -7,7 +7,7 @@ import * as droneAssignmentRepo from "../../repositories/v2/droneAssignmentRepos
 import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as geocodeCacheRepo from "../../repositories/v2/geocodeCacheRepository.js";
-import * as hubRepo from "../../repositories/v2/hubRepository.js";
+import * as missionRepo from "../../repositories/v2/missionRepository.js";
 import { assignDroneForOrder } from "./droneAssignmentService.js";
 import { createPaymentUrl, verifyReturnParams } from "../../utils/vnpay.js";
 import {
@@ -20,7 +20,6 @@ import {
 } from "../../utils/momo.js";
 import { resolveAddress, buildFullAddress } from "../../utils/geocode.js";
 import { createMission, cancelMission } from "../../utils/droneGateway.js";
-import { haversineDistanceKm } from "../../utils/geoDistance.js";
 
 const MAX_DRONE_ASSIGN_RETRIES =
   Number(process.env.DRONE_ASSIGN_MAX_RETRIES || 3) || 3;
@@ -88,6 +87,19 @@ const parseCoordinate = (value) => {
   }
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
+};
+
+const normaliseId = (value) =>
+  value && typeof value.toString === "function" ? value.toString() : value;
+
+const assertBranchPermission = (order, actorUser) => {
+  if (["admin", "super_admin"].includes(actorUser?.role)) return;
+  const actorBranchId = normaliseId(actorUser?.branchId);
+  const orderBranchId = normaliseId(order.branchId?._id || order.branchId);
+  if (!actorBranchId || actorBranchId !== orderBranchId) {
+    const error = new Error("NOT_AUTHORISED");
+    throw error;
+  }
 };
 
 const getBranchCoordinates = (branch) => {
@@ -308,49 +320,6 @@ export const assignDrone = async ({ order, branchId }) => {
   return assignment;
 };
 
-const selectHubForOrder = async ({ customerLocation, fallbackHubId }) => {
-  try {
-    const coords = Array.isArray(customerLocation?.coordinates)
-      ? customerLocation.coordinates
-      : [];
-    if (coords.length < 2 || !Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) {
-      return fallbackHubId;
-    }
-    const hubs = await hubRepo.findAll({});
-    if (!Array.isArray(hubs) || !hubs.length) {
-      return fallbackHubId;
-    }
-    const [customerLng, customerLat] = coords;
-    const eligible = hubs
-      .map((hub) => {
-        const [hubLng, hubLat] = hub?.location?.coordinates || [];
-        if (!Number.isFinite(hubLng) || !Number.isFinite(hubLat)) {
-          return null;
-        }
-        const distanceKm = haversineDistanceKm(
-          [hubLng, hubLat],
-          [customerLng, customerLat]
-        );
-        return { hub, distanceKm };
-      })
-      .filter(Boolean)
-      .filter(({ hub, distanceKm }) => {
-        if (!Number.isFinite(hub?.serviceRadiusKm)) {
-          return true;
-        }
-        return distanceKm <= hub.serviceRadiusKm;
-      });
-    if (!eligible.length) {
-      return fallbackHubId;
-    }
-    eligible.sort((a, b) => a.distanceKm - b.distanceKm);
-    return eligible[0].hub?._id || fallbackHubId;
-  } catch (error) {
-    console.warn("selectHubForOrder fallback to branch hub", error);
-    return fallbackHubId;
-  }
-};
-
 export const createOrder = async ({
   userId,
   branchId,
@@ -363,6 +332,10 @@ export const createOrder = async ({
   const branch = await branchRepo.findById(branchId);
   if (!branch) {
     return { success: false, message: "Branch not found" };
+  }
+  const branchHubId = branch.hubId || null;
+  if (!branchHubId) {
+    console.warn("Branch hubId missing for order creation", { branchId });
   }
 
   const customerAddress =
@@ -382,7 +355,7 @@ export const createOrder = async ({
   let dropoffAddressValue = customerAddress.fullText || "";
   const { lat: pickupLat, lng: pickupLng } = getBranchCoordinates(branch);
   if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) {
-    return { success: false, message: "Branch missing coordinates" };
+    console.warn("Branch missing pickup coordinates for order", { branchId });
   }
 
   let dropoff;
@@ -413,10 +386,10 @@ export const createOrder = async ({
     coordinates: [dropoff.lng, dropoff.lat],
   };
 
-  const resolvedHubId = await selectHubForOrder({
-    customerLocation,
-    fallbackHubId: branch.hubId,
-  });
+  const initialStatus =
+    branchHubId && Number.isFinite(pickupLat) && Number.isFinite(pickupLng)
+      ? "CREATED"
+      : "WAITING_FOR_DRONE";
 
   const { subtotal, normalizedItems, totalWeightKg } = await calculateItems(items);
   const deliveryFee = 2;
@@ -430,7 +403,7 @@ export const createOrder = async ({
   const order = await orderRepo.create({
     userId,
     branchId,
-    hubId: resolvedHubId || branch.hubId,
+    hubId: branchHubId,
     pickupBranchId: branchId,
     pickupLat,
     pickupLng,
@@ -449,7 +422,7 @@ export const createOrder = async ({
     payloadWeightKg: totalWeightKg || 0,
     paymentMethod: paymentMethodValue,
     paymentStatus: initialPaymentStatus,
-    status: "CREATED",
+    status: initialStatus,
     needsDroneAssignment: true,
     timeline: [
       {
@@ -1101,6 +1074,164 @@ export const listAllOrders = async ({ role, branchId, queryBranchId }) => {
   return { success: true, data: orders };
 };
 
+export const getOrderByIdV2 = async (orderId, actorUser) => {
+  if (!orderId) return null;
+  const order = await orderRepo
+    .findById(orderId)
+    .populate("hubId", "name")
+    .lean();
+  if (!order) return null;
+
+  const isAdmin = ["admin", "super_admin"].includes(actorUser?.role);
+  if (!isAdmin) {
+    const actorBranchId = normaliseId(actorUser?.branchId);
+    const orderBranchId = normaliseId(order.branchId?._id || order.branchId);
+    if (!actorBranchId || actorBranchId !== orderBranchId) {
+      const error = new Error("NOT_AUTHORISED");
+      throw error;
+    }
+  }
+  return order;
+};
+
+export const acceptOrder = async (orderId, actorUser) => {
+  if (!orderId) {
+    return { success: false, message: "Order id is required" };
+  }
+  const order = await orderRepo.findById(orderId);
+  if (!order) {
+    const error = new Error("ORDER_NOT_FOUND");
+    throw error;
+  }
+
+  assertBranchPermission(order, actorUser);
+
+  const allowedStatuses = ["ASSIGNED", "CREATED", "WAITING_FOR_DRONE"];
+  const currentStatus = String(order.status || "").toUpperCase();
+  if (!allowedStatuses.includes(currentStatus)) {
+    return { success: false, message: "Order is not ready to be accepted" };
+  }
+
+  await orderRepo.updateById(orderId, { status: "PREPARING" });
+  if (Array.isArray(order.timeline)) {
+    await orderRepo.pushTimeline(orderId, {
+      status: "PREPARING",
+      actorType: "branch",
+      actor: actorUser?._id || actorUser?.id || actorUser?.userId,
+      at: new Date(),
+    });
+  }
+
+  const refreshed = await orderRepo.findById(orderId);
+  return { success: true, data: refreshed };
+};
+
+export const readyToShipOrder = async (orderId, actorUser) => {
+  if (!orderId) {
+    return { success: false, message: "Order id is required" };
+  }
+  const order = await orderRepo.findById(orderId);
+  if (!order) {
+    const error = new Error("ORDER_NOT_FOUND");
+    throw error;
+  }
+  assertBranchPermission(order, actorUser);
+
+  const status = String(order.status || "").toUpperCase();
+  if (["DELIVERING", "ARRIVED", "COMPLETED"].includes(status)) {
+    return { success: true, data: order };
+  }
+  const allowed = ["PREPARING", "ASSIGNED", "CREATED", "WAITING_FOR_DRONE"];
+  if (!allowed.includes(status)) {
+    return { success: false, message: "Order not ready for delivery" };
+  }
+
+  if (!order.missionId || !order.droneId) {
+    const error = new Error("MISSING_MISSION_OR_DRONE");
+    throw error;
+  }
+
+  const mission =
+    (order.missionId && (await missionRepo.findById(order.missionId))) ||
+    (await missionRepo.findByOrderId(order._id));
+  if (!mission) {
+    const error = new Error("MISSION_NOT_FOUND");
+    throw error;
+  }
+
+  const drone = await droneRepo.findById(order.droneId);
+  if (!drone) {
+    const error = new Error("DRONE_NOT_FOUND");
+    throw error;
+  }
+
+  const now = new Date();
+  await missionRepo.updateById(mission._id, {
+    status: "EN_ROUTE_DELIVERY",
+    startedAt: mission.startedAt || now,
+  });
+
+  await droneRepo.updateById(drone._id, { status: "DELIVERING" });
+
+  await orderRepo.updateById(orderId, { status: "DELIVERING" });
+  await orderRepo.pushTimeline(orderId, {
+    status: "DELIVERING",
+    actor: actorUser?._id || actorUser?.id,
+    actorType: actorUser?.role === "admin" ? "admin" : "staff",
+    at: now,
+  });
+
+  const refreshed = await orderRepo.findById(orderId);
+  return { success: true, data: refreshed };
+};
+
+export const markOrderReadyToShip = readyToShipOrder;
+
+export const confirmDelivery = async (orderId, actorUser) => {
+  if (!orderId) {
+    const error = new Error("ORDER_NOT_FOUND");
+    throw error;
+  }
+  const order = await orderRepo.findById(orderId);
+  if (!order) {
+    const error = new Error("ORDER_NOT_FOUND");
+    throw error;
+  }
+
+  const status = String(order.status || "").toUpperCase();
+  if (!["ARRIVED", "DELIVERING", "COMPLETED"].includes(status)) {
+    return { success: false, message: "Order is not ready to be completed" };
+  }
+  if (status === "COMPLETED") {
+    return { success: true, data: order };
+  }
+
+  const mission =
+    (order.missionId && (await missionRepo.findById(order.missionId))) ||
+    (await missionRepo.findByOrderId(order._id));
+  const now = new Date();
+  if (mission?._id) {
+    await missionRepo.updateById(mission._id, {
+      status: "COMPLETED",
+      finishedAt: mission.finishedAt || now,
+    });
+    if (mission.droneId) {
+      await droneRepo.updateById(mission.droneId, { status: "AVAILABLE" });
+    }
+  }
+
+  await orderRepo.updateById(orderId, { status: "COMPLETED" });
+  await orderRepo.pushTimeline(orderId, {
+    status: "COMPLETED",
+    actor: actorUser?._id || actorUser?.id,
+    actorType: "user",
+    at: now,
+  });
+
+  const refreshed = await orderRepo.findById(orderId);
+  return { success: true, data: refreshed };
+};
+
 export const updateStatus = async ({
   orderId,
   status,
@@ -1306,6 +1437,11 @@ export default {
   verifyVnpayPayment,
   listUserOrders,
   listAllOrders,
+  getOrderByIdV2,
+  acceptOrder,
+  readyToShipOrder,
+  markOrderReadyToShip,
+  confirmDelivery,
   updateStatus,
   cancelOrder,
   confirmReceipt,

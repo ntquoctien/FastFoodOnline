@@ -139,6 +139,25 @@ paths:
           description: User lacks permission.
         "404":
           description: Staff not found.
+    delete:
+      tags:
+        - Staff
+      summary: Delete a staff member.
+      security:
+        - TokenAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Staff removed.
+        "403":
+          description: User lacks permission.
+        "404":
+          description: Staff not found.
   /api/v2/staff/{staffId}/reset-password:
     post:
       tags:

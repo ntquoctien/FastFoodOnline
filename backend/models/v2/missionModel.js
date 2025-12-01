@@ -38,6 +38,7 @@ const missionSchema = new mongoose.Schema(
         "EN_ROUTE_PICKUP",
         "AT_PICKUP",
         "EN_ROUTE_DELIVERY",
+        "ARRIVED",
         "DELIVERED",
         "RETURNING",
         "COMPLETED",

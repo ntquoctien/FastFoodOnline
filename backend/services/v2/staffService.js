@@ -275,10 +275,19 @@ export const updateStaffProfile = async ({
   };
 };
 
+export const deleteStaff = async ({ userId, staffId }) => {
+  const context = await getRequesterContext(userId);
+  const staff = await ensureStaffExists(staffId);
+  assertManagerCanManageStaff(context, staff);
+  await userRepo.deleteById(staffId);
+  return { success: true, message: "Staff member removed" };
+};
+
 export default {
   listStaff,
   createStaff,
   updateStaffStatus,
   resetStaffPassword,
   updateStaffProfile,
+  deleteStaff,
 };

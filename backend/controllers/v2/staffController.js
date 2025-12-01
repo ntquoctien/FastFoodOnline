@@ -4,6 +4,7 @@ import {
   resetStaffPassword,
   updateStaffProfile,
   updateStaffStatus,
+  deleteStaff,
 } from "../../services/v2/staffService.js";
 
 const handleError = (res, error, fallbackMessage) => {
@@ -78,10 +79,23 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+export const removeStaff = async (req, res) => {
+  try {
+    const result = await deleteStaff({
+      userId: req.userId || req.body.userId,
+      staffId: req.params.staffId,
+    });
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    handleError(res, error, "Staff delete error");
+  }
+};
+
 export default {
   getStaff,
   addStaff,
   changeStaffStatus,
   resetPassword,
   updateProfile,
+  removeStaff,
 };

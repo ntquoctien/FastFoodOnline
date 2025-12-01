@@ -229,18 +229,27 @@ const Branches = ({ url }) => {
       managerPassword,
       ...branchFields
     } = formValues;
+    const isCreating = !editingBranchId;
     const payload = {
       ...branchFields,
       country: branchFields.country || "Vietnam",
     };
-    if (managerName || managerEmail || managerPassword) {
+    const shouldCreateManager =
+      isCreating && (managerName || managerEmail || managerPassword);
+    if (shouldCreateManager) {
+      if (!managerName || !managerEmail || !managerPassword) {
+        toast.error("Manager name, email and password are required");
+        return;
+      }
+      if (managerPassword.length < 8) {
+        toast.error("Manager password must be at least 8 characters");
+        return;
+      }
       payload.manager = {
         name: managerName || undefined,
         email: managerEmail || undefined,
+        password: managerPassword || undefined,
       };
-      if (managerPassword) {
-        payload.manager.password = managerPassword;
-      }
     }
     if (payload.manager) {
       Object.keys(payload.manager).forEach((key) => {
@@ -440,62 +449,46 @@ const Branches = ({ url }) => {
                       </div>
                     </div>
                   </div>
-                  <hr className="my-4" />
-                  <h6 className="mb-3">Branch access</h6>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Manager name</label>
-                      <input
-                        className="form-control"
-                        name="managerName"
-                        value={formValues.managerName}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label">Manager email</label>
-                      <input
-                        className="form-control"
-                        name="managerEmail"
-                        type="email"
-                        value={formValues.managerEmail}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="col-12">
-                      <label className="form-label">Temporary password</label>
-                      <input
-                        className="form-control"
-                        name="managerPassword"
-                        type="text"
-                        value={formValues.managerPassword}
-                        onChange={handleInputChange}
-                        placeholder={
-                          editingBranchId
-                            ? "Leave blank to keep current password"
-                            : ""
-                        }
-                      />
-                      <small className="text-muted">
-                        Password is required for new accounts. Leave empty when editing to keep the existing password.
-                      </small>
-                    </div>
-                    <div className="col-12">
-                      <div className="form-check form-switch">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          name="isPrimary"
-                          id="branch-is-primary"
-                          checked={formValues.isPrimary}
-                          onChange={handleInputChange}
-                        />
-                        <label className="form-check-label" htmlFor="branch-is-primary">
-                          Primary branch
-                        </label>
+                  {!editingBranchId && (
+                    <>
+                      <hr className="my-4" />
+                      <h6 className="mb-3">Branch access</h6>
+                      <div className="row g-3">
+                        <div className="col-md-6">
+                          <label className="form-label">Manager name</label>
+                          <input
+                            className="form-control"
+                            name="managerName"
+                            value={formValues.managerName}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label">Manager email</label>
+                          <input
+                            className="form-control"
+                            name="managerEmail"
+                            type="email"
+                            value={formValues.managerEmail}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                        <div className="col-12">
+                          <label className="form-label">Temporary password</label>
+                          <input
+                            className="form-control"
+                            name="managerPassword"
+                            type="text"
+                            value={formValues.managerPassword}
+                            onChange={handleInputChange}
+                          />
+                          <small className="text-muted">
+                            Password is required to create the manager account (min 8 characters).
+                          </small>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </div>
                 <div className="modal-footer border-0">
                   <button

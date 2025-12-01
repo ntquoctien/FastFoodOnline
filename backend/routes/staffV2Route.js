@@ -6,6 +6,7 @@ import {
   getStaff,
   resetPassword,
   updateProfile,
+  removeStaff,
 } from "../controllers/v2/staffController.js";
 
 const staffV2Router = express.Router();
@@ -17,5 +18,6 @@ staffV2Router.post("/", addStaff);
 staffV2Router.patch("/:staffId/status", changeStaffStatus);
 staffV2Router.patch("/:staffId", updateProfile);
 staffV2Router.post("/:staffId/reset-password", resetPassword);
+staffV2Router.delete("/:staffId", removeStaff);
 
 export default staffV2Router;

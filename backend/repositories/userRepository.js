@@ -33,6 +33,8 @@ export const updateByIdAndReturn = (id, update) =>
 export const updatePasswordById = (id, password) =>
   userModel.findByIdAndUpdate(id, { password });
 
+export const deleteById = (id) => userModel.findByIdAndDelete(id);
+
 export const clearCart = (id) => userModel.findByIdAndUpdate(id, { cartData: {} });
 
 export const getCart = async (id) => {
@@ -57,6 +59,7 @@ export default {
   updateById,
   updateByIdAndReturn,
   updatePasswordById,
+  deleteById,
   clearCart,
   getCart,
   setCart,
