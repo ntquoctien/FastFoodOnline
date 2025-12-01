@@ -1,6 +1,7 @@
 import * as missionRepo from "../../repositories/v2/missionRepository.js";
 import * as orderRepo from "../../repositories/v2/orderRepository.js";
 import * as droneRepo from "../../repositories/v2/droneRepository.js";
+import { assignNextWaitingOrderForHub } from "./droneAssignmentService.js";
 const normaliseId = (value) =>
   value && typeof value.toString === "function" ? value.toString() : value;
 
@@ -33,6 +34,15 @@ export const completeDelivery = async ({ missionId }) => {
   if (mission.droneId) {
     // Simplified: mark drone available after delivery cycle
     await droneRepo.updateById(mission.droneId, { status: "AVAILABLE" });
+    try {
+      await assignNextWaitingOrderForHub(mission.hubId || updatedOrder?.hubId);
+    } catch (err) {
+      console.error(
+        "Failed to auto-assign next waiting order for hub",
+        mission.hubId,
+        err
+      );
+    }
   }
 
   return {

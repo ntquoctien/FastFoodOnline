@@ -85,10 +85,32 @@ const MyOrders = () => {
   };
 
   useEffect(() => {
-    if (token) {
-      fetchOrders();
-    }
-  }, [token]);
+    if (!token) return;
+
+    let isMounted = true;
+    const fetchAndSet = async () => {
+      try {
+        const response = await axios.get(`${url}/api/v2/orders/me`, {
+          headers: { token },
+        });
+        if (response.data.success && isMounted) {
+          setOrders(response.data.data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error("Failed to refresh orders", error);
+        }
+      }
+    };
+
+    fetchOrders();
+    const intervalId = setInterval(fetchAndSet, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [token, url]);
 
   const confirmDelivery = async (orderId) => {
     if (!orderId) return;

@@ -80,7 +80,16 @@ const Orders = ({ url }) => {
     setDetailError("");
     setDetailLoading(false);
   };
+
   const [statusFilter, setStatusFilter] = useState("in_progress");
+
+  const applyOrderUpdate = (updated) => {
+    if (!updated?._id) return;
+    setOrders((prev) => prev.map((o) => (o._id === updated._id ? { ...o, ...updated } : o)));
+    setDetailOrder((prev) =>
+      prev && prev._id === updated._id ? { ...prev, ...updated } : prev
+    );
+  };
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -97,6 +106,7 @@ const Orders = ({ url }) => {
         });
         if (response.data?.success && response.data.data) {
           setDetailOrder(response.data.data);
+          applyOrderUpdate(response.data.data);
         } else {
           setDetailError(response.data?.message || "Unable to load order");
         }
@@ -148,7 +158,16 @@ const Orders = ({ url }) => {
         params: branchFilter ? { branchId: branchFilter } : {},
       });
       if (response.data?.success) {
-        setOrders(response.data.data || []);
+        const incoming = response.data.data || [];
+        setOrders(incoming);
+        if (detailOrderId) {
+          const matched = incoming.find((item) => item._id === detailOrderId);
+          if (matched) {
+            setDetailOrder((prev) =>
+              prev ? { ...prev, ...matched } : matched
+            );
+          }
+        }
       } else {
         toast.error(response.data?.message || "Unable to load orders");
       }
@@ -158,7 +177,7 @@ const Orders = ({ url }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, url, branchFilter]);
+  }, [token, url, branchFilter, detailOrderId]);
 
   useEffect(() => {
     if (!token || role !== "admin") {
@@ -195,14 +214,6 @@ const Orders = ({ url }) => {
     });
   }, [orders, statusFilter]);
 
-  const updateOrderStatusLocally = (orderId, status) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order._id === orderId ? { ...order, status } : order
-      )
-    );
-  };
-
   const markMissionArrived = async (order) => {
     if (!order?.missionId) return;
     try {
@@ -212,7 +223,13 @@ const Orders = ({ url }) => {
         { headers: { token } }
       );
       if (response.data?.success) {
-        updateOrderStatusLocally(order._id, "ARRIVED");
+        const updatedOrder =
+          response.data.data?.order || response.data.data || response.data?.order || null;
+        if (updatedOrder?._id) {
+          applyOrderUpdate(updatedOrder);
+        } else {
+          applyOrderUpdate({ ...order, status: "ARRIVED" });
+        }
         toast.success("Marked drone arrived");
       } else {
         toast.error(response.data?.message || "Unable to mark arrived");
@@ -329,7 +346,10 @@ const Orders = ({ url }) => {
                         <tr
                           key={order._id}
                           style={{ cursor: "pointer" }}
-                          onClick={() => setDetailOrderId(order._id)}
+                          onClick={() => {
+                            setDetailOrder(order);
+                            setDetailOrderId(order._id);
+                          }}
                         >
                           <td className="fw-semibold">#{order._id.slice(-6).toUpperCase()}</td>
                           <td className="fw-semibold">{customerName}</td>
@@ -452,6 +472,17 @@ const Orders = ({ url }) => {
                       <p className="mb-0 text-muted">
                         Mission: {toId(detailOrder.missionId)}
                       </p>
+                    ) : null}
+                    {(detailOrder.status || "").toUpperCase() === "DELIVERING" && detailOrder.missionId ? (
+                      <div className="mt-2 d-flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => markMissionArrived(detailOrder)}
+                        >
+                          Mark drone arrived
+                        </button>
+                      </div>
                     ) : null}
                   </div>
 

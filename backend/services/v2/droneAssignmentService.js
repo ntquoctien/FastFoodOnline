@@ -173,4 +173,22 @@ export const assignDroneForOrder = async (order) => {
   }
 };
 
-export default { assignDroneForOrder };
+export const assignNextWaitingOrderForHub = async (hubId) => {
+  if (!hubId) return null;
+  const waitingList =
+    (await orderRepo.find(
+      {
+        hubId,
+        needsDroneAssignment: true,
+        status: { $in: ["WAITING_FOR_DRONE", "CREATED"] },
+        droneId: null,
+        missionId: null,
+      },
+      { sort: { createdAt: 1 }, limit: 1 }
+    )) || [];
+  const nextOrder = waitingList[0];
+  if (!nextOrder) return null;
+  return assignDroneForOrder(nextOrder);
+};
+
+export default { assignDroneForOrder, assignNextWaitingOrderForHub };

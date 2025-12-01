@@ -8,7 +8,7 @@ import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as geocodeCacheRepo from "../../repositories/v2/geocodeCacheRepository.js";
 import * as missionRepo from "../../repositories/v2/missionRepository.js";
-import { assignDroneForOrder } from "./droneAssignmentService.js";
+import { assignDroneForOrder, assignNextWaitingOrderForHub } from "./droneAssignmentService.js";
 import { createPaymentUrl, verifyReturnParams } from "../../utils/vnpay.js";
 import {
   createCheckoutSession,
@@ -1217,6 +1217,16 @@ export const confirmDelivery = async (orderId, actorUser) => {
     });
     if (mission.droneId) {
       await droneRepo.updateById(mission.droneId, { status: "AVAILABLE" });
+      try {
+        await assignNextWaitingOrderForHub(
+          order.hubId || mission.hubId || order.branchId?.hubId || null
+        );
+      } catch (assignErr) {
+        console.error(
+          "Failed to auto-assign next waiting order after delivery",
+          assignErr
+        );
+      }
     }
   }
 
@@ -1385,8 +1395,16 @@ export const cancelOrder = async ({ orderId, userId, reason }) => {
     throw new Error("NOT_AUTHORISED");
   }
 
-  const cancellableStatuses = ["pending", "confirmed", "preparing"];
-  if (!cancellableStatuses.includes(order.status)) {
+  const statusUpper = String(order.status || "").toUpperCase();
+  const cancellableStatuses = [
+    "PENDING",
+    "CONFIRMED",
+    "PREPARING",
+    "WAITING_FOR_DRONE",
+    "ASSIGNED",
+    "CREATED",
+  ];
+  if (!cancellableStatuses.includes(statusUpper)) {
     return { success: false, message: "Order cannot be cancelled at this stage" };
   }
 

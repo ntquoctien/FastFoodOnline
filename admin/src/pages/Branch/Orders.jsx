@@ -54,6 +54,19 @@ const BranchOrders = ({ url }) => {
     setDetailLoading(false);
   };
 
+  const applyOrderUpdate = (updated) => {
+    if (!updated?._id) return;
+    setOrders((prev) =>
+      prev.map((order) => (order._id === updated._id ? { ...order, ...updated } : order))
+    );
+    if (selectedOrder?._id === updated._id) {
+      setSelectedOrder((prev) => ({ ...prev, ...updated }));
+    }
+    if (detailOrder?._id === updated._id) {
+      setDetailOrder((prev) => ({ ...prev, ...updated }));
+    }
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -94,6 +107,7 @@ const BranchOrders = ({ url }) => {
         });
         if (response.data?.success) {
           setDetailOrder(response.data.data);
+          applyOrderUpdate(response.data.data);
         } else {
           setDetailError(response.data?.message || "Unable to load order detail");
         }
@@ -117,22 +131,6 @@ const BranchOrders = ({ url }) => {
     if (!value) return "-";
     const date = new Date(value);
     return date.toLocaleString();
-  };
-
-  const updateOrderInState = (orderId, updater) => {
-    let updatedOrder = null;
-    setOrders((prev) =>
-      prev.map((order) => {
-        if (order._id !== orderId) return order;
-        const next =
-          typeof updater === "function" ? updater(order) : { ...order, ...updater };
-        updatedOrder = next;
-        return next;
-      })
-    );
-    if (updatedOrder && selectedOrder?._id === orderId) {
-      setSelectedOrder(updatedOrder);
-    }
   };
 
   const withActionLoading = (orderId, fn) => async () => {
@@ -171,8 +169,10 @@ const BranchOrders = ({ url }) => {
           {},
           { headers: { token } }
         );
+        const baseOrder = orders.find((o) => o._id === orderId) || selectedOrder || {};
         if (response.data?.success) {
-          updateOrderInState(orderId, { status: "PREPARING" });
+          const updated = response.data.data || { ...baseOrder, _id: orderId, status: "PREPARING" };
+          applyOrderUpdate(updated);
           toast.success("Đã chuyển đơn sang trạng thái Đang chuẩn bị");
         } else {
           toast.error(response.data?.message || "Không thể nhận đơn");
@@ -194,8 +194,10 @@ const BranchOrders = ({ url }) => {
           {},
           { headers: { token } }
         );
+        const baseOrder = orders.find((o) => o._id === orderId) || selectedOrder || {};
         if (response.data?.success) {
-          updateOrderInState(orderId, { status: "DELIVERING" });
+          const updated = response.data.data || { ...baseOrder, _id: orderId, status: "DELIVERING" };
+          applyOrderUpdate(updated);
           toast.success("Drone đang giao hàng");
         } else {
           toast.error(response.data?.message || "Không thể chuyển trạng thái giao drone");
@@ -215,8 +217,10 @@ const BranchOrders = ({ url }) => {
           {},
           { headers: { token } }
         );
+        const baseOrder = orders.find((o) => o._id === order._id) || order || {};
         if (response.data?.success) {
-          updateOrderInState(order._id, { status: "ARRIVED" });
+          const updated = response.data.data?.order || response.data.data || { ...baseOrder, status: "ARRIVED" };
+          applyOrderUpdate(updated);
           toast.success("Đã đánh dấu drone đã đến điểm giao");
         } else {
           toast.error(response.data?.message || "Không thể đánh dấu đã đến");
