@@ -29,14 +29,18 @@ const toBooleanOrUndefined = (value) => {
 };
 
 const buildBranchPayload = (payload = {}) => {
+  const sourceAddress = payload.address || payload;
   const address = {
-    street: payload.street?.trim(),
-    ward: payload.ward?.trim(),
-    district: payload.district?.trim(),
-    city: payload.city?.trim(),
-    country: payload.country?.trim() || "Vietnam",
+    street: sourceAddress.street?.trim(),
+    ward: sourceAddress.ward?.trim(),
+    district: sourceAddress.district?.trim(),
+    city: sourceAddress.city?.trim(),
+    country: sourceAddress.country?.trim() || "Vietnam",
   };
-  const fullText = payload.fullAddress?.trim() || buildFullAddress(address);
+  const fullText =
+    payload.address?.fullText?.trim() ||
+    payload.fullAddress?.trim() ||
+    buildFullAddress(address);
   if (fullText) address.fullText = fullText;
 
   const branchPayload = {

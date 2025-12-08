@@ -32,8 +32,7 @@ const PlaceOrder = () => {
   } = useContext(StoreContext);
 
   const [data, setData] = useState(defaultAddress);
-  const [dropoffLat, setDropoffLat] = useState("");
-  const [dropoffLng, setDropoffLng] = useState("");
+  const [customerLocation, setCustomerLocation] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [submitting, setSubmitting] = useState(false);
 
@@ -164,26 +163,24 @@ const PlaceOrder = () => {
       quantity: item.quantity,
     }));
 
-    const contactName = `${data.firstName} ${data.lastName}`.trim();
-
     setSubmitting(true);
     try {
+      const addressPayload = {
+        ...data,
+        fullText: buildFullAddress(data),
+      };
+      const locationPayload =
+        customerLocation && Number.isFinite(customerLocation.lat) && Number.isFinite(customerLocation.lng)
+          ? { type: "Point", coordinates: [customerLocation.lng, customerLocation.lat] }
+          : undefined;
       const orderResponse = await axios.post(
         `${url}/api/v2/orders`,
         {
           branchId,
           items: orderItems,
-          address: {
-            address: buildFullAddress(data),
-            ...data,
-          },
-          dropoffLat: dropoffLat ? Number(dropoffLat) : undefined,
-          dropoffLng: dropoffLng ? Number(dropoffLng) : undefined,
-          contact: {
-            name: contactName || data.firstName || data.lastName,
-            phone: data.phone,
-            email: data.email,
-          },
+          customerAddress: addressPayload,
+          address: addressPayload, // backward compatibility payload shape
+          customerLocation: locationPayload,
         },
         { headers: { token } }
       );
@@ -316,8 +313,10 @@ const PlaceOrder = () => {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setDropoffLat(pos.coords.latitude);
-        setDropoffLng(pos.coords.longitude);
+        setCustomerLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
         toast.success("Location captured");
       },
       (err) => {
@@ -418,26 +417,20 @@ const PlaceOrder = () => {
           />
         </div>
 
-        <div className="multi-fields">
-          <input
-            name="dropoffLat"
-            value={dropoffLat}
-            onChange={(e) => setDropoffLat(e.target.value)}
-            type="number"
-            step="0.000001"
-            placeholder="Lat (optional)"
-          />
-          <input
-            name="dropoffLng"
-            value={dropoffLng}
-            onChange={(e) => setDropoffLng(e.target.value)}
-            type="number"
-            step="0.000001"
-            placeholder="Lng (optional)"
-          />
-          <button type="button" className="btn-secondary" onClick={useMyLocation}>
-            Use my location
-          </button>
+        <div className="form-card">
+          <div className="form-card-header d-flex justify-content-between align-items-center">
+            <span>Delivery Location</span>
+            <button type="button" className="btn-secondary" onClick={useMyLocation}>
+              Use my location
+            </button>
+          </div>
+          <p className="text-muted small mb-0">
+            We use your address to geocode the drop-off point. If you share device GPS,
+            it will be sent as `customerLocation` to improve accuracy.
+            {customerLocation
+              ? ` Captured: ${customerLocation.lat.toFixed(5)}, ${customerLocation.lng.toFixed(5)}`
+              : ""}
+          </p>
         </div>
 
         <div className="payment-method">

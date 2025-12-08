@@ -30,15 +30,36 @@ export const calculateDistanceKm = (pointA, pointB) => {
   return EARTH_RADIUS_KM * c;
 };
 
+const toBranchCoords = (branch = {}) => {
+  const parsedLat = branch.latitude !== undefined ? Number(branch.latitude) : undefined;
+  const parsedLon = branch.longitude !== undefined ? Number(branch.longitude) : undefined;
+  const hasLegacyCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLon);
+
+  if (hasLegacyCoords) {
+    return { latitude: parsedLat, longitude: parsedLon };
+  }
+
+  const coords = branch.location?.coordinates;
+  if (
+    Array.isArray(coords) &&
+    coords.length === 2 &&
+    Number.isFinite(Number(coords[1])) &&
+    Number.isFinite(Number(coords[0]))
+  ) {
+    return { latitude: Number(coords[1]), longitude: Number(coords[0]) };
+  }
+  return null;
+};
+
 export const findNearestBranch = (branches = [], coords) => {
   if (!coords || !branches.length) return null;
   let nearest = null;
   let nearestDistance = Infinity;
   branches.forEach((branch) => {
-    const candidateCoords = {
-      latitude: branch.latitude,
-      longitude: branch.longitude,
-    };
+    const candidateCoords = toBranchCoords(branch);
+    if (!candidateCoords) {
+      return;
+    }
     const distance = calculateDistanceKm(coords, candidateCoords);
     if (distance < nearestDistance) {
       nearest = branch;

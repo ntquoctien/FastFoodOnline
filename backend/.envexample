@@ -24,3 +24,7 @@ MOMO_REDIRECT_URL=http://localhost:5173/verify
 MOMO_IPN_URL=
 MOMO_REQUEST_TYPE=captureWallet
 MOMO_LANG=vi
+MAPTILER_KEY=your_maptiler_key
+OPENCAGE_KEY=your_opencage_key
+GEOCODE_EARTH_KEY=your_geocode_earth_key
+CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>

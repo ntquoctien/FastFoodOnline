@@ -205,6 +205,13 @@ const Orders = ({ url }) => {
     return map;
   }, [hubs]);
 
+  const resolveCustomerName = (order) =>
+    order?.userId?.name ||
+    order?.userId?.email ||
+    "Customer";
+
+  const resolveCustomerPhone = (order) => order?.userId?.phone || "-";
+
   const filteredOrders = useMemo(() => {
     if (statusFilter === "all") return orders;
     const allowed = statusGroups[statusFilter] || [];
@@ -247,6 +254,14 @@ const Orders = ({ url }) => {
     [address.street, address.ward, address.district, address.city, address.country]
       .filter(Boolean)
       .join(", ");
+
+  const resolveCustomerAddress = (order = {}) =>
+    order.customerAddress?.fullText ||
+    formatAddress(order.customerAddress || {}) ||
+    // LEGACY FALLBACK - TODO: remove when legacy address is dropped
+    order.address?.fullText ||
+    formatAddress(order.address || {}) ||
+    "-";
 
   const formatDateTime = (timestamp) =>
     timestamp ? new Date(timestamp).toLocaleString() : "-";
@@ -335,13 +350,7 @@ const Orders = ({ url }) => {
                         branchNameMap.get(toId(order.branchId)) ||
                         toId(order.branchId) ||
                         "-";
-                      const customerName =
-                        order.contact?.name ||
-                        order.customerAddress?.fullName ||
-                        order.userId?.name ||
-                        order.userId?.email ||
-                        toId(order.userId) ||
-                        "-";
+                      const customerName = resolveCustomerName(order);
                       return (
                         <tr
                           key={order._id}
@@ -412,20 +421,10 @@ const Orders = ({ url }) => {
                   <div className="mb-3">
                     <p className="text-uppercase text-muted small mb-1">Recipient</p>
                     <p className="fw-semibold mb-0">
-                      {detailOrder.contact?.name ||
-                        detailOrder.customerAddress?.fullName ||
-                        detailOrder.userId?.name ||
-                        detailOrder.userId?.email ||
-                        toId(detailOrder.userId) ||
-                        "-"}
+                      {resolveCustomerName(detailOrder)}
                     </p>
-                    <p className="text-muted mb-0">{detailOrder.contact?.phone || "-"}</p>
-                    <p className="text-muted mb-0">
-                      {detailOrder.customerAddress?.fullText ||
-                        detailOrder.address?.fullText ||
-                        formatAddress(detailOrder.customerAddress || detailOrder.address || {}) ||
-                        "-"}
-                    </p>
+                    <p className="text-muted mb-0">{resolveCustomerPhone(detailOrder)}</p>
+                    <p className="text-muted mb-0">{resolveCustomerAddress(detailOrder)}</p>
                   </div>
 
                   <div className="mb-3">

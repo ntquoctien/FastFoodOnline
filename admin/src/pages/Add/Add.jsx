@@ -11,7 +11,13 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 
-const DEFAULT_VARIANT = { size: "", price: "", isDefault: true };
+const DEFAULT_VARIANT = {
+  size: "",
+  price: "",
+  isDefault: true,
+  measurementUnitId: "",
+  measurementUnitType: "",
+};
 
 const formatCurrency = (value) => {
   const parsed = Number(value);
@@ -37,6 +43,15 @@ const Add = ({ url }) => {
   const [inventoryModal, setInventoryModal] = useState(null);
   const [inventoryValues, setInventoryValues] = useState({});
   const [inventorySaving, setInventorySaving] = useState(false);
+  const [units, setUnits] = useState([]);
+  const [loadingUnits, setLoadingUnits] = useState(false);
+  const unitTypes = useMemo(
+    () =>
+      Array.from(new Set(units.map((unit) => (unit.type || "").trim().toLowerCase()))).filter(
+        Boolean
+      ),
+    [units]
+  );
 
   const imagePreviewUrl = useMemo(() => {
     if (!image) return null;
@@ -120,6 +135,57 @@ const Add = ({ url }) => {
     fetchMeta();
   }, [token, role, fetchMeta, navigate]);
 
+  useEffect(() => {
+    const fetchUnits = async () => {
+      if (!modalOpen || !token) return;
+      setLoadingUnits(true);
+      try {
+        const response = await axios.get(`${url}/api/v2/units`, {
+          headers: { token },
+          params: { includeInactive: false },
+        });
+        if (response.data?.success) {
+          const nextUnits = (response.data.data || []).map((unit) => ({
+            ...unit,
+            type: (unit.type || "").trim().toLowerCase(),
+          }));
+          setUnits(nextUnits);
+          if (nextUnits.length) {
+            const fallbackType = nextUnits[0]?.type || "";
+            const validTypes = new Set(nextUnits.map((unit) => unit.type));
+            setVariants((prev) =>
+              prev.map((variant) => {
+                const currentType = (variant.measurementUnitType || fallbackType || "").trim().toLowerCase();
+                const typeToUse = validTypes.has(currentType)
+                  ? currentType
+                  : fallbackType;
+                const hasUnitForType = nextUnits.some(
+                  (unit) =>
+                    unit.type === typeToUse &&
+                    unit._id === variant.measurementUnitId
+                );
+                return {
+                  ...variant,
+                  measurementUnitType: typeToUse,
+                  measurementUnitId: hasUnitForType ? variant.measurementUnitId : "",
+                  size: hasUnitForType ? variant.size : "",
+                };
+              })
+            );
+          }
+        } else {
+          toast.error(response.data?.message || "Unable to load measurement units");
+        }
+      } catch (error) {
+        console.error("Fetch measurement units failed", error);
+        toast.error("Unable to load measurement units");
+      } finally {
+        setLoadingUnits(false);
+      }
+    };
+    fetchUnits();
+  }, [modalOpen, token, url]);
+
   const updateForm = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -134,7 +200,11 @@ const Add = ({ url }) => {
   };
 
   const addVariantRow = () => {
-    setVariants((prev) => [...prev, { ...DEFAULT_VARIANT, isDefault: false }]);
+    const fallbackType = unitTypes[0] || "";
+    setVariants((prev) => [
+      ...prev,
+      { ...DEFAULT_VARIANT, isDefault: false, measurementUnitType: fallbackType },
+    ]);
   };
 
   const removeVariantRow = (index) => {
@@ -225,6 +295,7 @@ const Add = ({ url }) => {
         expandedVariants.push({
           size: variant.size,
           price: Number(variant.price),
+          measurementUnitId: variant.measurementUnitId || undefined,
           branchId,
           isDefault: variant.isDefault && branchIndex === 0,
         });
@@ -374,9 +445,12 @@ const Add = ({ url }) => {
     if (!modalOpen) return null;
     return (
       <>
-        <div className="modal fade show d-block" tabIndex={-1} role="dialog">
-          <div className="modal-dialog modal-xl modal-dialog-scrollable">
-            <div className="modal-content border-0 rounded-4">
+        <div className="create-food-modal" role="dialog" aria-modal="true">
+          <div
+            className="create-food-modal__dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-content border-0 rounded-4 create-food-modal__content">
               <div className="modal-header border-0">
                 <div>
                   <h5 className="mb-0">Create Food Item</h5>
@@ -394,8 +468,8 @@ const Add = ({ url }) => {
                   }}
                 />
               </div>
-              <form onSubmit={onSubmitHandler}>
-                <div className="modal-body">
+              <form onSubmit={onSubmitHandler} className="d-flex flex-column h-100">
+                <div className="modal-body create-food-modal__body">
                   <div className="row g-4">
                     <div className="col-12 col-lg-4">
                       <div className="border rounded-4 p-3 h-100">
@@ -567,20 +641,110 @@ const Add = ({ url }) => {
                             key={`variant-${index}`}
                             className="row g-3 align-items-end border rounded-4 p-3"
                           >
-                            <div className="col-12 col-md-4">
+                            <div className="col-12 col-md-5 col-lg-4">
                               <label className="form-label fw-semibold">
                                 Size / label
                               </label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                placeholder="Large, Combo, …"
-                                value={variant.size}
-                                onChange={(event) =>
-                                  updateVariant(index, "size", event.target.value)
-                                }
-                                required
-                              />
+                              {units.length > 0 ? (
+                                <div className="d-flex flex-column gap-2">
+                                  <select
+                                    className="form-select"
+                                    value={
+                                      variant.measurementUnitType || unitTypes[0] || ""
+                                    }
+                                    onChange={(event) => {
+                                      const nextType = event.target.value;
+                                      setVariants((prev) =>
+                                        prev.map((item, i) =>
+                                          i === index
+                                            ? {
+                                                ...item,
+                                                measurementUnitType: nextType,
+                                                measurementUnitId: "",
+                                                size: "",
+                                              }
+                                            : item
+                                        )
+                                      );
+                                    }}
+                                    disabled={loadingUnits || !unitTypes.length}
+                                  >
+                                    <option value="">
+                                      {loadingUnits
+                                        ? "Loading types..."
+                                        : "Chon loai size"}
+                                    </option>
+                                    {unitTypes.map((typeOption) => (
+                                      <option key={typeOption} value={typeOption}>
+                                        {typeOption}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {(() => {
+                                    const currentType =
+                                      variant.measurementUnitType ||
+                                      unitTypes[0] ||
+                                      "";
+                                    const filteredUnits = units.filter(
+                                      (unit) => unit.type === currentType
+                                    );
+                                    return (
+                                      <select
+                                        className="form-select"
+                                        value={variant.measurementUnitId || ""}
+                                        onChange={(event) => {
+                                          const unitId = event.target.value;
+                                          const unit = filteredUnits.find(
+                                            (item) => item._id === unitId
+                                          );
+                                          setVariants((prev) =>
+                                            prev.map((item, i) =>
+                                              i === index
+                                                ? {
+                                                    ...item,
+                                                    measurementUnitId: unitId,
+                                                    size: unit?.label || "",
+                                                  }
+                                                : item
+                                            )
+                                          );
+                                        }}
+                                        required
+                                        disabled={
+                                          loadingUnits ||
+                                          !currentType ||
+                                          filteredUnits.length === 0
+                                        }
+                                      >
+                                        <option value="">
+                                          {loadingUnits
+                                            ? "Loading sizes..."
+                                            : filteredUnits.length === 0
+                                            ? "Khong co size"
+                                            : "Chọn size"}
+                                        </option>
+                                        {filteredUnits.map((unit) => (
+                                          <option key={unit._id} value={unit._id}>
+                                            {unit.label}
+                                            {unit.symbol ? ` (${unit.symbol})` : ""}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    );
+                                  })()}
+                                </div>
+                              ) : (
+                                <input
+                                  className="form-control"
+                                  type="text"
+                                  placeholder="Type size (S, M, 500ml...)"
+                                  value={variant.size}
+                                  onChange={(event) =>
+                                    updateVariant(index, "size", event.target.value)
+                                  }
+                                  required
+                                />
+                              )}
                             </div>
                             <div className="col-12 col-md-3">
                               <label className="form-label fw-semibold">
@@ -653,7 +817,6 @@ const Add = ({ url }) => {
             </div>
           </div>
         </div>
-        <div className="modal-backdrop fade show"></div>
       </>
     );
   };
@@ -821,3 +984,10 @@ const Add = ({ url }) => {
 };
 
 export default Add;
+
+
+
+
+
+
+

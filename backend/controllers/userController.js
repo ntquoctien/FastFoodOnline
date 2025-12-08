@@ -1,6 +1,7 @@
 import * as userService from "../services/userService.js";
 import * as userRepo from "../repositories/userRepository.js";
 import * as notificationService from "../services/v2/notificationService.js";
+import { toPublicUploadUrl } from "../config/uploader.js";
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -46,7 +47,7 @@ export const updateProfile = async (req, res) => {
       phone: req.body.phone,
       currentPassword: req.body.currentPassword,
       newPassword: req.body.newPassword,
-      avatarFileName: req.file?.path || req.file?.filename,
+      avatarFileName: toPublicUploadUrl(req.file),
       removeAvatar: req.body.removeAvatar === "true",
     });
     if (result.success) {

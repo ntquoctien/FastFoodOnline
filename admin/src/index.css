@@ -12,6 +12,25 @@ a{
     text-decoration: none;
     color: inherit;
 }
+.modal-dialog{
+    width: auto;
+    max-width: min(1100px, 96vw);
+    margin: 1.25rem auto;
+}
+.modal-dialog.modal-lg{
+    max-width: min(960px, 95vw);
+}
+.modal-dialog.modal-xl{
+    max-width: min(1200px, 98vw);
+}
+.modal-content{
+    max-height: calc(100vh - 2.5rem);
+    display: flex;
+    flex-direction: column;
+}
+.modal-body{
+    overflow: auto;
+}
 .app-shell{
     min-height: 100vh;
     display: flex;
@@ -28,31 +47,40 @@ a{
     overflow-y: auto;
     background: linear-gradient(180deg,#f7f9fc 0%,#ffffff 60%);
 }
+
+/* Overlay modal toàn màn hình
+-------------------------------------------------- */
 .create-food-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 1060;
+    background: rgba(0, 0, 0, 0.4);
     padding: clamp(16px, 3vw, 32px);
     display: flex !important;
     align-items: center;
     justify-content: center;
-    overflow-y: auto;
-    min-height: 100vh;
+
+    /* KHÔNG để overflow-y ở đây, để cho inner content */
+    overflow: hidden;
 }
 .create-food-modal__dialog{
     width: 100%;
-    max-width: min(1200px, calc(100vw - clamp(24px, 4vw, 96px)));
-    margin: 0 auto;
+    max-width: min(1100px, calc(100vw - clamp(24px, 4vw, 72px)));
+    margin: 0 auto;             /* bỏ margin-top mặc định của modal-dialog */
+    max-height: calc(100vh - 64px);
     display: flex;
-    flex: 1;
-    max-height: calc(100vh - clamp(32px, 6vh, 96px));
 }
 .create-food-modal__content{
     width: 100%;
     height: auto;
     max-height: 100%;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+
     display: flex;
     flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;            /* thanh scroll nằm trong khung trắng */
 }
 .create-food-modal__content form{
     display: flex;

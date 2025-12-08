@@ -20,6 +20,7 @@ const adminSections = [
     links: [
       { to: "/add", icon: navIcons.add, label: "Add Items" },
       { to: "/list", icon: navIcons.list, label: "List Items" },
+      { to: "/units", icon: navIcons.inventory, label: "Measurement Units" },
       { to: "/inventory", icon: navIcons.inventory, label: "Inventory" },
     ],
   },

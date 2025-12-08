@@ -10,6 +10,24 @@ import { assignDrone } from "./orderService.js";
 const MAX_DRONE_ASSIGN_RETRIES =
   Number(process.env.DRONE_ASSIGN_MAX_RETRIES || 3) || 3;
 
+const toPoint = (location) => {
+  if (!location || !Array.isArray(location.coordinates)) return null;
+  const [lng, lat] = location.coordinates;
+  const parsedLng = Number(lng);
+  const parsedLat = Number(lat);
+  if (!Number.isFinite(parsedLng) || !Number.isFinite(parsedLat)) return null;
+  return { lng: parsedLng, lat: parsedLat };
+};
+
+const stripLegacyDroneFields = (drone) => {
+  if (!drone) return drone;
+  const plain = drone && typeof drone.toObject === "function" ? drone.toObject() : { ...drone };
+  delete plain.branchId;
+  delete plain.lastKnownLat;
+  delete plain.lastKnownLng;
+  return plain;
+};
+
 const ensureAdmin = async (userId) => {
   const user = await userRepo.findById(userId);
   if (!user) {
@@ -26,7 +44,7 @@ const ensureAdmin = async (userId) => {
 export const listDrones = async ({ userId }) => {
   await ensureAdmin(userId);
   const drones = await droneRepo.findAll({});
-  return { success: true, data: drones };
+  return { success: true, data: drones.map(stripLegacyDroneFields) };
 };
 
 export const createDrone = async ({
@@ -88,7 +106,7 @@ export const createDrone = async ({
     location: resolvedLocation,
   });
 
-  return { success: true, data: drone };
+  return { success: true, data: stripLegacyDroneFields(drone) };
 };
 
 export const updateDrone = async ({
@@ -159,7 +177,7 @@ export const updateDrone = async ({
   if (!updated) {
     return { success: false, message: "Drone not found" };
   }
-  return { success: true, data: updated };
+  return { success: true, data: stripLegacyDroneFields(updated) };
 };
 
 export const deleteDrone = async ({ userId, droneId }) => {
@@ -245,7 +263,11 @@ export const seedSampleDrones = async ({
   if (!created.length) {
     return { success: false, message: "No drones created (duplicate codes)" };
   }
-  return { success: true, data: created, message: "Seeded sample drones" };
+  return {
+    success: true,
+    data: created.map(stripLegacyDroneFields),
+    message: "Seeded sample drones",
+  };
 };
 
 const buildAssignmentUpdate = (status, now) => {
@@ -356,15 +378,22 @@ export const handleDroneStatusEvent = async ({
   }
 
   if (updatePayload.status === "assigned") {
-    try {
-      await createMission({
-        assignmentId: assignment._id,
-        droneId: assignment.droneId || droneId,
-        pickup: { lat: order.pickupLat, lng: order.pickupLng },
-        dropoff: { lat: order.dropoffLat, lng: order.dropoffLng },
-      });
-    } catch (err) {
-      console.error("Drone mission create failed (webhook)", err);
+    const pickupPoint =
+      toPoint(order.branchId?.location) ||
+      (order.branchId && order.branchId.location && toPoint(order.branchId.location)) ||
+      null;
+    const dropoffPoint = toPoint(order.customerLocation);
+    if (pickupPoint && dropoffPoint) {
+      try {
+        await createMission({
+          assignmentId: assignment._id,
+          droneId: assignment.droneId || droneId,
+          pickup: pickupPoint,
+          dropoff: dropoffPoint,
+        });
+      } catch (err) {
+        console.error("Drone mission create failed (webhook)", err);
+      }
     }
   }
 

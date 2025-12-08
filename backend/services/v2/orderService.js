@@ -92,6 +92,31 @@ const parseCoordinate = (value) => {
 const normaliseId = (value) =>
   value && typeof value.toString === "function" ? value.toString() : value;
 
+const toPlainObject = (doc) =>
+  doc && typeof doc.toObject === "function" ? doc.toObject() : { ...(doc || {}) };
+
+const stripLegacyOrderFields = (order) => {
+  if (!order) return order;
+  const plain = toPlainObject(order);
+  delete plain.address; // legacy flat address
+  delete plain.dropoffAddress;
+  delete plain.dropoffLat;
+  delete plain.dropoffLng;
+  delete plain.pickupLat;
+  delete plain.pickupLng;
+  delete plain.payloadWeightKg;
+  if (Array.isArray(plain.items)) {
+    plain.items = plain.items.map((item) => {
+      const copy = toPlainObject(item);
+      delete copy.notes; // legacy/unused in UI
+      return copy;
+    });
+  }
+  return plain;
+};
+
+const stripLegacyOrders = (orders = []) => orders.map(stripLegacyOrderFields);
+
 const assertBranchPermission = (order, actorUser) => {
   if (["admin", "super_admin"].includes(actorUser?.role)) return;
   const actorBranchId = normaliseId(actorUser?.branchId);
@@ -106,19 +131,32 @@ const getBranchCoordinates = (branch) => {
   const locCoords = branch?.location?.coordinates;
   const locLng = Array.isArray(locCoords) ? parseCoordinate(locCoords[0]) : null;
   const locLat = Array.isArray(locCoords) ? parseCoordinate(locCoords[1]) : null;
-  const lat = Number.isFinite(locLat)
-    ? locLat
-    : parseCoordinate(branch?.latitude ?? branch?.lat);
-  const lng = Number.isFinite(locLng)
-    ? locLng
-    : parseCoordinate(branch?.longitude ?? branch?.lng);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return { lat: null, lng: null };
-  }
-  return { lat, lng };
+  return {
+    lat: Number.isFinite(locLat) ? locLat : null,
+    lng: Number.isFinite(locLng) ? locLng : null,
+  };
 };
 
-const resolveDropoffCoordinates = async ({ address, dropoffLat, dropoffLng }) => {
+const pointFromLocation = (location) => {
+  if (!location || !Array.isArray(location.coordinates)) return null;
+  const [lng, lat] = location.coordinates;
+  const parsedLng = parseCoordinate(lng);
+  const parsedLat = parseCoordinate(lat);
+  if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) return null;
+  return { lat: parsedLat, lng: parsedLng };
+};
+
+const resolveDropoffCoordinates = async ({
+  address,
+  dropoffLat,
+  dropoffLng,
+  customerLocation,
+}) => {
+  const explicitLocation = pointFromLocation(customerLocation);
+  if (explicitLocation) {
+    return { ...explicitLocation, fullText: buildFullAddress(address) };
+  }
+
   const lat = parseCoordinate(dropoffLat);
   const lng = parseCoordinate(dropoffLng);
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
@@ -228,28 +266,30 @@ export const assignDrone = async ({ order, branchId }) => {
   }
 
   const resolvedBranchId =
-    branchId ||
-    order.pickupBranchId ||
-    order.branchId?._id ||
-    order.branchId ||
-    null;
-  let resolvedHubId = order.hubId || order.branchId?.hubId || null;
-  if (!resolvedHubId && resolvedBranchId) {
-    const branch = await branchRepo.findById(resolvedBranchId);
-    if (branch) {
-      resolvedHubId = branch.hubId || resolvedHubId;
-    }
+    branchId || order.pickupBranchId || order.branchId?._id || order.branchId || null;
+  let branchDoc =
+    (order.branchId && typeof order.branchId === "object" ? order.branchId : null) || null;
+  if (!branchDoc && resolvedBranchId) {
+    branchDoc = await branchRepo.findById(resolvedBranchId);
   }
+  let resolvedHubId = order.hubId || branchDoc?.hubId || order.branchId?.hubId || null;
   const availableDrones = await droneRepo.findAvailable({
     hubId: resolvedHubId,
     minBattery: MIN_DRONE_BATTERY,
     minPayloadKg:
       (order.orderWeightKg || 0) * PAYLOAD_SAFETY_FACTOR,
-    near: {
-      lat: order.pickupLat,
-      lng: order.pickupLng,
-    },
+    near: getBranchCoordinates(branchDoc),
   });
+
+  const pickupPoint = getBranchCoordinates(branchDoc);
+  const dropoffPoint = pointFromLocation(order.customerLocation);
+  if (!Number.isFinite(pickupPoint.lat) || !Number.isFinite(pickupPoint.lng) || !dropoffPoint) {
+    await orderRepo.updateById(order._id, {
+      needsDroneAssignment: true,
+      lastDroneAssignAttemptAt: new Date(),
+    });
+    return null;
+  }
 
   if (!availableDrones.length) {
     await orderRepo.updateById(order._id, {
@@ -259,18 +299,9 @@ export const assignDrone = async ({ order, branchId }) => {
     return null;
   }
 
-  const pickupPoint = {
-    lat: order.pickupLat,
-    lng: order.pickupLng,
-  };
   const scored = availableDrones.map((drone) => {
-    const loc = Array.isArray(drone.location?.coordinates)
-      ? { lng: drone.location.coordinates[0], lat: drone.location.coordinates[1] }
-      : null;
-    const dronePoint = loc || {
-      lat: drone.lastKnownLat ?? order.pickupLat,
-      lng: drone.lastKnownLng ?? order.pickupLng,
-    };
+    const loc = pointFromLocation(drone.location);
+    const dronePoint = loc || pickupPoint;
     const distance = haversineKm(pickupPoint, dronePoint);
     return { drone, distance };
   });
@@ -306,15 +337,17 @@ export const assignDrone = async ({ order, branchId }) => {
     at: now,
   });
 
-  try {
-    await createMission({
-      assignmentId: assignment._id,
-      droneId: best._id,
-      pickup: { lat: order.pickupLat, lng: order.pickupLng },
-      dropoff: { lat: order.dropoffLat, lng: order.dropoffLng },
-    });
-  } catch (gatewayError) {
-    console.error("Drone mission create failed", gatewayError);
+  if (Number.isFinite(dropoffPoint.lat) && Number.isFinite(dropoffPoint.lng)) {
+    try {
+      await createMission({
+        assignmentId: assignment._id,
+        droneId: best._id,
+        pickup: pickupPoint,
+        dropoff: dropoffPoint,
+      });
+    } catch (gatewayError) {
+      console.error("Drone mission create failed", gatewayError);
+    }
   }
 
   return assignment;
@@ -325,8 +358,8 @@ export const createOrder = async ({
   branchId,
   items,
   address,
-  dropoffLat,
-  dropoffLng,
+  customerAddress,
+  customerLocation,
   paymentMethod,
 }) => {
   const branch = await branchRepo.findById(branchId);
@@ -338,32 +371,28 @@ export const createOrder = async ({
     console.warn("Branch hubId missing for order creation", { branchId });
   }
 
-  const customerAddress =
-    typeof address === "object"
-      ? {
-          street: address.street?.trim(),
-          ward: address.ward?.trim(),
-          district: address.district?.trim(),
-          city: address.city?.trim(),
-          country: address.country?.trim() || "Vietnam",
-        }
-      : {};
-  customerAddress.fullText =
-    (address?.fullText && String(address.fullText).trim()) ||
-    buildFullAddress(customerAddress);
+  const baseAddress = typeof customerAddress === "object" ? customerAddress : address || {};
+  const structuredAddress = {
+    street: baseAddress.street?.trim(),
+    ward: baseAddress.ward?.trim(),
+    district: baseAddress.district?.trim(),
+    city: baseAddress.city?.trim(),
+    country: baseAddress.country?.trim() || "Vietnam",
+  };
+  structuredAddress.fullText =
+    (baseAddress?.fullText && String(baseAddress.fullText).trim()) ||
+    buildFullAddress(structuredAddress);
 
-  let dropoffAddressValue = customerAddress.fullText || "";
-  const { lat: pickupLat, lng: pickupLng } = getBranchCoordinates(branch);
-  if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) {
+  const branchPoint = getBranchCoordinates(branch);
+  if (!Number.isFinite(branchPoint.lat) || !Number.isFinite(branchPoint.lng)) {
     console.warn("Branch missing pickup coordinates for order", { branchId });
   }
 
   let dropoff;
   try {
     dropoff = await resolveDropoffCoordinates({
-      address: customerAddress,
-      dropoffLat,
-      dropoffLng,
+      address: structuredAddress,
+      customerLocation,
     });
   } catch (error) {
     if (error.message === "DROP_OFF_LOCATION_REQUIRED") {
@@ -375,19 +404,17 @@ export const createOrder = async ({
     throw error;
   }
 
-  // If geocoder returned normalized full text, prefer it
-  if (dropoff?.fullText) {
-    customerAddress.fullText = dropoff.fullText;
-    dropoffAddressValue = dropoff.fullText;
-  }
-
-  const customerLocation = {
+  const canonicalCustomerLocation = {
     type: "Point",
     coordinates: [dropoff.lng, dropoff.lat],
   };
 
+  if (dropoff?.fullText) {
+    structuredAddress.fullText = dropoff.fullText;
+  }
+
   const initialStatus =
-    branchHubId && Number.isFinite(pickupLat) && Number.isFinite(pickupLng)
+    branchHubId && Number.isFinite(branchPoint.lat) && Number.isFinite(branchPoint.lng)
       ? "CREATED"
       : "WAITING_FOR_DRONE";
 
@@ -405,21 +432,14 @@ export const createOrder = async ({
     branchId,
     hubId: branchHubId,
     pickupBranchId: branchId,
-    pickupLat,
-    pickupLng,
-    dropoffAddress: dropoffAddressValue,
-    dropoffLat: dropoff.lat,
-    dropoffLng: dropoff.lng,
-    customerAddress,
-    customerLocation,
+    customerAddress: structuredAddress,
+    customerLocation: canonicalCustomerLocation,
     deliveryMethod: "drone",
     items: normalizedItems,
-    address: { ...customerAddress, lat: dropoff.lat, lng: dropoff.lng }, // legacy payload compatibility
     subtotal,
     deliveryFee,
     totalAmount,
     orderWeightKg: totalWeightKg || 0,
-    payloadWeightKg: totalWeightKg || 0,
     paymentMethod: paymentMethodValue,
     paymentStatus: initialPaymentStatus,
     status: initialStatus,
@@ -446,7 +466,7 @@ export const createOrder = async ({
   await assignDroneForOrder(order);
   const refreshedOrder = await orderRepo.findById(order._id);
 
-  return { success: true, data: refreshedOrder || order };
+  return { success: true, data: stripLegacyOrderFields(refreshedOrder || order) };
 };
 
 export const confirmPayment = async ({
@@ -1055,7 +1075,7 @@ export const listUserOrders = async ({ userId }) => {
     { userId },
     { sort: { createdAt: -1 } }
   );
-  return { success: true, data: orders };
+  return { success: true, data: stripLegacyOrders(orders) };
 };
 
 export const listAllOrders = async ({ role, branchId, queryBranchId }) => {
@@ -1071,7 +1091,7 @@ export const listAllOrders = async ({ role, branchId, queryBranchId }) => {
   }
 
   const orders = await orderRepo.find(filter, { sort: { createdAt: -1 } });
-  return { success: true, data: orders };
+  return { success: true, data: stripLegacyOrders(orders) };
 };
 
 export const getOrderByIdV2 = async (orderId, actorUser) => {
@@ -1091,7 +1111,7 @@ export const getOrderByIdV2 = async (orderId, actorUser) => {
       throw error;
     }
   }
-  return order;
+  return stripLegacyOrderFields(order);
 };
 
 export const acceptOrder = async (orderId, actorUser) => {
@@ -1123,7 +1143,7 @@ export const acceptOrder = async (orderId, actorUser) => {
   }
 
   const refreshed = await orderRepo.findById(orderId);
-  return { success: true, data: refreshed };
+  return { success: true, data: stripLegacyOrderFields(refreshed) };
 };
 
 export const readyToShipOrder = async (orderId, actorUser) => {
@@ -1139,7 +1159,7 @@ export const readyToShipOrder = async (orderId, actorUser) => {
 
   const status = String(order.status || "").toUpperCase();
   if (["DELIVERING", "ARRIVED", "COMPLETED"].includes(status)) {
-    return { success: true, data: order };
+    return { success: true, data: stripLegacyOrderFields(order) };
   }
   const allowed = ["PREPARING", "ASSIGNED", "CREATED", "WAITING_FOR_DRONE"];
   if (!allowed.includes(status)) {
@@ -1182,7 +1202,7 @@ export const readyToShipOrder = async (orderId, actorUser) => {
   });
 
   const refreshed = await orderRepo.findById(orderId);
-  return { success: true, data: refreshed };
+  return { success: true, data: stripLegacyOrderFields(refreshed) };
 };
 
 export const markOrderReadyToShip = readyToShipOrder;
@@ -1203,7 +1223,7 @@ export const confirmDelivery = async (orderId, actorUser) => {
     return { success: false, message: "Order is not ready to be completed" };
   }
   if (status === "COMPLETED") {
-    return { success: true, data: order };
+    return { success: true, data: stripLegacyOrderFields(order) };
   }
 
   const mission =
@@ -1239,7 +1259,7 @@ export const confirmDelivery = async (orderId, actorUser) => {
   });
 
   const refreshed = await orderRepo.findById(orderId);
-  return { success: true, data: refreshed };
+  return { success: true, data: stripLegacyOrderFields(refreshed) };
 };
 
 export const updateStatus = async ({
@@ -1382,7 +1402,7 @@ export const updateStatus = async ({
       });
     }
   }
-  return { success: true, data: order };
+  return { success: true, data: stripLegacyOrderFields(order) };
 };
 
 export const cancelOrder = async ({ orderId, userId, reason }) => {
@@ -1427,7 +1447,7 @@ export const confirmReceipt = async ({ orderId, userId }) => {
     throw new Error("NOT_AUTHORISED");
   }
   if (order.status === "delivered") {
-    return { success: true, data: order };
+    return { success: true, data: stripLegacyOrderFields(order) };
   }
 
   const confirmableStatuses = ["in_transit"];

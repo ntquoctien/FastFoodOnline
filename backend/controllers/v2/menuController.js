@@ -2,6 +2,7 @@ import * as menuService from "../../services/v2/menuService.js";
 import * as userRepo from "../../repositories/userRepository.js";
 import * as categoryService from "../../services/v2/categoryService.js";
 import * as notificationService from "../../services/v2/notificationService.js";
+import { toPublicUploadUrl } from "../../config/uploader.js";
 
 const BRANCH_MANAGER_ROLES = ["manager", "branch_manager"];
 const MENU_NOTIFICATION_ROLES = ["admin", "manager", "branch_manager", "all"];
@@ -82,7 +83,7 @@ export const createFood = async (req, res) => {
           .json({ success: false, message: "Invalid variants payload" });
       }
     }
-    const imageUrl = req.file?.path || req.file?.filename;
+    const imageUrl = toPublicUploadUrl(req.file);
     const result = await menuService.createFoodWithVariants({
       categoryId,
       name,
@@ -155,7 +156,7 @@ export const updateFood = async (req, res) => {
       name,
       description,
       categoryId: normalise(categoryId),
-      imageUrl: req.file?.path || req.file?.filename,
+      imageUrl: toPublicUploadUrl(req.file),
     });
     if (result.success) {
       await notificationService.publishNotification({

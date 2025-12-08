@@ -1,6 +1,7 @@
 # ERD (tu code)
 
 Nguon: backend/models v2 va cac services/controllers (khong dung tai lieu .md/.puml).
+Trang thai: UI da chuyen sang dung truong canonical (address/customerAddress/customerLocation/location/mission) va khong doc/ghi cac truong legacy duoc danh dau [unused]; schema giu nguyen de tuong thich.
 
 ## Quan he chinh
 - restaurants 1--* branches (`branches.restaurantId`); branch co the tham chieu hub (`hubId`).

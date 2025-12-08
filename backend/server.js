@@ -69,7 +69,10 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
+const uploadsDir = path.join(__dirname, "uploads");
+
 // middlewares
+app.use("/uploads", express.static(uploadsDir));
 app.use(express.json());
 app.use(cors());
 app.use(

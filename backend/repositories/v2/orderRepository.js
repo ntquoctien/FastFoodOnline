@@ -30,6 +30,7 @@ export const pushTimeline = (id, entry) => {
 export const find = (filter = {}, options = {}) =>
   OrderModel.find(filter, null, options)
     .populate("branchId")
+    .populate("userId", "name email phone")
     .populate("items.foodVariantId");
 
 export default { create, findById, updateById, pushTimeline, find };

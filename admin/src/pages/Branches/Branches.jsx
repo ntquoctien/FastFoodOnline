@@ -230,9 +230,20 @@ const Branches = ({ url }) => {
       ...branchFields
     } = formValues;
     const isCreating = !editingBranchId;
+    const addressPayload = {
+      street: branchFields.street?.trim(),
+      ward: branchFields.ward?.trim(),
+      district: branchFields.district?.trim(),
+      city: branchFields.city?.trim(),
+      country: branchFields.country?.trim() || "Vietnam",
+    };
     const payload = {
-      ...branchFields,
-      country: branchFields.country || "Vietnam",
+      name: branchFields.name?.trim(),
+      hubId: branchFields.hubId,
+      phone: branchFields.phone?.trim(),
+      isPrimary: branchFields.isPrimary,
+      isActive: branchFields.isActive,
+      address: addressPayload,
     };
     const shouldCreateManager =
       isCreating && (managerName || managerEmail || managerPassword);

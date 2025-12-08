@@ -58,16 +58,31 @@ const getClientIp = (req) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { branchId, items, address, dropoffLat, dropoffLng, paymentMethod } =
-      req.body;
+    const {
+      branchId,
+      items,
+      address,
+      customerAddress,
+      customerLocation,
+      dropoffLat,
+      dropoffLng,
+      paymentMethod,
+    } = req.body;
     const userId = req.body.userId || req.userId;
+    const legacyLocation =
+      dropoffLat !== undefined && dropoffLng !== undefined
+        ? {
+            type: "Point",
+            coordinates: [Number(dropoffLng), Number(dropoffLat)],
+          }
+        : null;
     const result = await orderService.createOrder({
       userId,
       branchId,
       items,
       address,
-      dropoffLat,
-      dropoffLng,
+      customerAddress,
+      customerLocation: customerLocation || legacyLocation,
       paymentMethod,
     });
     res.json(result);

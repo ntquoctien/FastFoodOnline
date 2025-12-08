@@ -34,6 +34,27 @@ const toId = (value) =>
     ? value._id
     : value || "";
 
+const resolveCustomerName = (order) =>
+  order?.userId?.name ||
+  order?.userId?.email ||
+  "KhA­ch hAÿng";
+
+const resolveCustomerPhone = (order) => order?.userId?.phone || "-";
+
+const formatAddress = (address = {}) =>
+  address.fullText ||
+  [address.street, address.ward, address.district, address.city, address.country]
+    .filter(Boolean)
+    .join(", ");
+
+const resolveCustomerAddress = (order = {}) =>
+  order.customerAddress?.fullText ||
+  formatAddress(order.customerAddress || {}) ||
+  // LEGACY FALLBACK - TODO: remove when legacy address is retired
+  order.address?.fullText ||
+  formatAddress(order.address || {}) ||
+  "-";
+
 const BranchOrders = ({ url }) => {
   const { token } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
@@ -385,9 +406,7 @@ const BranchOrders = ({ url }) => {
                     }}
                   >
                     <td className="fw-semibold">#{order._id.slice(-6)}</td>
-                    <td className="fw-semibold">
-                      {order.address?.firstName} {order.address?.lastName}
-                    </td>
+                    <td className="fw-semibold">{resolveCustomerName(order)}</td>
                     <td className="fw-semibold text-end">
                       {formatCurrency(order.totalAmount)}
                     </td>
@@ -450,18 +469,13 @@ const BranchOrders = ({ url }) => {
               <div className="col-md-4">
                 <p className="text-muted mb-1">Khách hàng</p>
                 <p className="fw-semibold mb-0">
-                  {detailOrder?.address?.firstName || selectedOrder?.address?.firstName}{" "}
-                  {detailOrder?.address?.lastName || selectedOrder?.address?.lastName}
+                  {resolveCustomerName(detailOrder || selectedOrder || {})}
                 </p>
                 <p className="text-muted mb-0">
-                  {detailOrder?.address?.phone || selectedOrder?.address?.phone || "-"}
+                  {resolveCustomerPhone(detailOrder || selectedOrder || {})}
                 </p>
                 <p className="text-muted mb-0">
-                  {detailOrder?.customerAddress?.fullText ||
-                    detailOrder?.address?.fullText ||
-                    selectedOrder?.customerAddress?.fullText ||
-                    selectedOrder?.address?.fullText ||
-                    "-"}
+                  {resolveCustomerAddress(detailOrder || selectedOrder || {})}
                 </p>
               </div>
               <div className="col-md-4">

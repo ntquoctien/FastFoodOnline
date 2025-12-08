@@ -18,7 +18,10 @@ const unauthorised = (res) =>
 export const listUnits = async (req, res) => {
   try {
     const includeInactive = req.query.includeInactive === "true";
-    const result = await measurementUnitService.listUnits({ includeInactive });
+    const result = await measurementUnitService.listUnits({
+      includeInactive,
+      type: req.query.type,
+    });
     res.json(result);
   } catch (error) {
     console.error("List units error", error);

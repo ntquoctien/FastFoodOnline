@@ -30,9 +30,12 @@ const ensureSeeds = async () => {
   await measurementUnitRepo.createMany(DEFAULT_UNITS);
 };
 
-export const listUnits = async ({ includeInactive = false } = {}) => {
+export const listUnits = async ({ includeInactive = false, type } = {}) => {
   await ensureSeeds();
   const filter = includeInactive ? {} : { isActive: true };
+  if (type) {
+    filter.type = toTrimmedLower(type);
+  }
   const units = await measurementUnitRepo
     .findAll(filter)
     .sort({ type: 1, symbol: 1, value: -1 })

@@ -1,7 +1,5 @@
 import express from "express";
-import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import { createUploader } from "../config/uploader.js";
 import authMiddleware from "../middleware/auth.js";
 import {
   loginUser,
@@ -12,18 +10,7 @@ import {
 
 const userRouter = express.Router();
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "fastfoodonline/avatars",
-    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
-    use_filename: true,
-    unique_filename: true,
-    transformation: [{ quality: "auto", fetch_format: "auto" }],
-  },
-});
-
-const upload = multer({ storage });
+const upload = createUploader({ folder: "fastfoodonline/avatars" });
 
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
