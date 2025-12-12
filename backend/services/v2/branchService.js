@@ -3,7 +3,12 @@ import validator from "validator";
 import * as branchRepo from "../../repositories/v2/branchRepository.js";
 import * as restaurantRepo from "../../repositories/v2/restaurantRepository.js";
 import * as userRepo from "../../repositories/userRepository.js";
+import * as foodVariantRepo from "../../repositories/v2/foodVariantRepository.js";
+import * as inventoryRepo from "../../repositories/v2/inventoryRepository.js";
+import * as droneRepo from "../../repositories/v2/droneRepository.js";
 import { resolveAddress, buildFullAddress } from "../../utils/geocode.js";
+
+const STAFF_ROLES = ["manager", "branch_manager", "staff", "chef", "support"];
 
 const resolveRestaurant = async () =>
   (await restaurantRepo.findOne({ isActive: true })) ||
@@ -255,7 +260,38 @@ export const deleteBranch = async ({ branchId }) => {
     return { success: false, message: "Branch not found" };
   }
 
-  await branchRepo.deactivateById(branchId);
+  const variants = await foodVariantRepo
+    .findAll({ branchId }, "_id")
+    .lean();
+  const variantIds = variants.map((variant) => variant._id);
+
+  if (variantIds.length) {
+    await Promise.all([
+      inventoryRepo.deleteByVariantIds(variantIds),
+      foodVariantRepo.deleteMany({ _id: { $in: variantIds } }),
+    ]);
+  }
+  await inventoryRepo.deleteByBranchId(branchId);
+
+  await userRepo.deleteMany({
+    branchId,
+    role: { $in: STAFF_ROLES },
+  });
+
+  const droneFilters = [{ branchId }];
+  if (branch.hubId) {
+    droneFilters.push({ hubId: branch.hubId });
+  }
+  await droneRepo.updateMany(
+    droneFilters.length === 1 ? droneFilters[0] : { $or: droneFilters },
+    { $unset: { branchId: "", hubId: "" } }
+  );
+
+  await branchRepo.updateById(branchId, {
+    isActive: false,
+    isPrimary: false,
+    hubId: null,
+  });
 
   return { success: true };
 };

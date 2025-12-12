@@ -1,4 +1,6 @@
 import * as hubRepo from "../../repositories/v2/hubRepository.js";
+import * as missionRepo from "../../repositories/v2/missionRepository.js";
+import * as droneRepo from "../../repositories/v2/droneRepository.js";
 import { resolveAddress, buildFullAddress } from "../../utils/geocode.js";
 
 const buildHubPayload = (payload = {}) => {
@@ -85,6 +87,33 @@ export const getHub = async ({ hubId }) => {
 };
 
 export const deleteHub = async ({ hubId }) => {
+  const hub = await hubRepo.findById(hubId);
+  if (!hub) {
+    return { success: false, message: "Hub not found" };
+  }
+
+  const activeHubMissions = await missionRepo.countActiveByHubId(hubId);
+  if (activeHubMissions > 0) {
+    return {
+      success: false,
+      message: "Cannot delete hub with active missions",
+    };
+  }
+
+  const hubDrones = await droneRepo.findAll({ hubId });
+  const droneIds = hubDrones.map((d) => d?._id).filter(Boolean);
+  if (droneIds.length) {
+    const activeDroneMissions = await missionRepo.countActive({
+      droneId: { $in: droneIds },
+    });
+    if (activeDroneMissions > 0) {
+      return {
+        success: false,
+        message: "Cannot delete hub while its drones are in missions",
+      };
+    }
+  }
+
   await hubRepo.deleteById(hubId);
   return { success: true };
 };

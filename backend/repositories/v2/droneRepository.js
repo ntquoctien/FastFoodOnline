@@ -38,6 +38,8 @@ export const updateById = (id, update) =>
   DroneModel.findByIdAndUpdate(id, update, { new: true });
 
 export const findAll = (filter = {}) => DroneModel.find(filter);
+export const updateMany = (filter = {}, update = {}) =>
+  DroneModel.updateMany(filter, update);
 export const deleteById = (id) => DroneModel.findByIdAndDelete(id);
 
 export default {
@@ -46,5 +48,6 @@ export default {
   findById,
   updateById,
   findAll,
+  updateMany,
   deleteById,
 };

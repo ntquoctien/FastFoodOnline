@@ -4,6 +4,7 @@ import * as droneAssignmentRepo from "../../repositories/v2/droneAssignmentRepos
 import * as orderRepo from "../../repositories/v2/orderRepository.js";
 import * as userRepo from "../../repositories/userRepository.js";
 import * as hubRepo from "../../repositories/v2/hubRepository.js";
+import * as missionRepo from "../../repositories/v2/missionRepository.js";
 import { cancelMission, createMission } from "../../utils/droneGateway.js";
 import { assignDrone } from "./orderService.js";
 
@@ -192,6 +193,14 @@ export const deleteDrone = async ({ userId, droneId }) => {
     return {
       success: false,
       message: "Cannot delete drone with active assignment",
+    };
+  }
+
+  const activeMissionCount = await missionRepo.countActiveByDroneId(droneId);
+  if (activeMissionCount > 0) {
+    return {
+      success: false,
+      message: "Cannot delete drone with active mission",
     };
   }
 

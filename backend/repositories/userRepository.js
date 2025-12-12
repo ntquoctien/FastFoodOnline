@@ -34,6 +34,7 @@ export const updatePasswordById = (id, password) =>
   userModel.findByIdAndUpdate(id, { password });
 
 export const deleteById = (id) => userModel.findByIdAndDelete(id);
+export const deleteMany = (filter = {}) => userModel.deleteMany(filter);
 
 export const clearCart = (id) => userModel.findByIdAndUpdate(id, { cartData: {} });
 
@@ -60,6 +61,7 @@ export default {
   updateByIdAndReturn,
   updatePasswordById,
   deleteById,
+  deleteMany,
   clearCart,
   getCart,
   setCart,

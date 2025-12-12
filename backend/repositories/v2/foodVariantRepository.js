@@ -14,6 +14,8 @@ export const updateMany = (filter = {}, update = {}) =>
 export const findByIds = (ids = []) =>
   FoodVariantModel.find({ _id: { $in: ids } });
 export const deleteById = (id) => FoodVariantModel.findByIdAndDelete(id);
+export const deleteMany = (filter = {}) => FoodVariantModel.deleteMany(filter);
+export const deleteByBranchId = (branchId) => deleteMany({ branchId });
 
 export default {
   create,
@@ -25,4 +27,6 @@ export default {
   updateMany,
   findByIds,
   deleteById,
+  deleteMany,
+  deleteByBranchId,
 };

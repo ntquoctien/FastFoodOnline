@@ -27,6 +27,8 @@ export const findByVariantIds = (variantIds = []) =>
   InventoryModel.find({ foodVariantId: { $in: variantIds } });
 export const deleteByVariantIds = (variantIds = []) =>
   InventoryModel.deleteMany({ foodVariantId: { $in: variantIds } });
+export const deleteByBranchId = (branchId) =>
+  InventoryModel.deleteMany({ branchId });
 
 export default {
   upsert,
@@ -35,5 +37,6 @@ export default {
   findOne,
   findDetailed,
   findByVariantIds,
+  deleteByBranchId,
   deleteByVariantIds,
 };

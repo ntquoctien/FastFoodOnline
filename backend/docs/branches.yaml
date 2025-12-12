@@ -133,7 +133,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Branch deactivated.
+          description: Branch deactivated and related menu items, inventory, staff, and drone links removed.
         "403":
           description: Only admins may delete branches.
         "404":
