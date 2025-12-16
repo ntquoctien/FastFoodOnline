@@ -1,0 +1,36 @@
+name: CI Testing Pipeline
+
+on:
+  push:
+    branches: [ "main" ] # Chạy mỗi khi bạn push code lên main
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Khởi động môi trường bằng Docker Compose
+      - name: Build and Start Containers
+        run: docker-compose up -d
+
+      # 2. Đợi Backend sẵn sàng (quan trọng để tránh lỗi DB chưa kịp khởi động)
+      - name: Wait for Backend
+        run: sleep 10
+
+      # 3. Cài đặt các thư viện (bao gồm cả mongodb-memory-server) bên trong Container
+      - name: Install dependencies in Container
+        run: docker exec fastfoodonline-backend-1 npm install
+
+      # 4. Chạy Kiểm thử Hộp Trắng (White-box Testing)
+      # Chúng ta thêm c8 để lấy báo cáo độ phủ (Coverage)
+      - name: Run Backend Tests
+        run: docker exec fastfoodonline-backend-1 npm test
+
+      # 5. Dọn dẹp môi trường
+      - name: Docker down
+        run: docker-compose down
