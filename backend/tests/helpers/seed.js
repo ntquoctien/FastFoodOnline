@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import userModel from "../../models/userModel.js";
 import RestaurantModel from "../../models/v2/restaurantModel.js";
@@ -9,12 +10,14 @@ import FoodVariantModel from "../../models/v2/foodVariantModel.js";
 import InventoryModel from "../../models/v2/inventoryModel.js";
 import OrderModel from "../../models/v2/orderModel.js";
 
+const uniq = (prefix) => `${prefix}-${crypto.randomUUID()}`;
+
 export const signTokenForUser = (userId) =>
   jwt.sign({ id: String(userId) }, process.env.JWT_SECRET);
 
 export const createUser = async ({
   name = "Test User",
-  email = `user-${Date.now()}@example.com`,
+  email = `user-${crypto.randomUUID()}@example.com`,
   password = "password-not-used",
   role = "user",
   branchId,
@@ -27,34 +30,34 @@ export const createUser = async ({
     ...(branchId ? { branchId: new mongoose.Types.ObjectId(branchId) } : {}),
   });
 
-export const createRestaurant = async ({ name = `Resto-${Date.now()}` } = {}) =>
-  RestaurantModel.create({ name });
+export const createRestaurant = async ({ name } = {}) =>
+  RestaurantModel.create({ name: name ?? uniq("Resto") });
 
-export const createCategory = async ({ restaurantId, name = `Cat-${Date.now()}` } = {}) =>
+export const createCategory = async ({ restaurantId, name } = {}) =>
   CategoryModel.create({
     restaurantId: new mongoose.Types.ObjectId(restaurantId),
-    name,
+    name: name ?? uniq("Cat"),
   });
 
 export const createBranch = async ({
   restaurantId,
-  name = `Branch-${Date.now()}`,
+  name,
   location = { type: "Point", coordinates: [106.7, 10.7] },
 } = {}) =>
   BranchModel.create({
     restaurantId: new mongoose.Types.ObjectId(restaurantId),
-    name,
+    name: name ?? uniq("Branch"),
     location,
   });
 
 export const createFood = async ({
   categoryId,
-  name = `Food-${Date.now()}`,
+  name,
   isActive = true,
 } = {}) =>
   FoodModel.create({
     categoryId: new mongoose.Types.ObjectId(categoryId),
-    name,
+    name: name ?? uniq("Food"),
     isActive,
   });
 
@@ -125,4 +128,3 @@ export default {
   setInventory,
   createOrderDoc,
 };
-
