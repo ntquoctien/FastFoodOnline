@@ -1,0 +1,35 @@
+name: FastFoodOnline CI/CD
+
+# 1. Định nghĩa khi nào robot bắt đầu làm việc
+on:
+  push:
+    branches: [ "main" ] # Chạy khi push vào nhánh main
+  pull_request:
+    branches: [ "main" ] # Chạy khi tạo yêu cầu gộp vào main
+
+jobs:
+  build-and-test:
+    # Chọn hệ điều hành cho máy ảo
+    runs-on: ubuntu-latest
+
+    steps:
+    # Bước 1: Lấy code từ Github về máy ảo
+    - uses: actions/checkout@v4
+
+    # Bước 2: Cài đặt môi trường .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x # Thay bằng phiên bản bạn đang dùng (6.0, 7.0, 8.0)
+
+    # Bước 3: Tải các thư viện cần thiết (NuGet)
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # Bước 4: Biên dịch mã nguồn (Build)
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    # Bước 5: Chạy kiểm thử (Quan trọng cho bài tập của bạn!)
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
