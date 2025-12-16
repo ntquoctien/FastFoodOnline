@@ -41,8 +41,8 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Run tests
+        run: npm run test:ci
 
       - name: Run tests (capture output)
         run: |

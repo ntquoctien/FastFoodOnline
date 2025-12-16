@@ -10,9 +10,9 @@
     "upload:assets": "node scripts/upload-assets-to-cloudinary.js",
     "migrate:images": "node scripts/migrate-images-to-cloudinary.js",
     "seed:drones": "node scripts/seed-drones.js",
-    "test": "node --test tests",
-    "test:unit": "node --test tests/unit",
-    "test:integration": "node --test tests/integration"
+    "test": "node --test --test-concurrency=1 tests",
+    "test:unit": "node --test --test-concurrency=1 tests/unit",
+    "test:integration": "node --test --test-concurrency=1 tests/integration"
   },
   "author": "",
   "license": "ISC",
