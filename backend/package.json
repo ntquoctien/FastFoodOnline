@@ -12,7 +12,8 @@
     "seed:drones": "node scripts/seed-drones.js",
     "test": "node --test --test-concurrency=1 tests",
     "test:unit": "node --test --test-concurrency=1 tests/unit",
-    "test:integration": "node --test --test-concurrency=1 tests/integration"
+    "test:integration": "node --test --test-concurrency=1 tests/integration",
+    "test:ci": "node scripts/test-ci.js"
   },
   "author": "",
   "license": "ISC",
