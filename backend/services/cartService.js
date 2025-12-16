@@ -1,13 +1,14 @@
 import * as userRepo from "../repositories/userRepository.js";
 
+export const incrementCartItem = (cartData, itemId) => {
+  const next = { ...(cartData || {}) };
+  next[itemId] = (next[itemId] || 0) + 1;
+  return next;
+};
+
 export const addToCart = async ({ userId, itemId }) => {
   const user = await userRepo.findById(userId);
-  const cartData = user.cartData || {};
-  if (!cartData[itemId]) {
-    cartData[itemId] = 1;
-  } else {
-    cartData[itemId] += 1;
-  }
+  const cartData = incrementCartItem(user.cartData, itemId);
   await userRepo.setCart(userId, cartData);
   return { success: true, message: "Added to Cart" };
 };
@@ -30,4 +31,3 @@ export const getCart = async ({ userId }) => {
 };
 
 export default { addToCart, removeFromCart, getCart };
-

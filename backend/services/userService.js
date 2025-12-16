@@ -8,6 +8,16 @@ import cloudinary from "../config/cloudinary.js";
 
 const createToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET);
 
+export const validateRegistrationInput = ({ email, password }) => {
+  if (!validator.isEmail(email || "")) {
+    return { success: false, message: "Please enter valid email" };
+  }
+  if ((password || "").length < 8) {
+    return { success: false, message: "Please enter strong password" };
+  }
+  return { success: true };
+};
+
 const sanitizeUser = (user) => {
   if (!user) return null;
   return {
@@ -78,11 +88,9 @@ export const register = async (name, email, password) => {
     return { success: false, message: "User already exists" };
   }
 
-  if (!validator.isEmail(email)) {
-    return { success: false, message: "Please enter valid email" };
-  }
-  if (password.length < 8) {
-    return { success: false, message: "Please enter strong password" };
+  const validation = validateRegistrationInput({ email, password });
+  if (!validation.success) {
+    return validation;
   }
 
   const salt = await bcrypt.genSalt(Number(process.env.SALT || 10));

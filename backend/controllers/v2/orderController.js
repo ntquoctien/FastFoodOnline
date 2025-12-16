@@ -85,7 +85,7 @@ export const createOrder = async (req, res) => {
       customerLocation: customerLocation || legacyLocation,
       paymentMethod,
     });
-    res.json(result);
+    res.status(result?.success ? 200 : 400).json(result);
   } catch (error) {
     console.error("Order v2 create error", error);
     res.status(500).json({ success: false, message: "Failed to create order" });

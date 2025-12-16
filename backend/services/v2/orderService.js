@@ -117,11 +117,53 @@ const stripLegacyOrderFields = (order) => {
 
 const stripLegacyOrders = (orders = []) => orders.map(stripLegacyOrderFields);
 
+export const canAccessBranchOrder = ({ role, actorBranchId, orderBranchId }) => {
+  if (["admin", "super_admin"].includes(role)) return true;
+  return Boolean(actorBranchId) && String(actorBranchId) === String(orderBranchId);
+};
+
+export const validateOrderLineAvailability = ({
+  variant,
+  availableQuantity,
+  requestedQuantity,
+  skipVariantCheck,
+} = {}) => {
+  const qty = Number(requestedQuantity || 0);
+  const available = Number(availableQuantity || 0);
+
+  const food = variant?.foodId || null;
+  const variantInactive =
+    variant?.isActive === false ||
+    variant?.isArchived === true ||
+    variant?.isManuallyDisabled === true;
+  const foodInactive =
+    food &&
+    (food.isActive === false ||
+      food.isArchived === true ||
+      food.isManuallyDisabled === true);
+
+  if (!skipVariantCheck && (!variant || variantInactive || foodInactive)) {
+    return { ok: false, code: "ITEM_INACTIVE", message: "Item is inactive" };
+  }
+  if (!Number.isFinite(qty) || qty <= 0) {
+    return { ok: false, code: "INVALID_QUANTITY", message: "Invalid quantity" };
+  }
+  if (!Number.isFinite(available) || available < qty) {
+    return { ok: false, code: "OUT_OF_STOCK", message: "Item out of stock" };
+  }
+  return { ok: true };
+};
+
 const assertBranchPermission = (order, actorUser) => {
-  if (["admin", "super_admin"].includes(actorUser?.role)) return;
   const actorBranchId = normaliseId(actorUser?.branchId);
   const orderBranchId = normaliseId(order.branchId?._id || order.branchId);
-  if (!actorBranchId || actorBranchId !== orderBranchId) {
+  if (
+    !canAccessBranchOrder({
+      role: actorUser?.role,
+      actorBranchId,
+      orderBranchId,
+    })
+  ) {
     const error = new Error("NOT_AUTHORISED");
     throw error;
   }
@@ -217,6 +259,15 @@ const calculateItems = async (items) => {
     const variant = variantMap.get(variantKey);
     if (!variant) {
       throw new Error(`Variant ${item.variantId} not found`);
+    }
+    const activeCheck = validateOrderLineAvailability({
+      variant,
+      availableQuantity: Number.POSITIVE_INFINITY,
+      requestedQuantity: Number(item.quantity || 1),
+    });
+    if (!activeCheck.ok && activeCheck.code === "ITEM_INACTIVE") {
+      const error = new Error("ITEM_INACTIVE");
+      throw error;
     }
     const quantity = Number(item.quantity || 1);
     const itemTotal = variant.price * quantity;
@@ -418,7 +469,42 @@ export const createOrder = async ({
       ? "CREATED"
       : "WAITING_FOR_DRONE";
 
-  const { subtotal, normalizedItems, totalWeightKg } = await calculateItems(items);
+  let subtotal;
+  let normalizedItems;
+  let totalWeightKg;
+  try {
+    ({ subtotal, normalizedItems, totalWeightKg } = await calculateItems(items));
+  } catch (error) {
+    if (error.message === "ITEM_INACTIVE") {
+      return { success: false, message: "Item is inactive" };
+    }
+    if (String(error.message || "").includes("Variant") && String(error.message).includes("not found")) {
+      return { success: false, message: "Variant not found" };
+    }
+    throw error;
+  }
+
+  const variantIds = normalizedItems.map((line) => line.foodVariantId);
+  const inventories = await inventoryRepo.findAll({
+    branchId,
+    foodVariantId: { $in: variantIds },
+  });
+  const inventoryMap = new Map(
+    (inventories || []).map((inv) => [String(inv.foodVariantId), Number(inv.quantity || 0)])
+  );
+
+  for (const line of normalizedItems) {
+    const available = inventoryMap.get(String(line.foodVariantId)) ?? 0;
+    const stockCheck = validateOrderLineAvailability({
+      skipVariantCheck: true,
+      availableQuantity: available,
+      requestedQuantity: line.quantity,
+    });
+    if (!stockCheck.ok && stockCheck.code === "OUT_OF_STOCK") {
+      return { success: false, message: "Item out of stock" };
+    }
+  }
+
   const deliveryFee = 2;
   const totalAmount = subtotal + deliveryFee;
   const paymentMethodValue =
@@ -1484,5 +1570,3 @@ export default {
   cancelOrder,
   confirmReceipt,
 };
-
-
