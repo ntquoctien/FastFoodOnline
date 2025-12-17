@@ -1,0 +1,161 @@
+,,,,,,,,,,
+Module Code,Authentication - Register & Login,,,,,,,,Pass,
+Test requirement,"Kiểm tra chức năng đăng ký, đăng nhập, đăng xuất. Bao gồm Black Box (functional testing), Grey Box (JWT token, password hashing), White Box (code logic, security)",,,,,,,,Fail,
+Tester,Test Team,,,,,,,,,,
+Pass,Fail,Untested,N/A,Number of Test cases,,,,,Untested,
+0,0,18,0,18,,,,,N/A,
+,,,,,,,,,,
+ID,Test Case Description,Test Case Procedure,Expected Output,Test data,Result,Test date,Description,Pre-Condition,Priority
+,"=== BLACK BOX TESTING ===",,,,,,,,
+,"FUNCTION: User Registration",,,,,,,,
+TC-BB-AUTH-001,Đăng ký tài khoản thành công với thông tin hợp lệ,"1. Mở trang chủ website
+2. Click nút ""Sign Up""
+3. Nhập Name: ""Nguyen Van A""
+4. Nhập Email: ""nguyenvana@example.com""
+5. Nhập Password: ""Test@123456""
+6. Click nút ""Create account""","- Hiển thị thông báo ""Account created successfully""
+- Tự động đăng nhập và chuyển về trang chủ
+- Token được lưu vào localStorage
+- User có thể thực hiện các thao tác yêu cầu đăng nhập","Name: Nguyen Van A
+Email: nguyenvana@example.com
+Password: Test@123456",Untested,,Kiểm tra đăng ký tài khoản mới với input hợp lệ,Email chưa tồn tại trong hệ thống,High
+TC-BB-AUTH-002,Đăng ký với email đã tồn tại (Equivalence Partitioning - Invalid),"1. Mở trang đăng ký
+2. Nhập email đã tồn tại: ""existing@example.com""
+3. Nhập password: ""Test@123""
+4. Click ""Create account""","- Hiển thị lỗi ""User already exists""
+- Không tạo tài khoản mới
+- Không được phép đăng nhập","Email: existing@example.com
+Password: Test@123",Untested,,Test case negative - email duplicate,Email đã tồn tại trong database,High
+TC-BB-AUTH-003,Đăng ký với mật khẩu yếu (Boundary Value - Invalid),"1. Mở trang đăng ký
+2. Nhập thông tin hợp lệ
+3. Nhập mật khẩu quá ngắn: ""123"" (< 6 ký tự)
+4. Click ""Create account""","- Hiển thị thông báo lỗi về độ mạnh mật khẩu
+- Không cho phép đăng ký
+- Form validation hiển thị lỗi",Password: 123 (3 ký tự),Untested,,Test boundary value - minimum password length,Không có,High
+,"FUNCTION: User Login",,,,,,,,
+TC-BB-AUTH-004,Đăng nhập thành công với credentials hợp lệ,"1. Mở trang đăng nhập
+2. Nhập email: ""user@example.com""
+3. Nhập password: ""ValidPass123""
+4. Click nút ""Login""","- Đăng nhập thành công
+- Nhận được JWT token
+- Chuyển về trang chủ với trạng thái đã đăng nhập
+- Header hiển thị username/avatar","Email: user@example.com
+Password: ValidPass123",Untested,,Test login thành công,Tài khoản đã tồn tại trong database,High
+TC-BB-AUTH-005,Đăng nhập với sai mật khẩu,"1. Mở trang đăng nhập
+2. Nhập email đúng: ""user@example.com""
+3. Nhập password sai: ""WrongPassword""
+4. Click ""Login""","- Hiển thị ""Invalid credentials""
+- Không cho phép đăng nhập
+- Token không được tạo","Email: user@example.com
+Password: WrongPassword",Untested,,Test case negative - wrong password,Tài khoản đã tồn tại,High
+TC-BB-AUTH-006,Đăng nhập với email không tồn tại,"1. Mở trang đăng nhập
+2. Nhập email không tồn tại: ""nonexist@example.com""
+3. Nhập password: ""AnyPassword123""
+4. Click ""Login""","- Hiển thị ""User doesn't exist""
+- Không cho phép đăng nhập","Email: nonexist@example.com
+Password: AnyPassword123",Untested,,Test case negative - user not found,Email không có trong database,Medium
+TC-BB-AUTH-007,Đăng xuất,"1. Đăng nhập vào hệ thống
+2. Click nút ""Logout"" hoặc menu Logout","- Token bị xóa khỏi localStorage
+- Chuyển về trang chủ với trạng thái chưa đăng nhập
+- Header hiển thị ""Sign Up"" và ""Login""
+- Không thể access protected routes",,Untested,,Test logout functionality,Đã đăng nhập,Medium
+,"FUNCTION: Input Validation (Equivalence Partitioning)",,,,,,,,
+TC-BB-AUTH-008,Email hợp lệ - valid partition,"Test với email format hợp lệ:
+- user@domain.com
+- test.user@example.co.uk
+- user+tag@domain.com","- Accept và tạo tài khoản thành công
+- Email được lưu đúng format","Valid emails:
+user@domain.com
+test.user@example.co.uk",Untested,,Test equivalence class - valid email formats,Không có,High
+TC-BB-AUTH-009,Email không hợp lệ - invalid partition,"Test với email format không hợp lệ:
+- user@ (thiếu domain)
+- @domain (thiếu username)
+- userdomain (thiếu @)
+- user @domain (có space)","- Reject và hiển thị lỗi validation
+- Không tạo tài khoản
+- Form highlight field lỗi","Invalid emails:
+user@
+@domain
+userdomain",Untested,,Test equivalence class - invalid email formats,Không có,High
+,"=== GREY BOX TESTING ===",,,,,,,,
+,"FUNCTION: JWT Token & Session",,,,,,,,
+TC-GB-AUTH-001,Kiểm tra JWT token expiry,"1. Đăng nhập và lấy token
+2. Decode JWT token để xem payload
+3. Kiểm tra trường exp (expiry time)
+4. Đợi token hết hạn
+5. Gọi API với token đã hết hạn","- Token có exp field hợp lệ
+- API trả về 401 Unauthorized khi token hết hạn
+- Frontend redirect về login page","Token với exp: 1h
+Kiểm tra sau 1h",Untested,,Kiểm tra token expiry mechanism,JWT_SECRET được config đúng,High
+TC-GB-AUTH-002,Kiểm tra password hashing với bcrypt,"1. Tạo user với password ""Test123""
+2. Query database: db.users.findOne({email: ""test@example.com""})
+3. Kiểm tra field password
+4. Verify format bcrypt hash","- Password không được lưu plain text
+- Format: $2b$10$... (bcrypt hash)
+- Có thể verify bằng bcrypt.compare()","Password: Test123
+Expected: $2b$10$...",Untested,,Kiểm tra password được hash trước khi lưu DB,Database connected,High
+TC-GB-AUTH-003,Kiểm tra session persistence,"1. Đăng nhập thành công
+2. Kiểm tra localStorage: localStorage.getItem('token')
+3. Refresh page (F5)
+4. Kiểm tra user vẫn đăng nhập","- Token tồn tại trong localStorage
+- Sau refresh, user vẫn ở trạng thái đăng nhập
+- API calls vẫn có token trong header",,Untested,,Kiểm tra session được maintain,Browser localStorage enabled,Medium
+TC-GB-AUTH-004,Kiểm tra unique constraint cho email trong DB,"1. Tạo user với email ""test@example.com""
+2. Cố tạo user khác với cùng email
+3. Kiểm tra MongoDB error
+4. Verify API response","- MongoDB throw duplicate key error (E11000)
+- API trả về ""User already exists""
+- User thứ 2 không được tạo","Email: test@example.com
+Attempt to create 2nd user",Untested,,Kiểm tra database constraint,MongoDB running,High
+,"=== WHITE BOX TESTING ===",,,,,,,,
+,"FUNCTION: Code Logic & Security",,,,,,,,
+TC-WB-AUTH-001,Statement coverage - login function (userService.js),"Test tất cả statements trong login function:
+Line 1: Check user exists
+Line 2: Verify password
+Line 3: Generate token","- Tất cả statements được execute
+- Coverage report ≥80%
+- Không có dead code","Test with:
+1. User không tồn tại
+2. Sai password
+3. Login thành công",Untested,,Đảm bảo statement coverage,Code coverage tool enabled,High
+TC-WB-AUTH-002,Branch coverage - login logic,"Test tất cả branches:
+Branch 1: if (!user) - TRUE/FALSE
+Branch 2: if (!isMatch) - TRUE/FALSE","- Tất cả branches được test
+- Branch coverage ≥75%","Test cases:
+1. User not found (B1=T)
+2. Wrong password (B1=F, B2=T)
+3. Success (B1=F, B2=F)",Untested,,Đảm bảo branch coverage,Code coverage tool enabled,High
+TC-WB-AUTH-003,Security - NoSQL injection prevention,"Test với malicious input:
+email: {""$ne"": null}
+password: {""$gt"": """"}","- Input bị reject hoặc sanitize
+- Không thể bypass authentication
+- API trả về error hoặc invalid credentials","Malicious inputs:
+{""$ne"": null}
+{""$gt"": """"}",Untested,,Kiểm tra bảo mật - NoSQL injection,Security middleware enabled,High
+TC-WB-AUTH-004,Security - Password strength validation,"Test password validation logic:
+1. < 6 chars: ""123""
+2. 6 chars: ""Test12""
+3. Strong: ""Test@12345""","- Passwords < 6 chars bị reject
+- Passwords ≥6 chars được accept
+- Validation message rõ ràng","Test passwords:
+123
+Test12
+Test@12345",Untested,,Kiểm tra logic validation password,Validation middleware enabled,Medium
+,,,,,,,,,,
+,"=== METHODOLOGY SUMMARY ===",,,,,,,,
+,"Phương pháp luận áp dụng cho Authentication Module:",,,,,,,,
+,"1. Equivalence Partitioning:",,,,,,,,
+,"   - Valid email format vs Invalid email format",,,,,,,,
+,"   - Valid password (≥6 chars) vs Invalid password (<6 chars)",,,,,,,,
+,"   - Existing user vs New user",,,,,,,,
+,"2. Boundary Value Analysis:",,,,,,,,
+,"   - Password length: 5 chars (invalid), 6 chars (valid min), 50 chars (valid max)",,,,,,,,
+,"   - Email length: empty, 1 char, max length",,,,,,,,
+,"3. Statement Coverage:",,,,,,,,
+,"   - Test mọi dòng code trong login/register functions",,,,,,,,
+,"4. Branch Coverage:",,,,,,,,
+,"   - Test tất cả if/else branches",,,,,,,,
+,"5. Security Testing:",,,,,,,,
+,"   - NoSQL injection, XSS, Password hashing, Token expiry",,,,,,,,
+,,,,,,,,,,
+

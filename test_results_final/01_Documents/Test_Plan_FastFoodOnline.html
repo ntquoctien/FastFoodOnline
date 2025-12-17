@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Plan - FastFoodOnline</title>
+  <style>
+    /* Word-friendly page setup */
+    @page { size: A4; margin: 2.5cm; }
+
+    html, body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 13pt;
+      line-height: 1.5;
+      color: #000;
+    }
+
+    body { margin: 0; }
+
+    /* Paragraph spacing similar to Word */
+    p { margin: 0 0 10pt 0; }
+    ul, ol { margin: 0 0 10pt 18pt; padding: 0; }
+    li { margin: 0 0 4pt 0; }
+
+    /* Headings */
+    h1, h2, h3, h4 { margin: 0 0 10pt 0; }
+    h1 { font-size: 18pt; font-weight: 700; text-align: center; letter-spacing: 0.3pt; }
+    h2 { font-size: 16pt; font-weight: 700; margin-top: 18pt; }
+    h3 { font-size: 14pt; font-weight: 700; margin-top: 14pt; }
+    h4 { font-size: 13pt; font-weight: 700; margin-top: 12pt; }
+
+    .muted { color: #333; }
+    .center { text-align: center; }
+    .right { text-align: right; }
+    .page-break { page-break-before: always; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 8pt 0 12pt 0; }
+    th, td { border: 1px solid #000; padding: 6pt 7pt; vertical-align: top; }
+    th { background: #E7E6E6; font-weight: 700; }
+    .table-plain th { background: #F2F2F2; }
+    .no-border, .no-border td { border: 0; }
+    .info td:first-child { width: 38%; background: #F2F2F2; font-weight: 700; }
+
+    /* Simple callout (Word converts fine) */
+    .note {
+      border: 1px solid #000;
+      padding: 8pt 10pt;
+      margin: 8pt 0 12pt 0;
+      background: #FFF2CC;
+    }
+
+    a { color: #000; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- COVER -->
+  <div style="padding-top: 140pt;">
+    <h1>TEST PLAN</h1>
+    <h2 class="center" style="margin-top: 6pt;">FastFoodOnline</h2>
+    <p class="center muted" style="margin-top: 6pt;">(Food Delivery Platform)</p>
+
+    <table class="info" style="margin-top: 24pt;">
+      <tr><td>Project Name</td><td>FastFoodOnline</td></tr>
+      <tr><td>Project Code</td><td>FFO</td></tr>
+      <tr><td>Document Code</td><td>FFO_TestPlan_v1.0</td></tr>
+      <tr><td>Version</td><td>1.0</td></tr>
+      <tr><td>Date</td><td>17-Dec-2025</td></tr>
+      <tr><td>Prepared By</td><td>Test Team</td></tr>
+      <tr><td>Reviewed By</td><td>QA Manager</td></tr>
+      <tr><td>Approved By</td><td>Project Manager</td></tr>
+    </table>
+  </div>
+
+  <!-- TOC -->
+  <div class="page-break">
+    <h2>MỤC LỤC</h2>
+    <ol>
+      <li><a href="#sec1">Giới thiệu</a></li>
+      <li><a href="#sec2">Phạm vi kiểm thử</a></li>
+      <li><a href="#sec3">Chiến lược kiểm thử</a></li>
+      <li><a href="#sec4">Môi trường kiểm thử</a></li>
+      <li><a href="#sec5">Lịch trình kiểm thử</a></li>
+      <li><a href="#sec6">Nguồn lực</a></li>
+      <li><a href="#sec7">Rủi ro &amp; biện pháp</a></li>
+      <li><a href="#sec8">Phê duyệt</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. INTRO -->
+  <div id="sec1" class="page-break">
+    <h2>1. GIỚI THIỆU</h2>
+
+    <h3>1.1. Mục đích</h3>
+    <p>
+      Tài liệu Test Plan này định nghĩa phạm vi, chiến lược, phương pháp luận, môi trường và kế hoạch thực thi kiểm thử cho hệ thống
+      <b>FastFoodOnline</b> (MERN Stack: MongoDB, Express, React, Node.js).
+    </p>
+
+    <h3>1.2. Phạm vi tài liệu</h3>
+    <ul>
+      <li><b>Frontend (User)</b>: React App</li>
+      <li><b>Frontend (Admin)</b>: React Admin Dashboard</li>
+      <li><b>Backend</b>: Node.js/Express API</li>
+      <li><b>Database</b>: MongoDB</li>
+      <li><b>Integration</b>: VNPAY / Stripe / MoMo / Cloudinary</li>
+    </ul>
+
+    <h3>1.3. Định nghĩa &amp; từ viết tắt</h3>
+    <table class="table-plain">
+      <tr><th>Thuật ngữ</th><th>Giải thích</th></tr>
+      <tr><td>FFO</td><td>FastFoodOnline</td></tr>
+      <tr><td>MERN</td><td>MongoDB, Express, React, Node.js</td></tr>
+      <tr><td>TC</td><td>Test Case</td></tr>
+      <tr><td>QA</td><td>Quality Assurance</td></tr>
+      <tr><td>JWT</td><td>JSON Web Token</td></tr>
+      <tr><td>COD</td><td>Cash on Delivery</td></tr>
+    </table>
+
+    <h3>1.4. Tài liệu tham khảo</h3>
+    <ul>
+      <li><b>TEST_CASES.md</b> (nguồn test case)</li>
+      <li>SRS / Requirement (nếu có)</li>
+      <li>API Documentation</li>
+      <li>Database Design / Schema</li>
+      <li>Architecture Design</li>
+    </ul>
+  </div>
+
+  <!-- 2. SCOPE -->
+  <div id="sec2" class="page-break">
+    <h2>2. PHẠM VI KIỂM THỬ</h2>
+
+    <h3>2.1. In-scope (4–5 chức năng chính)</h3>
+    <p>
+      Theo yêu cầu, bộ kiểm thử tập trung vào <b>5 chức năng quan trọng</b> để đạt hiệu quả và dễ báo cáo.
+      Mỗi tình huống kiểm thử sẽ có đủ <b>Black Box</b>, <b>Grey Box</b> và <b>White Box</b> phù hợp.
+    </p>
+
+    <table>
+      <tr>
+        <th>No</th>
+        <th>Chức năng</th>
+        <th>Mô tả</th>
+        <th>Priority</th>
+      </tr>
+      <tr>
+        <td class="center">1</td>
+        <td><b>Authentication</b></td>
+        <td>Register / Login / Logout; JWT token; password hashing; session persistence</td>
+        <td class="center">High</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td><b>Menu</b></td>
+        <td>Browse list; filter category; search; view details</td>
+        <td class="center">High</td>
+      </tr>
+      <tr>
+        <td class="center">3</td>
+        <td><b>Cart</b></td>
+        <td>Add/update/remove; empty cart; total calculation; sync with DB</td>
+        <td class="center">High</td>
+      </tr>
+      <tr>
+        <td class="center">4</td>
+        <td><b>Order &amp; Payment</b></td>
+        <td>Create order; validate address; payment methods (COD/VNPAY/Stripe/MoMo); order history &amp; tracking</td>
+        <td class="center">High</td>
+      </tr>
+      <tr>
+        <td class="center">5</td>
+        <td><b>Admin</b></td>
+        <td>Food management; order management; update status</td>
+        <td class="center">Medium</td>
+      </tr>
+    </table>
+
+    <h3>2.2. Out-of-scope</h3>
+    <ul>
+      <li>Mobile app (nếu có)</li>
+      <li>Hạ tầng payment gateway nội bộ (chỉ test tích hợp)</li>
+      <li>Các tính năng chưa triển khai/không ổn định (nếu có)</li>
+    </ul>
+  </div>
+
+  <!-- 3. STRATEGY -->
+  <div id="sec3" class="page-break">
+    <h2>3. CHIẾN LƯỢC KIỂM THỬ</h2>
+
+    <h3>3.1. Các loại kiểm thử</h3>
+    <ul>
+      <li><b>Black Box Testing</b>: kiểm thử chức năng từ góc độ người dùng (theo TEST_CASES.md)</li>
+      <li><b>Grey Box Testing</b>: kiểm thử dựa trên hiểu biết một phần về API/DB (JWT, hashing, constraints, API codes)</li>
+      <li><b>White Box Testing</b>: kiểm thử logic code, coverage (statement/branch/path), security checks</li>
+    </ul>
+
+    <h3>3.2. Phương pháp luận (rút ra)</h3>
+    <table class="table-plain">
+      <tr><th>Phương pháp</th><th>Mô tả</th><th>Áp dụng</th></tr>
+      <tr>
+        <td>Equivalence Partitioning</td>
+        <td>Chia input thành các lớp tương đương (valid/invalid) để giảm số test nhưng vẫn bao phủ tốt.</td>
+        <td>Auth, Menu Search, Profile, Payment fields</td>
+      </tr>
+      <tr>
+        <td>Boundary Value Analysis</td>
+        <td>Test tại biên (min, max, min-1, max+1): quantity, password length, name length…</td>
+        <td>Cart quantity, Password length, Food price/name</td>
+      </tr>
+      <tr>
+        <td>Statement Coverage</td>
+        <td>Đảm bảo các câu lệnh quan trọng được execute (mục tiêu ≥ 80%).</td>
+        <td>Auth, Cart, Order services/controllers</td>
+      </tr>
+      <tr>
+        <td>Branch Coverage</td>
+        <td>Đảm bảo các nhánh điều kiện (if/else) được test (mục tiêu ≥ 75%).</td>
+        <td>Auth, Order creation, Payment verify</td>
+      </tr>
+      <tr>
+        <td>Path Coverage</td>
+        <td>Test các đường đi chính trong flow (item mới vs đã có, payment success vs fail…).</td>
+        <td>Cart add/update, Payment flows</td>
+      </tr>
+      <tr>
+        <td>Integration Testing</td>
+        <td>Kiểm thử liên kết Frontend ↔ Backend ↔ DB và payment gateway callbacks.</td>
+        <td>End-to-end order flow</td>
+      </tr>
+      <tr>
+        <td>Security Testing</td>
+        <td>Test NoSQL injection, auth bypass, token expiry, validation đầu vào.</td>
+        <td>Auth, Admin, Payment verify endpoints</td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <b>Nguyên tắc thiết kế:</b> Chỉ chọn <b>4–5 chức năng quan trọng</b> và tập trung test theo tình huống (scenario-based),
+      nhằm tối ưu thời gian nhưng vẫn chứng minh được phương pháp luận và độ bao phủ.
+    </div>
+
+    <h3>3.3. Tiêu chí hoàn thành &amp; chấp nhận</h3>
+    <ul>
+      <li>Hoàn thành thiết kế test case cho 5 chức năng chính</li>
+      <li>Ưu tiên High phải có đủ test (positive/negative/boundary)</li>
+      <li>Không còn lỗi Critical; lỗi High được đánh giá và có kế hoạch xử lý</li>
+      <li>Coverage mục tiêu (nếu chạy tool): Statement ≥ 80%, Branch ≥ 75%</li>
+    </ul>
+  </div>
+
+  <!-- 4. ENV -->
+  <div id="sec4" class="page-break">
+    <h2>4. MÔI TRƯỜNG KIỂM THỬ</h2>
+
+    <h3>4.1. Cấu hình</h3>
+    <ul>
+      <li><b>Node.js</b>: 20 LTS</li>
+      <li><b>MongoDB</b>: Local hoặc Atlas</li>
+      <li><b>Browser</b>: Chrome/Edge/Firefox (latest)</li>
+      <li><b>Tools</b>: Postman/Thunder Client, MongoDB Compass</li>
+    </ul>
+
+    <h3>4.2. URL kiểm thử</h3>
+    <table class="table-plain">
+      <tr><th>Hạng mục</th><th>URL</th></tr>
+      <tr><td>Frontend</td><td>http://localhost:5173</td></tr>
+      <tr><td>Admin</td><td>http://localhost:5174</td></tr>
+      <tr><td>Backend API</td><td>http://localhost:4000</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. SCHEDULE -->
+  <div id="sec5" class="page-break">
+    <h2>5. LỊCH TRÌNH KIỂM THỬ</h2>
+
+    <table>
+      <tr><th>Giai đoạn</th><th>Nội dung</th><th>Deliverables</th></tr>
+      <tr>
+        <td><b>Planning</b></td>
+        <td>Định scope; chọn 4–5 chức năng; thiết kế test theo template.</td>
+        <td>Test Plan; Test Cases; Test Data</td>
+      </tr>
+      <tr>
+        <td><b>Execution</b></td>
+        <td>Thực thi Black/Grey/White; ghi nhận kết quả; log lỗi.</td>
+        <td>Execution status; Bug report</td>
+      </tr>
+      <tr>
+        <td><b>Regression</b></td>
+        <td>Re-test sau fix; kiểm tra lại flow quan trọng.</td>
+        <td>Updated results</td>
+      </tr>
+      <tr>
+        <td><b>Reporting</b></td>
+        <td>Tổng hợp; phân tích; kết luận; đề xuất.</td>
+        <td>Test Report; Test Summary</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 6. RESOURCES -->
+  <div id="sec6" class="page-break">
+    <h2>6. NGUỒN LỰC</h2>
+    <table class="table-plain">
+      <tr><th>Vai trò</th><th>Trách nhiệm</th></tr>
+      <tr><td>Test Lead</td><td>Lập kế hoạch; review; tổng hợp báo cáo.</td></tr>
+      <tr><td>Tester</td><td>Thiết kế &amp; thực thi test cases; ghi nhận lỗi.</td></tr>
+      <tr><td>Developer</td><td>Hỗ trợ fix bug; cung cấp thông tin kỹ thuật.</td></tr>
+    </table>
+  </div>
+
+  <!-- 7. RISKS -->
+  <div id="sec7" class="page-break">
+    <h2>7. RỦI RO &amp; BIỆN PHÁP</h2>
+    <table>
+      <tr><th>Rủi ro</th><th>Tác động</th><th>Biện pháp</th></tr>
+      <tr>
+        <td>Sandbox payment (VNPAY/Stripe/MoMo) không ổn định</td>
+        <td class="center">High</td>
+        <td>Chuẩn bị mock/skip-case; ghi nhận rõ trong report.</td>
+      </tr>
+      <tr>
+        <td>Thiếu dữ liệu seed (foods/categories/users)</td>
+        <td class="center">Medium</td>
+        <td>Seed DB tối thiểu; dùng test data chuẩn hóa.</td>
+      </tr>
+      <tr>
+        <td>Thay đổi code trong lúc kiểm thử</td>
+        <td class="center">Medium</td>
+        <td>Đóng băng phiên bản; re-run regression cho flow chính.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 8. APPROVAL -->
+  <div id="sec8" class="page-break">
+    <h2>8. PHÊ DUYỆT</h2>
+    <table class="table-plain">
+      <tr><th>Vai trò</th><th>Họ tên</th><th>Ký</th><th>Ngày</th></tr>
+      <tr><td>Prepared By</td><td>Test Team</td><td></td><td>17-Dec-2025</td></tr>
+      <tr><td>Reviewed By</td><td>QA Manager</td><td></td><td></td></tr>
+      <tr><td>Approved By</td><td>Project Manager</td><td></td><td></td></tr>
+    </table>
+    <p class="muted"><i>Ghi chú: Khi mở trong Word, có thể chỉnh lại khoảng cách trước/sau heading nếu cần theo chuẩn nộp bài.</i></p>
+  </div>
+
+</body>
+</html>
+

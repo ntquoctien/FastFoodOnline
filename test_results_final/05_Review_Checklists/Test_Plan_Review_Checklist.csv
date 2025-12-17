@@ -1,0 +1,94 @@
+TEST PLAN REVIEW CHECKLIST,,,,,
+,,,,,
+Project Name,FastFoodOnline,,,
+Document,Test Plan,,,
+Version,1.0,,,
+Reviewer,[Reviewer Name],,,
+Review Date,17-Dec-2025,,,
+,,,,,
+No,Review Item,Status,Comments,Reference
+,,"OK / NG / N/A",,
+,,,,,
+"1. DOCUMENT STRUCTURE",,,,,
+1.1,Cover page có đầy đủ thông tin project?,OK,,"Section: Cover"
+1.2,Table of Contents (Mục lục) đầy đủ?,OK,,"Section: TOC"
+1.3,Tất cả sections được đánh số và organize tốt?,OK,,
+1.4,Document formatting nhất quán (font, spacing, margins)?,OK,,"Font: Times New Roman 13pt, Line-height: 1.5"
+,,,,,
+"2. INTRODUCTION",,,,,
+2.1,Mục đích (Purpose) được nêu rõ?,OK,,"Section 1.1"
+2.2,Phạm vi (Scope) xác định rõ ràng?,OK,,"Section 1.2"
+2.3,Định nghĩa và từ viết tắt (Definitions) đầy đủ?,OK,,"Section 1.3"
+2.4,Tài liệu tham khảo (References) được list?,OK,,"Section 1.4"
+,,,,,
+"3. TEST SCOPE",,,,,
+3.1,Các chức năng được kiểm thử (In Scope) liệt kê đầy đủ?,OK,,"5 chức năng chính: Auth, Menu, Cart, Order, Admin"
+3.2,5 chức năng chính được mô tả chi tiết?,OK,,
+3.3,Các chức năng không kiểm thử (Out of Scope) được nêu rõ?,OK,,"Section 2.2"
+3.4,Test items được identify?,OK,,"Section 2.3"
+3.5,Priority của từng function được xác định?,OK,,"High, Medium, Low"
+,,,,,
+"4. TEST STRATEGY",,,,,
+4.1,Các loại test được mô tả? (Black Box, Grey Box, White Box),OK,,"Section 3.1"
+4.2,Phương pháp luận được nêu rõ?,OK,,"7 methodologies: EP, BVA, Statement, Branch, Path, Integration, Security"
+4.3,Mỗi phương pháp luận có ví dụ cụ thể?,OK,,
+4.4,Test types distribution hợp lý? (Black: 55%, Grey: 22%, White: 22%),OK,,"Section 3.1"
+4.5,Acceptance criteria được định nghĩa rõ?,OK,,"Section 3.3"
+4.6,Coverage targets được set? (≥80% statement, ≥75% branch),OK,,
+,,,,,
+"5. TEST ENVIRONMENT",,,,,
+5.1,Hardware requirements được specify?,OK,,"Section 4.1"
+5.2,Software requirements (Node.js, MongoDB, browsers) đầy đủ?,OK,,"Section 4.2"
+5.3,Test data requirements được mô tả?,OK,,"Section 4.3"
+5.4,URLs và ports được list?,OK,,"Section 4.4"
+5.5,Third-party services được mention? (VNPAY, Stripe, MoMo),OK,,
+,,,,,
+"6. TEST SCHEDULE",,,,,
+6.1,Các phases được identify?,OK,,"4 phases: Planning, Execution, Bug Fixing, Reporting"
+6.2,Duration cho mỗi phase hợp lý?,OK,,"Total: 11 days"
+6.3,Deliverables cho mỗi phase được list?,OK,,"Section 5"
+6.4,Dependencies giữa các phases rõ ràng?,OK,,
+,,,,,
+"7. RESOURCES",,,,,
+7.1,Team roles được define? (Test Lead, Test Engineer, Developer),OK,,"Section 6.1"
+7.2,Number of resources cho mỗi role?,OK,,"Lead: 1, Engineers: 2-3, Devs: 2"
+7.3,Tools cho testing được list?,OK,,"Section 6.2"
+7.4,Test management tools được specify?,OK,,"Excel, Postman, Jest, etc."
+,,,,,
+"8. RISKS & MITIGATION",,,,,
+8.1,Potential risks được identify?,OK,,"Section 7"
+8.2,Impact và Probability của từng risk?,OK,,"High, Medium, Low"
+8.3,Mitigation strategies cho mỗi risk?,OK,,
+8.4,Risks cover cả technical và non-technical aspects?,OK,,"Third-party services, DB connection, test data, code changes"
+,,,,,
+"9. APPROVAL",,,,,
+9.1,Approval section có đầy đủ roles?,OK,,"Test Lead, QA Manager, PM"
+9.2,Signature và Date fields có sẵn?,OK,,"Section 8"
+,,,,,
+"10. OVERALL QUALITY",,,,,
+10.1,Document clear và easy to understand?,OK,,
+10.2,No spelling or grammar errors?,OK,,
+10.3,Professional formatting và presentation?,OK,,
+10.4,All sections logically organized?,OK,,
+10.5,Document ready for approval?,OK,,
+,,,,,
+SUMMARY,,,,,
+Total Items,45,,,
+OK,45,,,
+NG,0,,,
+N/A,0,,,
+,,,,,
+OVERALL RESULT,PASS,,,
+,,,,,
+COMMENTS & RECOMMENDATIONS,,,,,
+"- Test Plan đã đầy đủ và chi tiết",,,
+"- Phương pháp luận rõ ràng với 7 methodologies",,,
+"- 5 chức năng chính được prioritize đúng",,,
+"- Coverage targets hợp lý (≥80% statement, ≥75% branch)",,,
+"- Risks và mitigation strategies comprehensive",,,
+"- Document formatting professional (Times New Roman 13pt, line-height 1.5)",,,
+"- Ready for approval và implementation",,,
+,,,,,
+Reviewer Signature,,,,
+Date,,,,
+

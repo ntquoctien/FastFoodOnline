@@ -1,0 +1,210 @@
+,,,,,,,,,,
+Module Code,Menu & Cart Management,,,,,,,,Pass,
+Test requirement,"Kiểm tra chức năng Menu (duyệt danh sách, lọc, tìm kiếm món ăn) và Cart (thêm/xóa/cập nhật giỏ hàng, tính tổng tiền). Bao gồm Black Box, Grey Box, White Box testing.",,,,,,,,Fail,
+Tester,Test Team,,,,,,,,,,
+Pass,Fail,Untested,N/A,Number of Test cases,,,,,Untested,
+0,0,27,0,27,,,,,N/A,
+,,,,,,,,,,
+ID,Test Case Description,Test Case Procedure,Expected Output,Test data,Result,Test date,Description,Pre-Condition,Priority
+,"=== BLACK BOX TESTING - MENU ===",,,,,,,,
+,"FUNCTION: Browse Menu",,,,,,,,
+TC-BB-MENU-001,Xem danh sách món ăn khi truy cập trang chủ,"1. Mở website http://localhost:5173
+2. Cuộn đến phần ""Explore our menu""
+3. Quan sát danh sách món ăn hiển thị","- Hiển thị danh sách món ăn với hình ảnh, tên, giá
+- Các món ăn được hiển thị theo danh mục
+- Hình ảnh load đầy đủ
+- Giá hiển thị đúng format (VNĐ)",,Untested,,Kiểm tra hiển thị danh sách món ăn cơ bản,Database có sample foods,High
+TC-BB-MENU-002,Lọc món ăn theo danh mục (Equivalence Partitioning),"1. Truy cập trang menu
+2. Click vào category ""Salad""
+3. Quan sát kết quả lọc","- Chỉ hiển thị món thuộc danh mục Salad
+- Category ""Salad"" được highlight/active
+- Số lượng món hiển thị chính xác
+- Các món khác bị ẩn","Category: Salad",Untested,,Test filter functionality,Database có foods với category Salad,Medium
+TC-BB-MENU-003,Tìm kiếm món ăn theo từ khóa,"1. Truy cập trang menu
+2. Nhập từ khóa ""Pizza"" vào ô tìm kiếm
+3. Nhấn Enter hoặc click tìm kiếm","- Hiển thị các món có từ khóa ""Pizza"" trong tên hoặc mô tả
+- Kết quả được cập nhật real-time (nếu có)
+- Highlight từ khóa tìm kiếm (optional)","Search keyword: Pizza",Untested,,Test search functionality,Database có foods chứa từ Pizza,Medium
+TC-BB-MENU-004,Xem chi tiết món ăn,"1. Truy cập trang menu
+2. Click vào một món ăn
+3. Quan sát thông tin chi tiết","- Hiển thị modal hoặc page mới
+- Thông tin đầy đủ: tên, mô tả, giá, hình ảnh
+- Nút Add to Cart hoạt động
+- Có thể chọn size (nếu có)",,Untested,,Test view detail,Database có food với đầy đủ thông tin,High
+,"FUNCTION: Menu Edge Cases (Boundary Value)",,,,,,,,
+TC-BB-MENU-005,Tìm kiếm với từ khóa rỗng (Boundary Value),"1. Truy cập trang menu
+2. Nhập search box để trống
+3. Nhấn tìm kiếm","- Hiển thị tất cả món ăn
+- Hoặc hiển thị message ""Please enter search keyword""","Search: (empty)",Untested,,Test boundary - empty search,Database có foods,Low
+TC-BB-MENU-006,Tìm kiếm với từ khóa không tồn tại,"1. Truy cập trang menu
+2. Nhập từ khóa không có: ""XYZ123ABC""
+3. Nhấn tìm kiếm","- Hiển thị ""No results found"" hoặc empty list
+- Suggestion để thử từ khóa khác","Search: XYZ123ABC",Untested,,Test negative case,Database có foods,Medium
+,"=== GREY BOX TESTING - MENU ===",,,,,,,,
+,"FUNCTION: Menu API & Database",,,,,,,,
+TC-GB-MENU-001,Kiểm tra API GET /api/v2/menu/foods,"1. Mở Network tab trong DevTools
+2. Truy cập trang menu
+3. Quan sát API call
+4. Kiểm tra response","- API endpoint: GET /api/v2/menu/foods
+- Status code: 200 OK
+- Response format: JSON array với foods
+- Mỗi food có: _id, name, description, price, image, category",,Untested,,Verify API response structure,Backend API running,High
+TC-GB-MENU-002,Kiểm tra database query performance,"1. Seed database với 1000+ foods
+2. Query: db.foods.find({}).explain(""executionStats"")
+3. Kiểm tra execution time
+4. Verify index usage","- Query execution time < 100ms
+- Index on category field được sử dụng
+- No collection scan
+- executionStats.totalDocsExamined reasonable",,Untested,,Performance testing,Database với large dataset,Medium
+TC-GB-MENU-003,Kiểm tra food image URL từ Cloudinary,"1. Query một food từ database
+2. Kiểm tra image field
+3. Verify URL format
+4. Test URL trong browser","- Image URL format: https://res.cloudinary.com/.../fastfoodonline/menu/...
+- URL accessible và return image
+- Image chất lượng tốt",,Untested,,Verify Cloudinary integration,Database có foods với images,Medium
+,"=== WHITE BOX TESTING - MENU ===",,,,,,,,
+,"FUNCTION: Menu Code Logic",,,,,,,,
+TC-WB-MENU-001,Statement coverage - food filtering logic,"Test tất cả statements trong filter function:
+1. Load all foods
+2. Filter by category
+3. Filter by search keyword
+4. Render results","- Tất cả statements được execute
+- Coverage ≥80%
+- No dead code","Test scenarios:
+1. All foods
+2. Category filter
+3. Search filter
+4. Both filters",Untested,,Code coverage testing,Frontend app với coverage tool,High
+TC-WB-MENU-002,Branch coverage - category filter,"Test branches trong category filter:
+if (category === 'All') → show all
+else → filter by category","- Branch 1: category = 'All' (TRUE)
+- Branch 2: category = specific (FALSE)
+- Both branches covered","Categories:
+All, Salad, Burger",Untested,,Branch coverage,Code coverage tool,Medium
+,"=== BLACK BOX TESTING - CART ===",,,,,,,,
+,"FUNCTION: Add to Cart",,,,,,,,
+TC-BB-CART-001,Thêm món vào giỏ hàng khi đã đăng nhập,"1. Đăng nhập vào hệ thống
+2. Chọn một món ăn
+3. Click nút ""Add to cart"" hoặc icon ""+""
+4. Quan sát kết quả","- Số lượng món trong giỏ tăng lên (cart badge)
+- Icon giỏ hàng trên header hiển thị số lượng
+- Toast notification: ""Item added to cart""
+- Database được cập nhật",,Untested,,Test add to cart success,User đã đăng nhập,High
+TC-BB-CART-002,Thêm món khi chưa đăng nhập (Negative test),"1. Chưa đăng nhập (logout nếu đang login)
+2. Chọn món ăn
+3. Click ""Add to cart""","- Hiển thị popup/modal đăng nhập
+- Không thêm món vào giỏ
+- Redirect về login page hoặc show login form",,Untested,,Test authentication required,User chưa đăng nhập,High
+,"FUNCTION: Update Cart",,,,,,,,
+TC-BB-CART-003,Tăng số lượng món trong giỏ,"1. Đăng nhập và có món trong giỏ
+2. Vào trang Cart
+3. Click icon ""+"" trên món trong giỏ
+4. Quan sát kết quả","- Số lượng tăng lên 1 đơn vị
+- Tổng tiền được cập nhật tự động
+- Subtotal và total đúng
+- Database sync",,Untested,,Test increase quantity,Đã đăng nhập và có món trong giỏ,Medium
+TC-BB-CART-004,Giảm số lượng món trong giỏ (Boundary Value),"1. Đăng nhập và có món quantity > 1
+2. Vào trang Cart
+3. Click icon ""-"" trên món
+4. Quan sát kết quả","- Số lượng giảm xuống 1 đơn vị
+- Tổng tiền được cập nhật
+- Nếu quantity = 1 và click ""-"", món bị xóa",,Untested,,Test decrease quantity,Đã đăng nhập và món có qty > 1,Medium
+TC-BB-CART-005,Xóa món khỏi giỏ hàng,"1. Đăng nhập và có món trong giỏ
+2. Vào trang Cart
+3. Click icon xóa hoặc giảm qty về 0
+4. Quan sát kết quả","- Món bị xóa khỏi giỏ hàng
+- Tổng tiền được cập nhật
+- Nếu giỏ trống, hiển thị ""Cart is empty""
+- Database sync",,Untested,,Test remove from cart,Đã đăng nhập và có món trong giỏ,Medium
+TC-BB-CART-006,Xem giỏ hàng trống,"1. Đăng nhập
+2. Xóa tất cả món trong giỏ (nếu có)
+3. Vào trang Cart","- Hiển thị message: ""Your cart is empty""
+- Không hiển thị nút ""Checkout""
+- Suggestion để browse menu",,Untested,,Test empty cart state,Đã đăng nhập và giỏ trống,Low
+,"FUNCTION: Cart Calculation (Integration)",,,,,,,,
+TC-BB-CART-007,Tính toán tổng tiền chính xác,"1. Đăng nhập
+2. Thêm Món A: 50,000đ × 2
+3. Thêm Món B: 30,000đ × 1
+4. Vào trang Cart
+5. Verify calculations","- Subtotal = 50,000 × 2 + 30,000 × 1 = 130,000đ
+- Delivery Fee = 20,000đ (fixed)
+- Total = 130,000 + 20,000 = 150,000đ
+- Display format đúng (có dấu phẩy, VNĐ)","Món A: 50,000đ × 2
+Món B: 30,000đ × 1
+Phí ship: 20,000đ",Untested,,Test calculation logic,Đã đăng nhập,High
+,"=== GREY BOX TESTING - CART ===",,,,,,,,
+,"FUNCTION: Cart Data Structure & Sync",,,,,,,,
+TC-GB-CART-001,Kiểm tra Cart data structure trong MongoDB,"1. Thêm món vào giỏ
+2. Query database: db.users.findOne({_id: userId})
+3. Kiểm tra field cartData
+4. Verify structure","- cartData format: {foodId: quantity, ...}
+- foodId là string (ObjectId)
+- quantity là number (integer)
+- minimize: false để lưu empty object
+- cartData được update khi add/remove","User: test@example.com
+Food: 12345",Untested,,Verify database structure,MongoDB Compass access,High
+TC-GB-CART-002,Kiểm tra Cart sync giữa client và server,"1. Thêm món từ UI
+2. Kiểm tra API call: POST /api/cart/add
+3. Verify request body
+4. Verify response
+5. Verify database update","- Request: {userId, itemId}
+- Response: {success: true, cartData}
+- Database được update ngay lập tức
+- Client state = Server state = DB state",,Untested,,Test sync mechanism,Network tab open,High
+TC-GB-CART-003,Kiểm tra concurrent cart updates,"1. Mở 2 tabs cùng user
+2. Tab 1: Add item A
+3. Tab 2: Add item B
+4. Refresh cả 2 tabs
+5. Verify consistency","- Cả 2 items đều có trong cart
+- Không bị mất data
+- Không có race condition
+- Database consistent",,Untested,,Test concurrency,2 browser tabs,Medium
+,"=== WHITE BOX TESTING - CART ===",,,,,,,,
+,"FUNCTION: Cart Logic & Path Coverage",,,,,,,,
+TC-WB-CART-001,Path coverage - addToCart function,"Test tất cả paths:
+Path 1: Item chưa có → cartData[itemId] = 1
+Path 2: Item đã có → cartData[itemId] += 1
+Path 3: User không tồn tại → Error","- Path 1: Add new item
+- Path 2: Increase existing item
+- Path 3: Invalid user
+- All paths covered","Test cases:
+1. New item
+2. Existing item
+3. Invalid userId",Untested,,Path coverage testing,Code access,High
+TC-WB-CART-002,Exception handling - database error,"1. Simulate database connection error
+2. Try to add item to cart
+3. Verify error handling","- Try-catch block executed
+- Error logged
+- User-friendly error message
+- No crash",,Untested,,Exception handling,Ability to mock DB error,Medium
+TC-WB-CART-003,Data validation - negative quantity,"1. Try to set cart quantity < 0
+2. Try to set quantity = 0
+3. Try to set very large quantity","- Quantity < 0: Reject or set to 0
+- Quantity = 0: Remove item
+- Very large (999+): Accept or limit
+- Validation message clear","Quantities:
+-1, 0, 1, 999, 1000",Untested,,Input validation,Code access,Medium
+,,,,,,,,,,
+,"=== METHODOLOGY SUMMARY ===",,,,,,,,
+,"Phương pháp luận áp dụng cho Menu & Cart Module:",,,,,,,,
+,"1. Equivalence Partitioning:",,,,,,,,
+,"   - Valid category vs Invalid category",,,,,,,,
+,"   - Valid search keyword vs Empty vs Not found",,,,,,,,
+,"   - Valid quantity (≥1) vs Invalid (≤0)",,,,,,,,
+,"2. Boundary Value Analysis:",,,,,,,,
+,"   - Quantity: 0, 1, 999, 1000",,,,,,,,
+,"   - Search: empty, 1 char, very long string",,,,,,,,
+,"3. Statement Coverage:",,,,,,,,
+,"   - Test mọi dòng code trong filter và cart functions",,,,,,,,
+,"4. Path Coverage:",,,,,,,,
+,"   - Path 1: Add new item to cart",,,,,,,,
+,"   - Path 2: Increase existing item",,,,,,,,
+,"   - Path 3: Error handling",,,,,,,,
+,"5. Integration Testing:",,,,,,,,
+,"   - Frontend (React) → Backend API → MongoDB",,,,,,,,
+,"   - Cart sync across multiple tabs",,,,,,,,
+,"6. Performance Testing:",,,,,,,,
+,"   - Database query với 1000+ foods",,,,,,,,
+,"   - API response time < 2s",,,,,,,,
+,,,,,,,,,,
+

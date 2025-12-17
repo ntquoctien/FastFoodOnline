@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Report - FastFoodOnline</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #e74c3c; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; border-bottom: 2px solid #95a5a6; padding-bottom: 5px; }
+        h3 { color: #7f8c8d; margin-top: 20px; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #e74c3c; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .section { margin: 30px 0; }
+        .info-box { background-color: #ecf0f1; padding: 15px; border-left: 4px solid #e74c3c; margin: 20px 0; }
+        .summary-box { background-color: #d5f4e6; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0; }
+        .warning-box { background-color: #fef9e7; padding: 15px; border-left: 4px solid #f39c12; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>TEST REPORT - FASTFOODONLINE</h1>
+    
+    <div class="info-box">
+        <strong>Project Name:</strong> FastFoodOnline (Food Delivery Platform)<br>
+        <strong>Project Code:</strong> FFO<br>
+        <strong>Report Version:</strong> 1.0<br>
+        <strong>Report Date:</strong> December 17, 2025<br>
+        <strong>Prepared By:</strong> Test Team<br>
+        <strong>Test Period:</strong> [Start Date] to [End Date]
+    </div>
+
+    <div class="section">
+        <h2>1. EXECUTIVE SUMMARY</h2>
+        <p>This test report provides a comprehensive summary of the testing activities performed on the FastFoodOnline website. The testing was conducted to ensure the quality, reliability, and functionality of the food delivery platform.</p>
+
+        <div class="summary-box">
+            <h3>Test Execution Summary</h3>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+                <tr>
+                    <td>Total Test Cases</td>
+                    <td>190</td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Executed</td>
+                    <td>0</td>
+                    <td>0%</td>
+                </tr>
+                <tr>
+                    <td>Passed</td>
+                    <td>0</td>
+                    <td>0%</td>
+                </tr>
+                <tr>
+                    <td>Failed</td>
+                    <td>0</td>
+                    <td>0%</td>
+                </tr>
+                <tr>
+                    <td>Blocked</td>
+                    <td>0</td>
+                    <td>0%</td>
+                </tr>
+                <tr>
+                    <td>Not Executed</td>
+                    <td>190</td>
+                    <td>100%</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="warning-box">
+            <strong>Note:</strong> This is a template test report. Actual test execution results should be updated as tests are executed. All test cases are currently in "Not Executed" status.
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. TEST SCOPE</h2>
+        <h3>2.1 Modules Tested</h3>
+        <table>
+            <tr>
+                <th>Module</th>
+                <th>Test Cases</th>
+                <th>Test Type</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Authentication</td>
+                <td>6</td>
+                <td>Black Box, Grey Box, White Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Menu Management</td>
+                <td>4</td>
+                <td>Black Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Cart Management</td>
+                <td>7</td>
+                <td>Black Box, Grey Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Order Management</td>
+                <td>9</td>
+                <td>Black Box, Grey Box, White Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Payment Integration</td>
+                <td>4</td>
+                <td>Black Box, Grey Box, White Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Profile Management</td>
+                <td>4</td>
+                <td>Black Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Admin Panel</td>
+                <td>4</td>
+                <td>Black Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Database Operations</td>
+                <td>4</td>
+                <td>Grey Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>API Testing</td>
+                <td>3</td>
+                <td>Grey Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Code Coverage</td>
+                <td>40+</td>
+                <td>White Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Boundary Value Testing</td>
+                <td>4</td>
+                <td>Black Box</td>
+                <td>Not Executed</td>
+            </tr>
+            <tr>
+                <td>Equivalence Partitioning</td>
+                <td>6</td>
+                <td>Black Box</td>
+                <td>Not Executed</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>3. TEST RESULTS BY TEST TYPE</h2>
+        <h3>3.1 Black Box Testing</h3>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Total</th>
+                <th>Passed</th>
+                <th>Failed</th>
+                <th>Not Executed</th>
+            </tr>
+            <tr>
+                <td>Authentication</td>
+                <td>6</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+            </tr>
+            <tr>
+                <td>Menu</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Cart</td>
+                <td>7</td>
+                <td>0</td>
+                <td>0</td>
+                <td>7</td>
+            </tr>
+            <tr>
+                <td>Order</td>
+                <td>9</td>
+                <td>0</td>
+                <td>0</td>
+                <td>9</td>
+            </tr>
+            <tr>
+                <td>Payment</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Profile</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Admin</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Boundary Value</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Equivalence Partitioning</td>
+                <td>6</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+            </tr>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>48</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>48</strong></td>
+            </tr>
+        </table>
+
+        <h3>3.2 Grey Box Testing</h3>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Total</th>
+                <th>Passed</th>
+                <th>Failed</th>
+                <th>Not Executed</th>
+            </tr>
+            <tr>
+                <td>Authentication</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Database Operations</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Cart</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>Order</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Payment Integration</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Authorization</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>File Upload</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>Notification</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>Drone Delivery</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>API Error Handling</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>27</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>27</strong></td>
+            </tr>
+        </table>
+
+        <h3>3.3 White Box Testing</h3>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Total</th>
+                <th>Passed</th>
+                <th>Failed</th>
+                <th>Not Executed</th>
+            </tr>
+            <tr>
+                <td>Statement Coverage</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Branch Coverage</td>
+                <td>6</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+            </tr>
+            <tr>
+                <td>Path Coverage</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Loop Testing</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Condition Coverage</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Exception Handling</td>
+                <td>2</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td>Middleware Testing</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Data Flow Testing</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Security Testing</td>
+                <td>5</td>
+                <td>0</td>
+                <td>0</td>
+                <td>5</td>
+            </tr>
+            <tr>
+                <td>API Controller Testing</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td>Integration Points</td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>Performance Testing</td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>Code Coverage</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+            </tr>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>44</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>44</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>4. DEFECT SUMMARY</h2>
+        <table>
+            <tr>
+                <th>Severity</th>
+                <th>Count</th>
+                <th>Percentage</th>
+            </tr>
+            <tr>
+                <td>Critical</td>
+                <td>0</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <td>High</td>
+                <td>0</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <td>Medium</td>
+                <td>0</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <td>Low</td>
+                <td>0</td>
+                <td>0%</td>
+            </tr>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td><strong>0</strong></td>
+                <td><strong>0%</strong></td>
+            </tr>
+        </table>
+
+        <h3>4.1 Defect Status</h3>
+        <table>
+            <tr>
+                <th>Status</th>
+                <th>Count</th>
+            </tr>
+            <tr>
+                <td>Open</td>
+                <td>0</td>
+            </tr>
+            <tr>
+                <td>Fixed</td>
+                <td>0</td>
+            </tr>
+            <tr>
+                <td>Closed</td>
+                <td>0</td>
+            </tr>
+            <tr>
+                <td>Deferred</td>
+                <td>0</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>5. CODE COVERAGE METRICS</h2>
+        <table>
+            <tr>
+                <th>Coverage Type</th>
+                <th>Target</th>
+                <th>Actual</th>
+                <th>Status</th>
+            </tr>
+            <tr>
+                <td>Statement Coverage</td>
+                <td>≥ 80%</td>
+                <td>0%</td>
+                <td>Not Measured</td>
+            </tr>
+            <tr>
+                <td>Branch Coverage</td>
+                <td>≥ 75%</td>
+                <td>0%</td>
+                <td>Not Measured</td>
+            </tr>
+            <tr>
+                <td>Function Coverage</td>
+                <td>≥ 85%</td>
+                <td>0%</td>
+                <td>Not Measured</td>
+            </tr>
+            <tr>
+                <td>Line Coverage</td>
+                <td>≥ 80%</td>
+                <td>0%</td>
+                <td>Not Measured</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>6. TEST ENVIRONMENT</h2>
+        <table>
+            <tr>
+                <th>Component</th>
+                <th>Details</th>
+            </tr>
+            <tr>
+                <td>Backend Server</td>
+                <td>Node.js server (port 4000)</td>
+            </tr>
+            <tr>
+                <td>Frontend</td>
+                <td>React app (port 5173)</td>
+            </tr>
+            <tr>
+                <td>Admin Panel</td>
+                <td>React app (port 5174)</td>
+            </tr>
+            <tr>
+                <td>Database</td>
+                <td>MongoDB Atlas</td>
+            </tr>
+            <tr>
+                <td>Payment Gateways</td>
+                <td>VNPAY Sandbox, Stripe Test Mode, MoMo Test Environment</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>7. TESTING ACTIVITIES</h2>
+        <h3>7.1 Test Execution Timeline</h3>
+        <p>[To be updated with actual test execution dates and activities]</p>
+
+        <h3>7.2 Test Tools Used</h3>
+        <ul>
+            <li>Postman / Thunder Client - API Testing</li>
+            <li>Jest - Unit Testing</li>
+            <li>MongoDB Compass - Database Testing</li>
+            <li>Istanbul / Jest Coverage - Code Coverage</li>
+            <li>Chrome DevTools - Browser Testing</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>8. ISSUES AND RISKS</h2>
+        <h3>8.1 Issues Encountered</h3>
+        <p>[To be updated with actual issues encountered during testing]</p>
+
+        <h3>8.2 Risks Identified</h3>
+        <ul>
+            <li>Payment gateway integration testing requires sandbox access</li>
+            <li>Database performance testing requires large dataset</li>
+            <li>Real-time notification testing requires WebSocket setup</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>9. RECOMMENDATIONS</h2>
+        <ul>
+            <li>Execute all test cases and update this report with actual results</li>
+            <li>Focus on critical and high priority test cases first</li>
+            <li>Implement automated testing for regression testing</li>
+            <li>Improve code coverage to meet target metrics</li>
+            <li>Conduct performance testing with realistic load</li>
+            <li>Implement continuous integration for automated testing</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>10. CONCLUSION</h2>
+        <p>This test report provides a comprehensive overview of the testing activities for the FastFoodOnline website. The test plan includes 190 test cases covering Black Box, Grey Box, and White Box testing methodologies.</p>
+        <p><strong>Note:</strong> This is a template report. Actual test execution results should be updated as testing progresses. All test cases are currently in "Not Executed" status and should be updated with actual results, dates, and defect information.</p>
+    </div>
+
+    <div class="section">
+        <h2>11. APPROVAL</h2>
+        <table>
+            <tr>
+                <th>Role</th>
+                <th>Name</th>
+                <th>Signature</th>
+                <th>Date</th>
+            </tr>
+            <tr>
+                <td>Test Manager</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Project Manager</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Development Lead</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
+

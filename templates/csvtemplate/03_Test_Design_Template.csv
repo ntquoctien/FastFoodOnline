@@ -1,0 +1,12 @@
+Requirement Level 1,Requirement Level 2,Requirement Level 3,Test Criteria,Test Type,Note
+6.1 Logon & Logout,Logon,Success,Check login with right User name (Permission 1) & right Password,Function,
+,,,Check login with right User name (Permission 2) & right Password,Function,
+,,,Check login with right User name (Permission 3) & right Password,Function,
+,,Not success,,Function,
+,,,,Function,password of another user
+,,,,Function,
+,,Forgot password,,Function,
+,,,,Function,
+,,,,Function,email of another user
+,,,,Function,
+,Logout,,,Function,

@@ -1,0 +1,46 @@
+,,TEST CASE,,,,
+,,,,,,
+,Project Name,FastFoodOnline (Food Delivery Platform),,,Creator,Test Team
+,Project Code,FFO,,,Reviewer/Approver,QA Manager
+,Document Code,FFO_TC_v1.0,,,Issue Date,17-Dec-2025
+,,,,,Version,1.0
+,,,,,,
+,,,,,,
+,Record of change,,,,,
+,Effective Date,Version,Change Item,"*A,D,M",Change description,Reference
+,17-Dec-2025,1.0,Initial Release,A,"Tạo bộ Test Case đầy đủ cho FastFoodOnline bao gồm:
+- Black Box Testing: Authentication, Menu, Cart, Order, Payment
+- Grey Box Testing: Database operations, API testing
+- White Box Testing: Code coverage, Security testing
+Áp dụng phương pháp luận:
+- Equivalence Partitioning
+- Boundary Value Analysis  
+- Statement/Branch/Path Coverage
+- Integration Testing","- TEST_CASES.md
+- Software Requirement Specification
+- API Documentation
+- Database Schema"
+,,,,,,
+,,,,,,
+,Notes,,,,,
+,"Bộ test case này kiểm tra 5 chức năng chính (quan trọng nhất) của hệ thống:
+1. Authentication (Đăng ký & Đăng nhập)
+2. Menu Management (Duyệt & Tìm kiếm món ăn)
+3. Cart Management (Quản lý giỏ hàng)
+4. Order & Payment (Đặt hàng & Thanh toán)
+5. Admin Management (Quản lý món ăn & đơn hàng)
+
+Mỗi chức năng được kiểm tra bằng nhiều loại test:
+- Black Box: Kiểm tra từ góc độ người dùng
+- Grey Box: Kiểm tra database và API
+- White Box: Kiểm tra logic code và security
+
+Phương pháp luận được áp dụng:
+- Equivalence Partitioning: Chia input thành các nhóm tương đương
+- Boundary Value Analysis: Kiểm tra giá trị biên
+- Statement Coverage: Đảm bảo mỗi dòng code được test
+- Branch Coverage: Đảm bảo mỗi nhánh điều kiện được test
+- Path Coverage: Kiểm tra các đường đi trong code
+- Integration Testing: Kiểm tra tích hợp giữa các module",,,,
+,,,,,,
+
