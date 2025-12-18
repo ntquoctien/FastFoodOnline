@@ -7,6 +7,13 @@ import { assets } from "../../assets/frontend_assets/assets";
 import { formatCurrency } from "../../utils/currency";
 
 const ORDER_STEPS = ["PREPARING", "DELIVERING", "ARRIVED", "COMPLETED"];
+const CONFIRMABLE_STATUSES = new Set(["ARRIVED", "DELIVERING"]);
+const CANCELLABLE_STATUSES = new Set([
+  "CREATED",
+  "WAITING_FOR_DRONE",
+  "ASSIGNED",
+  "PREPARING",
+]);
 
 const formatOrderCode = (id) => {
   if (!id || typeof id !== "string") return "#------";
@@ -59,6 +66,9 @@ const formatEtaMinutes = (etaMinutes) => {
   if (etaMinutes <= 0) return "Đang hạ cánh";
   return `~${etaMinutes} phút`;
 };
+
+const resolveEntityLabel = (entity) =>
+  entity ? entity.name || entity : null;
 
 const MyOrders = () => {
   const { url, token } = useContext(StoreContext);
@@ -197,20 +207,16 @@ const MyOrders = () => {
             const cancelledDate = order.cancelledAt ? formatDate(order.cancelledAt) : null;
             const isCancelled = rawStatus === "CANCELED" || rawStatus === "CANCELLED";
             const isCompleted = rawStatus === "COMPLETED";
-            const canConfirmDelivery = ["ARRIVED", "DELIVERING"].includes(rawStatus);
-            const canCancel = ["CREATED", "WAITING_FOR_DRONE", "ASSIGNED", "PREPARING"].includes(
-              rawStatus
-            );
+            const canConfirmDelivery = CONFIRMABLE_STATUSES.has(rawStatus);
+            const canCancel = CANCELLABLE_STATUSES.has(rawStatus);
             const isConfirming = confirming === order._id;
             const isCancelling = cancelling === order._id;
             const isFormVisible = cancelForm.orderId === order._id;
             const progressIndex = getStatusStepIndex(rawStatus);
             const timeline = Array.isArray(order.timeline) ? order.timeline : [];
-            const branchLabel =
-              (order.branchId && (order.branchId.name || order.branchId)) || null;
-            const hubLabel = (order.hubId && (order.hubId.name || order.hubId)) || null;
-            const droneLabel =
-              (order.droneId && (order.droneId.name || order.droneId)) || null;
+            const branchLabel = resolveEntityLabel(order.branchId);
+            const hubLabel = resolveEntityLabel(order.hubId);
+            const droneLabel = resolveEntityLabel(order.droneId);
 
             return (
               <article key={order._id} className="order-card">

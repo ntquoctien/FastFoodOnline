@@ -3,6 +3,9 @@ import * as userRepo from "../../repositories/userRepository.js";
 
 const DEFAULT_TARGET_ROLES = ["admin"];
 
+const normalizeRole = (role) =>
+  typeof role === "string" ? role.trim().toLowerCase() : "";
+
 const buildActorSnapshot = (user) => {
   if (!user) return null;
   return {
@@ -14,16 +17,11 @@ const buildActorSnapshot = (user) => {
 };
 
 const normaliseRoles = (roles) => {
-  if (!Array.isArray(roles) || roles.length === 0) {
+  const rolesList = Array.isArray(roles) ? roles : [];
+  if (rolesList.length === 0) {
     return [...DEFAULT_TARGET_ROLES];
   }
-  const unique = new Set(
-    roles
-      .map((role) =>
-        typeof role === "string" ? role.trim().toLowerCase() : ""
-      )
-      .filter(Boolean)
-  );
+  const unique = new Set(rolesList.map(normalizeRole).filter(Boolean));
   if (!unique.size) {
     DEFAULT_TARGET_ROLES.forEach((role) => unique.add(role));
   }
@@ -79,12 +77,13 @@ export const getNotificationsForUser = async ({
     limit,
   });
   const userIdString = user._id?.toString();
-  return documents.map((doc) => ({
-    ...doc,
-    read: Array.isArray(doc.readBy)
-      ? doc.readBy.some((entry) => entry?.toString() === userIdString)
-      : false,
-  }));
+  return documents.map((doc) => {
+    const readBy = Array.isArray(doc.readBy) ? doc.readBy : [];
+    return {
+      ...doc,
+      read: readBy.some((entry) => entry?.toString() === userIdString),
+    };
+  });
 };
 
 export const markNotificationsRead = async ({
