@@ -1,9 +1,10 @@
 import * as userRepo from "../repositories/userRepository.js";
 
 export const incrementCartItem = (cartData, itemId) => {
-  const next = { ...(cartData || {}) };
-  next[itemId] = (next[itemId] || 0) + 1;
-  return next;
+  const nextCart = { ...(cartData || {}) };
+  const currentQty = nextCart[itemId] || 0;
+  nextCart[itemId] = currentQty + 1;
+  return nextCart;
 };
 
 export const addToCart = async ({ userId, itemId }) => {
@@ -16,8 +17,9 @@ export const addToCart = async ({ userId, itemId }) => {
 export const removeFromCart = async ({ userId, itemId }) => {
   const user = await userRepo.findById(userId);
   const cartData = user.cartData || {};
-  if ((cartData[itemId] || 0) > 1) {
-    cartData[itemId] -= 1;
+  const currentQty = cartData[itemId] || 0;
+  if (currentQty > 1) {
+    cartData[itemId] = currentQty - 1;
   } else {
     delete cartData[itemId];
   }
