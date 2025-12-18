@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Plan - FastFoodOnline</title>
+<style>
+@page { size: A4; margin: 2.54cm; }
+
+body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13pt;
+  line-height: 1.5;
+  color: #000;
+  margin: 0;
+  padding: 20pt;
+}
+
+h1, h2, h3, h4 { color: #000; }
+h1 { font-size: 18pt; font-weight: bold; text-align: center; margin: 12pt 0; }
+h2 { font-size: 16pt; font-weight: bold; margin: 16pt 0 10pt 0; }
+h3 { font-size: 14pt; font-weight: bold; margin: 14pt 0 8pt 0; }
+h4 { font-size: 13pt; font-weight: bold; margin: 12pt 0 6pt 0; }
+
+p { margin: 0 0 10pt 0; text-align: justify; }
+ul, ol { margin: 0 0 10pt 20pt; padding: 0; }
+li { margin: 0 0 6pt 0; }
+
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin: 10pt 0 16pt 0;
+  font-size: 13pt;
+}
+th, td { 
+  border: 1px solid #000; 
+  padding: 6pt 8pt; 
+  vertical-align: top;
+  text-align: left;
+}
+th { 
+  background-color: #D9D9D9; 
+  font-weight: bold;
+  text-align: center;
+}
+
+.center { text-align: center; }
+.right { text-align: right; }
+.bold { font-weight: bold; }
+.page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div style="padding-top: 100pt;">
+  <h1 style="font-size: 26pt; margin-bottom: 20pt;">FASTFOODONLINE PROJECT</h1>
+  <h1 style="font-size: 24pt; margin-bottom: 30pt;">TEST PLAN</h1>
+  <p class="center" style="font-size: 14pt; margin-bottom: 40pt;">Version 1.0</p>
+  
+  <table style="margin-top: 60pt;">
+    <tr>
+      <td style="width: 35%; background-color: #D9D9D9; font-weight: bold;">Project Name</td>
+      <td>FastFoodOnline (Food Delivery Platform)</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Project Code</td>
+      <td>FFO</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Document Code</td>
+      <td>FFO_TestPlan_v1.0</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Version</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Date</td>
+      <td>18-Dec-2024</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Prepared By</td>
+      <td>Nguyễn Trần Quốc Tiến, Nguyễn Phạm Hoàng Quân</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Reviewed By</td>
+      <td>QA Manager</td>
+    </tr>
+    <tr>
+      <td style="background-color: #D9D9D9; font-weight: bold;">Approved By</td>
+      <td>Project Manager</td>
+    </tr>
+  </table>
+</div>
+
+<!-- REVISION HISTORY -->
+<div class="page-break">
+  <h2 class="center">REVISION HISTORY</h2>
+  
+  <table>
+    <tr>
+      <th style="width: 20%;">Date</th>
+      <th style="width: 15%;">Version</th>
+      <th style="width: 40%;">Description</th>
+      <th style="width: 25%;">Author</th>
+    </tr>
+    <tr>
+      <td>21-Nov-2024</td>
+      <td>0.1</td>
+      <td>Khởi tạo tài liệu Test Plan - Xây dựng cấu trúc cơ bản và outline các phần chính</td>
+      <td>Nguyễn Trần Quốc Tiến<br/>Nguyễn Phạm Hoàng Quân</td>
+    </tr>
+    <tr>
+      <td>28-Nov-2024</td>
+      <td>0.2</td>
+      <td>Cập nhật phần Phạm vi kiểm thử - Định nghĩa rõ các chức năng In-scope và Out-of-scope</td>
+      <td>Nguyễn Trần Quốc Tiến<br/>Nguyễn Phạm Hoàng Quân</td>
+    </tr>
+    <tr>
+      <td>05-Dec-2024</td>
+      <td>0.3</td>
+      <td>Bổ sung Chiến lược kiểm thử - Chi tiết các phương pháp Black Box, Grey Box, White Box testing</td>
+      <td>Nguyễn Trần Quốc Tiến<br/>Nguyễn Phạm Hoàng Quân</td>
+    </tr>
+    <tr>
+      <td>12-Dec-2024</td>
+      <td>0.4</td>
+      <td>Hoàn thiện Môi trường kiểm thử và Lịch trình - Xác định hardware, software requirements và test schedule</td>
+      <td>Nguyễn Trần Quốc Tiến<br/>Nguyễn Phạm Hoàng Quân</td>
+    </tr>
+    <tr>
+      <td>18-Dec-2024</td>
+      <td>1.0</td>
+      <td>Phiên bản Final - Hoàn thiện toàn bộ tài liệu, bổ sung Test Cases Summary, Defects Found và phần Phê duyệt. Đã được review và approved</td>
+      <td>Nguyễn Trần Quốc Tiến<br/>Nguyễn Phạm Hoàng Quân<br/><br/><strong>Giám sát:</strong> Đỗ Như Tài</td>
+    </tr>
+  </table>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="page-break">
+  <h2 class="center">MỤC LỤC</h2>
+  
+  <ol style="line-height: 2;">
+    <li><a href="#sec1">GIỚI THIỆU</a>
+      <ol style="list-style-type: decimal;">
+        <li>Mục đích tài liệu</li>
+        <li>Phạm vi tài liệu</li>
+        <li>Định nghĩa và từ viết tắt</li>
+        <li>Tài liệu tham khảo</li>
+      </ol>
+    </li>
+    <li><a href="#sec2">PHẠM VI KIỂM THỬ</a>
+      <ol style="list-style-type: decimal;">
+        <li>Các chức năng trong phạm vi kiểm thử (In-scope)</li>
+        <li>Các chức năng ngoài phạm vi kiểm thử (Out-of-scope)</li>
+      </ol>
+    </li>
+    <li><a href="#sec3">CHIẾN LƯỢC KIỂM THỬ</a>
+      <ol style="list-style-type: decimal;">
+        <li>Các loại kiểm thử áp dụng</li>
+        <li>Phương pháp luận kiểm thử</li>
+      </ol>
+    </li>
+    <li><a href="#sec4">MÔI TRƯỜNG KIỂM THỬ</a></li>
+    <li><a href="#sec5">LỊCH TRÌNH KIỂM THỬ</a></li>
+    <li><a href="#sec6">NGUỒN LỰC KIỂM THỬ</a></li>
+    <li><a href="#sec7">RỦI RO VÀ BIỆN PHÁP GIẢM THIỂU</a></li>
+    <li><a href="#sec8">TÓM TẮT TEST CASES</a></li>
+    <li><a href="#sec9">DEFECTS FOUND</a></li>
+    <li><a href="#sec10">PHÊ DUYỆT</a></li>
+  </ol>
+</div>
+
+<!-- 1. INTRODUCTION -->
+<div id="sec1" class="page-break">
+  <h2>1. GIỚI THIỆU</h2>
+  
+  <h3>1.1. Mục đích tài liệu</h3>
+  <p>
+    Tài liệu Test Plan này được xây dựng nhằm mục đích:
+  </p>
+  <ul>
+    <li>Định nghĩa phạm vi, chiến lược và phương pháp luận kiểm thử cho dự án <strong>FastFoodOnline</strong></li>
+    <li>Mô tả chi tiết các loại kiểm thử sẽ được thực hiện: <strong>Black Box Testing</strong>, <strong>Grey Box Testing</strong>, và <strong>White Box Testing</strong></li>
+    <li>Xác định môi trường kiểm thử, lịch trình, nguồn lực và công cụ cần thiết</li>
+    <li>Đánh giá rủi ro và đề xuất biện pháp giảm thiểu</li>
+    <li>Cung cấp cơ sở để đội ngũ QA thực hiện kiểm thử một cách có hệ thống và hiệu quả</li>
+  </ul>
+  
+  <h3>1.2. Phạm vi tài liệu</h3>
+  <p>
+    Tài liệu này bao gồm kế hoạch kiểm thử cho toàn bộ hệ thống FastFoodOnline - nền tảng đặt đồ ăn nhanh trực tuyến được xây dựng trên công nghệ MERN Stack:
+  </p>
+  <ul>
+    <li><strong>Frontend (User)</strong>: React Application - Giao diện người dùng cuối</li>
+    <li><strong>Frontend (Admin)</strong>: React Admin Dashboard - Giao diện quản trị</li>
+    <li><strong>Backend</strong>: Node.js/Express RESTful API - Xử lý logic nghiệp vụ</li>
+    <li><strong>Database</strong>: MongoDB - Cơ sở dữ liệu NoSQL</li>
+    <li><strong>Third-party Integrations</strong>: 
+      <ul>
+        <li>Payment Gateways: VNPAY, Stripe, MoMo</li>
+        <li>Cloud Storage: Cloudinary (image upload)</li>
+      </ul>
+    </li>
+  </ul>
+  
+  <h3>1.3. Định nghĩa và từ viết tắt</h3>
+  <table>
+    <tr>
+      <th style="width: 25%;">Thuật ngữ / Viết tắt</th>
+      <th>Giải thích</th>
+    </tr>
+    <tr>
+      <td><strong>FFO</strong></td>
+      <td>FastFoodOnline - Tên dự án</td>
+    </tr>
+    <tr>
+      <td><strong>MERN Stack</strong></td>
+      <td>MongoDB, Express.js, React, Node.js - Công nghệ stack</td>
+    </tr>
+    <tr>
+      <td><strong>TC</strong></td>
+      <td>Test Case - Trường hợp kiểm thử</td>
+    </tr>
+    <tr>
+      <td><strong>QA</strong></td>
+      <td>Quality Assurance - Đảm bảo chất lượng</td>
+    </tr>
+    <tr>
+      <td><strong>JWT</strong></td>
+      <td>JSON Web Token - Token xác thực</td>
+    </tr>
+    <tr>
+      <td><strong>COD</strong></td>
+      <td>Cash on Delivery - Thanh toán khi nhận hàng</td>
+    </tr>
+    <tr>
+      <td><strong>API</strong></td>
+      <td>Application Programming Interface</td>
+    </tr>
+    <tr>
+      <td><strong>UI/UX</strong></td>
+      <td>User Interface / User Experience</td>
+    </tr>
+    <tr>
+      <td><strong>EP</strong></td>
+      <td>Equivalence Partitioning - Phân vùng tương đương</td>
+    </tr>
+    <tr>
+      <td><strong>BVA</strong></td>
+      <td>Boundary Value Analysis - Phân tích giá trị biên</td>
+    </tr>
+  </table>
+  
+  <h3>1.4. Tài liệu tham khảo</h3>
+  <table>
+    <tr>
+      <th style="width: 10%;">STT</th>
+      <th style="width: 40%;">Tên tài liệu</th>
+      <th>Mô tả</th>
+    </tr>
+    <tr>
+      <td class="center">1</td>
+      <td>TEST_CASES.md</td>
+      <td>Tài liệu chi tiết 120+ test cases (Black Box, Grey Box, White Box)</td>
+    </tr>
+    <tr>
+      <td class="center">2</td>
+      <td>Database_Design.md</td>
+      <td>Thiết kế database schema và relationships</td>
+    </tr>
+    <tr>
+      <td class="center">3</td>
+      <td>Architecture_Design.md</td>
+      <td>Kiến trúc hệ thống và API structure</td>
+    </tr>
+    <tr>
+      <td class="center">4</td>
+      <td>UseCase_Description.md</td>
+      <td>Mô tả use cases và user flows</td>
+    </tr>
+    <tr>
+      <td class="center">5</td>
+      <td>Screen_Design.md</td>
+      <td>Thiết kế giao diện và UI components</td>
+    </tr>
+    <tr>
+      <td class="center">6</td>
+      <td>Test_Summary.md</td>
+      <td>Tóm tắt kết quả kiểm thử và defects</td>
+    </tr>
+    <tr>
+      <td class="center">7</td>
+      <td>Defect_List_FastFoodOnline.csv</td>
+      <td>Danh sách lỗi phát hiện trong quá trình testing</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 2. TEST SCOPE -->
+<div id="sec2" class="page-break">
+  <h2>2. PHẠM VI KIỂM THỬ</h2>
+  
+  <h3>2.1. Các chức năng trong phạm vi kiểm thử (In-scope)</h3>
+  <p>
+    Theo yêu cầu của dự án, bộ kiểm thử tập trung vào <strong>5 chức năng chính</strong> để đạt hiệu quả cao và dễ dàng trong việc báo cáo. Mỗi chức năng sẽ được kiểm thử đầy đủ với cả <strong>Black Box</strong>, <strong>Grey Box</strong>, và <strong>White Box Testing</strong>.
+  </p>
+  
+  <table>
+    <tr>
+      <th style="width: 8%;">STT</th>
+      <th style="width: 22%;">Chức năng</th>
+      <th style="width: 45%;">Mô tả chi tiết</th>
+      <th style="width: 12%;">Priority</th>
+      <th style="width: 13%;">Test Cases</th>
+    </tr>
+    <tr>
+      <td class="center"><strong>1</strong></td>
+      <td><strong>Authentication</strong><br/>(Register & Login)</td>
+      <td>
+        <ul style="margin: 4pt 0;">
+          <li>Đăng ký tài khoản mới</li>
+          <li>Đăng nhập/Đăng xuất</li>
+          <li>JWT token generation & validation</li>
+          <li>Password hashing với bcrypt</li>
+          <li>Session persistence</li>
+          <li>Validation (email format, password strength)</li>
+        </ul>
+      </td>
+      <td class="center"><strong>High</strong></td>
+      <td class="center">18</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>2</strong></td>
+      <td><strong>Menu Management</strong><br/>(Browse & Search)</td>
+      <td>
+        <ul style="margin: 4pt 0;">
+          <li>Xem danh sách món ăn</li>
+          <li>Lọc theo category (Salad, Burger, Pizza, etc.)</li>
+          <li>Tìm kiếm món ăn (search với tiếng Việt)</li>
+          <li>Xem chi tiết món ăn</li>
+          <li>Hiển thị giá và hình ảnh</li>
+        </ul>
+      </td>
+      <td class="center"><strong>High</strong></td>
+      <td class="center">12</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>3</strong></td>
+      <td><strong>Cart Management</strong><br/>(Add/Update/Remove)</td>
+      <td>
+        <ul style="margin: 4pt 0;">
+          <li>Thêm món vào giỏ hàng</li>
+          <li>Tăng/giảm số lượng món</li>
+          <li>Xóa món khỏi giỏ hàng</li>
+          <li>Tính toán tổng tiền (subtotal + delivery fee)</li>
+          <li>Sync cart data giữa client và server</li>
+          <li>Xử lý cart trống</li>
+        </ul>
+      </td>
+      <td class="center"><strong>High</strong></td>
+      <td class="center">15</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>4</strong></td>
+      <td><strong>Order & Payment</strong><br/>(Create & Process)</td>
+      <td>
+        <ul style="margin: 4pt 0;">
+          <li>Tạo đơn hàng mới</li>
+          <li>Nhập địa chỉ giao hàng (validation)</li>
+          <li>Chọn phương thức thanh toán:
+            <ul>
+              <li>COD (Cash on Delivery)</li>
+              <li>VNPAY (Vietnam Payment Gateway)</li>
+              <li>Stripe (International)</li>
+              <li>MoMo (E-wallet)</li>
+            </ul>
+          </li>
+          <li>Xem lịch sử đơn hàng</li>
+          <li>Theo dõi trạng thái đơn (timeline)</li>
+          <li>Hủy đơn hàng (nếu có thể)</li>
+        </ul>
+      </td>
+      <td class="center"><strong>High</strong></td>
+      <td class="center">25</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>5</strong></td>
+      <td><strong>Admin Management</strong><br/>(Food & Order)</td>
+      <td>
+        <ul style="margin: 4pt 0;">
+          <li>Quản lý món ăn:
+            <ul>
+              <li>Thêm món mới</li>
+              <li>Sửa thông tin món</li>
+              <li>Xóa/Archive món</li>
+              <li>Upload hình ảnh (Cloudinary)</li>
+            </ul>
+          </li>
+          <li>Quản lý đơn hàng:
+            <ul>
+              <li>Xem tất cả đơn hàng</li>
+              <li>Cập nhật trạng thái đơn</li>
+              <li>Chấp nhận/Từ chối đơn</li>
+            </ul>
+          </li>
+          <li>Role-based access control</li>
+        </ul>
+      </td>
+      <td class="center"><strong>Medium</strong></td>
+      <td class="center">20</td>
+    </tr>
+    <tr>
+      <td colspan="4" class="right"><strong>TỔNG SỐ TEST CASES:</strong></td>
+      <td class="center"><strong>90</strong></td>
+    </tr>
+  </table>
+  
+  <h3>2.2. Các chức năng ngoài phạm vi kiểm thử (Out-of-scope)</h3>
+  <p>
+    Các chức năng sau đây <strong>KHÔNG</strong> nằm trong phạm vi kiểm thử của lần release này:
+  </p>
+  <ul>
+    <li><strong>Mobile Application</strong>: Nếu có phát triển mobile app riêng (iOS/Android)</li>
+    <li><strong>Payment Gateway Internal Logic</strong>: Chỉ test tích hợp, không test logic bên trong VNPAY/Stripe/MoMo</li>
+    <li><strong>Email/SMS Notification System</strong>: Chưa được triển khai trong version hiện tại</li>
+    <li><strong>Real-time Tracking</strong>: Tính năng theo dõi shipper/drone real-time (nếu chưa stable)</li>
+    <li><strong>Loyalty Program/Points</strong>: Chương trình tích điểm (future feature)</li>
+    <li><strong>Multi-language Support</strong>: Hệ thống chỉ hỗ trợ tiếng Việt và tiếng Anh</li>
+    <li><strong>Performance Testing</strong>: Load testing và stress testing sẽ thực hiện riêng sau khi functional testing hoàn tất</li>
+  </ul>
+  
+  <h3>2.3. Phân bố Test Cases theo loại testing</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Loại Testing</th>
+      <th style="width: 20%;">Số lượng TC</th>
+      <th style="width: 20%;">Tỷ lệ (%)</th>
+      <th>Mô tả</th>
+    </tr>
+    <tr>
+      <td><strong>Black Box Testing</strong></td>
+      <td class="center">50</td>
+      <td class="center">55.6%</td>
+      <td>Kiểm thử chức năng từ góc độ người dùng cuối</td>
+    </tr>
+    <tr>
+      <td><strong>Grey Box Testing</strong></td>
+      <td class="center">20</td>
+      <td class="center">22.2%</td>
+      <td>Kiểm thử với kiến thức một phần về database và API</td>
+    </tr>
+    <tr>
+      <td><strong>White Box Testing</strong></td>
+      <td class="center">20</td>
+      <td class="center">22.2%</td>
+      <td>Kiểm thử logic code, coverage, và security</td>
+    </tr>
+    <tr>
+      <td class="right"><strong>TỔNG:</strong></td>
+      <td class="center"><strong>90</strong></td>
+      <td class="center"><strong>100%</strong></td>
+      <td></td>
+    </tr>
+  </table>
+</div>
+
+
+
+
+<!-- 3. TEST STRATEGY -->
+<div id="sec3" class="page-break">
+  <h2>3. CHIẾN LƯỢC KIỂM THỬ</h2>
+  
+  <h3>3.1. Các loại kiểm thử áp dụng</h3>
+  
+  <h4>3.1.1. Black Box Testing</h4>
+  <p>
+    <strong>Định nghĩa</strong>: Kiểm thử chức năng từ góc độ người dùng cuối mà không cần quan tâm đến cấu trúc code bên trong.
+  </p>
+  <p>
+    <strong>Mục tiêu</strong>:
+  </p>
+  <ul>
+    <li>Xác minh các chức năng hoạt động đúng theo requirement</li>
+    <li>Kiểm tra user experience và user interface</li>
+    <li>Validate input/output theo specification</li>
+  </ul>
+  <p>
+    <strong>Áp dụng cho</strong>: Tất cả 5 modules (Authentication, Menu, Cart, Order, Admin)
+  </p>
+  <p>
+    <strong>Số lượng test cases</strong>: 50 TCs (55.6%)
+  </p>
+  
+  <h4>3.1.2. Grey Box Testing</h4>
+  <p>
+    <strong>Định nghĩa</strong>: Kiểm thử với kiến thức một phần về cấu trúc nội bộ (database schema, API endpoints, authentication mechanism).
+  </p>
+  <p>
+    <strong>Mục tiêu</strong>:
+  </p>
+  <ul>
+    <li>Kiểm tra tích hợp giữa Frontend và Backend</li>
+    <li>Verify database operations (CRUD, constraints, indexes)</li>
+    <li>Test API responses và error codes</li>
+    <li>Kiểm tra JWT token, password hashing</li>
+  </ul>
+  <p>
+    <strong>Áp dụng cho</strong>: Authentication, Cart, Order, Payment modules
+  </p>
+  <p>
+    <strong>Số lượng test cases</strong>: 20 TCs (22.2%)
+  </p>
+  
+  <h4>3.1.3. White Box Testing</h4>
+  <p>
+    <strong>Định nghĩa</strong>: Kiểm thử dựa trên phân tích code logic, control flow, và data flow.
+  </p>
+  <p>
+    <strong>Mục tiêu</strong>:
+  </p>
+  <ul>
+    <li>Đạt code coverage target (≥80% statement, ≥75% branch)</li>
+    <li>Kiểm tra tất cả paths và conditions</li>
+    <li>Phát hiện lỗi logic, security vulnerabilities</li>
+    <li>Test exception handling</li>
+  </ul>
+  <p>
+    <strong>Áp dụng cho</strong>: Authentication, Menu, Cart, Order modules
+  </p>
+  <p>
+    <strong>Số lượng test cases</strong>: 20 TCs (22.2%)
+  </p>
+  
+  <h3>3.2. Phương pháp luận kiểm thử (Test Methodologies)</h3>
+  <p>
+    Dự án áp dụng <strong>7 phương pháp luận</strong> chính để đảm bảo chất lượng kiểm thử toàn diện:
+  </p>
+  
+  <h4>3.2.1. Equivalence Partitioning (Phân vùng tương đương)</h4>
+  <p>
+    <strong>Khái niệm</strong>: Chia input thành các nhóm tương đương (valid và invalid partitions). Mỗi nhóm được đại diện bởi một test case.
+  </p>
+  <p>
+    <strong>Ví dụ áp dụng</strong>:
+  </p>
+  <table>
+    <tr>
+      <th style="width: 25%;">Input Field</th>
+      <th style="width: 35%;">Valid Partition</th>
+      <th style="width: 40%;">Invalid Partition</th>
+    </tr>
+    <tr>
+      <td>Email</td>
+      <td>user@domain.com<br/>test@example.co.uk</td>
+      <td>user@<br/>@domain<br/>userdomain</td>
+    </tr>
+    <tr>
+      <td>Password</td>
+      <td>≥ 6 characters<br/>Test@123456</td>
+      <td>&lt; 6 characters<br/>123</td>
+    </tr>
+    <tr>
+      <td>Phone Number</td>
+      <td>10-11 digits<br/>0901234567</td>
+      <td>Letters<br/>Special chars<br/>abc123</td>
+    </tr>
+    <tr>
+      <td>Cart Quantity</td>
+      <td>1 to 999</td>
+      <td>0, negative, &gt;999</td>
+    </tr>
+  </table>
+  <p>
+    <strong>Áp dụng cho modules</strong>: Authentication (email, password), Cart (quantity), Order (address, phone)
+  </p>
+  
+  <h4>3.2.2. Boundary Value Analysis (Phân tích giá trị biên)</h4>
+  <p>
+    <strong>Khái niệm</strong>: Kiểm thử tại các giá trị biên: min, max, min-1, max+1.
+  </p>
+  <p>
+    <strong>Ví dụ áp dụng</strong>:
+  </p>
+  <table>
+    <tr>
+      <th style="width: 30%;">Input</th>
+      <th style="width: 35%;">Boundary Values</th>
+      <th>Expected Result</th>
+    </tr>
+    <tr>
+      <td>Password Length</td>
+      <td>5 chars (min-1)<br/>6 chars (min)<br/>50 chars (max)<br/>51 chars (max+1)</td>
+      <td>Invalid<br/>Valid<br/>Valid<br/>Invalid</td>
+    </tr>
+    <tr>
+      <td>Cart Quantity</td>
+      <td>0 (invalid)<br/>1 (min valid)<br/>999 (max valid)<br/>1000 (invalid)</td>
+      <td>Reject<br/>Accept<br/>Accept<br/>Reject or warning</td>
+    </tr>
+    <tr>
+      <td>Order Total Amount</td>
+      <td>0đ<br/>10,000đ<br/>999,999,999đ</td>
+      <td>Invalid<br/>Valid<br/>Valid</td>
+    </tr>
+  </table>
+  <p>
+    <strong>Áp dụng cho modules</strong>: Authentication (password), Cart (quantity), Order (amount)
+  </p>
+  
+  <h4>3.2.3. Statement Coverage (Độ bao phủ câu lệnh)</h4>
+  <p>
+    <strong>Khái niệm</strong>: Đảm bảo mỗi dòng code được thực thi ít nhất một lần.
+  </p>
+  <p>
+    <strong>Target</strong>: ≥ 80%
+  </p>
+  <p>
+    <strong>Ví dụ code và test cases</strong>:
+  </p>
+  <pre style="background-color: #f5f5f5; padding: 10pt; margin: 8pt 0; font-family: 'Courier New', monospace; font-size: 11pt;">
+// userService.js - login function
+export const login = async (email, password) => {
+  const user = await userModel.findOne({ email });      // Line 1
+  if (!user) {                                           // Line 2
+    return { success: false, message: "User not found" }; // Line 3
+  }
+  
+  const isMatch = await bcrypt.compare(password, user.password); // Line 4
+  if (!isMatch) {                                        // Line 5
+    return { success: false, message: "Invalid password" }; // Line 6
+  }
+  
+  const token = createToken(user._id);                   // Line 7
+  return { success: true, token };                       // Line 8
+};
+  </pre>
+  <p>
+    <strong>Test cases để đạt 100% statement coverage</strong>:
+  </p>
+  <ul>
+    <li><strong>TC1</strong>: User không tồn tại → Cover lines 1, 2, 3</li>
+    <li><strong>TC2</strong>: Sai password → Cover lines 1, 2, 4, 5, 6</li>
+    <li><strong>TC3</strong>: Login thành công → Cover all lines 1-8</li>
+  </ul>
+  <p>
+    <strong>Áp dụng cho modules</strong>: Authentication, Order, Cart, Payment
+  </p>
+  
+  <h4>3.2.4. Branch Coverage (Độ bao phủ nhánh)</h4>
+  <p>
+    <strong>Khái niệm</strong>: Đảm bảo mỗi nhánh điều kiện (if/else, switch) được kiểm thử cả TRUE và FALSE.
+  </p>
+  <p>
+    <strong>Target</strong>: ≥ 75%
+  </p>
+  <p>
+    <strong>Ví dụ code và test cases</strong>:
+  </p>
+  <pre style="background-color: #f5f5f5; padding: 10pt; margin: 8pt 0; font-family: 'Courier New', monospace; font-size: 11pt;">
+// Order creation logic
+export const createOrder = async (data) => {
+  // Branch 1: Validate items
+  if (!data.items || data.items.length === 0) {
+    return { success: false, message: "Cart is empty" };
+  }
+  
+  // Branch 2: Check branch exists
+  const branch = await Branch.findById(data.branchId);
+  if (!branch) {
+    return { success: false, message: "Branch not found" };
+  }
+  
+  // Branch 3: Payment method
+  if (data.paymentMethod === "ONLINE") {
+    order.paymentStatus = "PENDING";
+  } else {
+    order.paymentStatus = "unpaid";
+  }
+  
+  return { success: true, order };
+};
+  </pre>
+  <p>
+    <strong>Test cases để đạt 100% branch coverage</strong>:
+  </p>
+  <table style="font-size: 12pt;">
+    <tr>
+      <th style="width: 25%;">Test Case</th>
+      <th style="width: 35%;">Input</th>
+      <th>Branch Covered</th>
+    </tr>
+    <tr>
+      <td>TC1</td>
+      <td>items = []</td>
+      <td>Branch 1 TRUE</td>
+    </tr>
+    <tr>
+      <td>TC2</td>
+      <td>items có data</td>
+      <td>Branch 1 FALSE</td>
+    </tr>
+    <tr>
+      <td>TC3</td>
+      <td>branchId invalid</td>
+      <td>Branch 2 TRUE</td>
+    </tr>
+    <tr>
+      <td>TC4</td>
+      <td>branchId valid</td>
+      <td>Branch 2 FALSE</td>
+    </tr>
+    <tr>
+      <td>TC5</td>
+      <td>paymentMethod = "ONLINE"</td>
+      <td>Branch 3 TRUE</td>
+    </tr>
+    <tr>
+      <td>TC6</td>
+      <td>paymentMethod = "COD"</td>
+      <td>Branch 3 FALSE</td>
+    </tr>
+  </table>
+  <p>
+    <strong>Áp dụng cho modules</strong>: Order, Payment, Authentication
+  </p>
+  
+  <h4>3.2.5. Path Coverage (Độ bao phủ đường đi)</h4>
+  <p>
+    <strong>Khái niệm</strong>: Kiểm thử tất cả các đường đi có thể trong code (combination của các branches).
+  </p>
+  <p>
+    <strong>Ví dụ code và test cases</strong>:
+  </p>
+  <pre style="background-color: #f5f5f5; padding: 10pt; margin: 8pt 0; font-family: 'Courier New', monospace; font-size: 11pt;">
+// Cart add logic
+export const addToCart = async (req, res) => {
+  const { itemId } = req.body;
+  const userId = req.userId;
+  
+  let userData = await userModel.findById(userId);
+  let cartData = userData.cartData || {};
+  
+  if (!cartData[itemId]) {
+    cartData[itemId] = 1;      // Path 1
+  } else {
+    cartData[itemId] += 1;     // Path 2
+  }
+  
+  await userModel.findByIdAndUpdate(userId, { cartData });
+  res.json({ success: true });
+};
+  </pre>
+  <p>
+    <strong>Paths và test cases</strong>:
+  </p>
+  <ul>
+    <li><strong>Path 1</strong>: User exists, item chưa có trong cart → cartData[itemId] = 1</li>
+    <li><strong>Path 2</strong>: User exists, item đã có trong cart → cartData[itemId] += 1</li>
+    <li><strong>Path 3</strong>: User không tồn tại → Error handling</li>
+  </ul>
+  <p>
+    <strong>Áp dụng cho modules</strong>: Cart, Order, Authentication
+  </p>
+  
+  <h4>3.2.6. Integration Testing</h4>
+  <p>
+    <strong>Khái niệm</strong>: Kiểm thử tích hợp giữa các modules và components.
+  </p>
+  <p>
+    <strong>Ví dụ end-to-end order flow</strong>:
+  </p>
+  <ol>
+    <li>Register user → <em>Authentication module</em></li>
+    <li>Login → <em>Authentication module</em></li>
+    <li>Browse menu → <em>Menu module</em></li>
+    <li>Add to cart → <em>Cart module</em></li>
+    <li>Checkout → <em>Order module</em></li>
+    <li>Payment → <em>Payment gateway integration</em></li>
+    <li>Verify order created → <em>Database check</em></li>
+  </ol>
+  <p>
+    <strong>Kiểm tra</strong>:
+  </p>
+  <ul>
+    <li>Data flow giữa Frontend → Backend → Database</li>
+    <li>API calls và responses</li>
+    <li>State management (React Context/Redux)</li>
+    <li>Error propagation và handling</li>
+  </ul>
+  <p>
+    <strong>Áp dụng cho</strong>: Toàn bộ hệ thống
+  </p>
+  
+  <h4>3.2.7. Security Testing</h4>
+  <p>
+    <strong>Mục tiêu</strong>: Phát hiện các lỗ hổng bảo mật (vulnerabilities).
+  </p>
+  <p>
+    <strong>Test cases security</strong>:
+  </p>
+  <table>
+    <tr>
+      <th style="width: 30%;">Security Issue</th>
+      <th style="width: 35%;">Test Input</th>
+      <th>Expected Result</th>
+    </tr>
+    <tr>
+      <td><strong>NoSQL Injection</strong></td>
+      <td>{"email": {"$ne": null}}</td>
+      <td>Input phải được sanitize hoặc reject</td>
+    </tr>
+    <tr>
+      <td><strong>XSS (Cross-Site Scripting)</strong></td>
+      <td>&lt;script&gt;alert('XSS')&lt;/script&gt;</td>
+      <td>Script phải được escape</td>
+    </tr>
+    <tr>
+      <td><strong>Password Hashing</strong></td>
+      <td>Query database sau khi register</td>
+      <td>Password phải được hash bằng bcrypt, format $2b$10$...</td>
+    </tr>
+    <tr>
+      <td><strong>Authentication Bypass</strong></td>
+      <td>Access protected routes không có token</td>
+      <td>Trả về 401 Unauthorized</td>
+    </tr>
+    <tr>
+      <td><strong>JWT Token Expiry</strong></td>
+      <td>Sử dụng expired token</td>
+      <td>Trả về 401, yêu cầu login lại</td>
+    </tr>
+  </table>
+  <p>
+    <strong>Áp dụng cho modules</strong>: Authentication, Payment, Admin
+  </p>
+</div>
+
+<!-- 4. TEST ENVIRONMENT -->
+<div id="sec4" class="page-break">
+  <h2>4. MÔI TRƯỜNG KIỂM THỬ</h2>
+  
+  <h3>4.1. Hardware Requirements</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Component</th>
+      <th>Specification</th>
+    </tr>
+    <tr>
+      <td><strong>CPU</strong></td>
+      <td>Intel Core i5 or higher (hoặc tương đương AMD)</td>
+    </tr>
+    <tr>
+      <td><strong>RAM</strong></td>
+      <td>8GB minimum (16GB recommended)</td>
+    </tr>
+    <tr>
+      <td><strong>Storage</strong></td>
+      <td>20GB free space (cho database, node_modules, logs)</td>
+    </tr>
+    <tr>
+      <td><strong>Network</strong></td>
+      <td>Stable internet connection (để access MongoDB Atlas và payment gateways)</td>
+    </tr>
+  </table>
+  
+  <h3>4.2. Software Requirements</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Software</th>
+      <th>Version / Details</th>
+    </tr>
+    <tr>
+      <td><strong>Operating System</strong></td>
+      <td>Windows 10/11, macOS, hoặc Linux Ubuntu 20.04+</td>
+    </tr>
+    <tr>
+      <td><strong>Node.js</strong></td>
+      <td>v20.x LTS (Long Term Support)</td>
+    </tr>
+    <tr>
+      <td><strong>npm</strong></td>
+      <td>v10.x hoặc higher (đi kèm với Node.js)</td>
+    </tr>
+    <tr>
+      <td><strong>MongoDB</strong></td>
+      <td>v6.x (MongoDB Atlas cloud hoặc local MongoDB)</td>
+    </tr>
+    <tr>
+      <td><strong>Web Browsers</strong></td>
+      <td>
+        - Google Chrome (latest version)<br/>
+        - Mozilla Firefox (latest version)<br/>
+        - Microsoft Edge (latest version)
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Code Editor</strong></td>
+      <td>Visual Studio Code (VSCode) recommended</td>
+    </tr>
+  </table>
+  
+  <h3>4.3. Test Environment Setup</h3>
+  
+  <h4>4.3.1. Backend Server</h4>
+  <table>
+    <tr>
+      <th style="width: 30%;">Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>URL</td>
+      <td>http://localhost:4000</td>
+    </tr>
+    <tr>
+      <td>Technology</td>
+      <td>Node.js v20 + Express.js</td>
+    </tr>
+    <tr>
+      <td>Start Command</td>
+      <td><code>npm run server</code> (hoặc <code>npm run dev</code>)</td>
+    </tr>
+    <tr>
+      <td>Environment File</td>
+      <td>backend/.env (chứa MongoDB URL, JWT secret, API keys)</td>
+    </tr>
+  </table>
+  
+  <h4>4.3.2. Frontend (User)</h4>
+  <table>
+    <tr>
+      <th style="width: 30%;">Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>URL</td>
+      <td>http://localhost:5173</td>
+    </tr>
+    <tr>
+      <td>Technology</td>
+      <td>React 18 + Vite</td>
+    </tr>
+    <tr>
+      <td>Start Command</td>
+      <td><code>npm run dev</code> (trong thư mục frontend)</td>
+    </tr>
+  </table>
+  
+  <h4>4.3.3. Frontend (Admin)</h4>
+  <table>
+    <tr>
+      <th style="width: 30%;">Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>URL</td>
+      <td>http://localhost:5174</td>
+    </tr>
+    <tr>
+      <td>Technology</td>
+      <td>React 18 + Vite</td>
+    </tr>
+    <tr>
+      <td>Start Command</td>
+      <td><code>npm run dev</code> (trong thư mục admin)</td>
+    </tr>
+  </table>
+  
+  <h4>4.3.4. Database</h4>
+  <table>
+    <tr>
+      <th style="width: 30%;">Parameter</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>Type</td>
+      <td>MongoDB NoSQL Database</td>
+    </tr>
+    <tr>
+      <td>Connection</td>
+      <td>MongoDB Atlas (cloud) hoặc Local MongoDB</td>
+    </tr>
+    <tr>
+      <td>Database Name</td>
+      <td>fastfoodonline</td>
+    </tr>
+    <tr>
+      <td>Configuration</td>
+      <td>MONGO_URL trong backend/.env</td>
+    </tr>
+    <tr>
+      <td>Management Tool</td>
+      <td>MongoDB Compass (GUI)</td>
+    </tr>
+  </table>
+  
+  <h4>4.3.5. Third-party Services</h4>
+  <table>
+    <tr>
+      <th style="width: 30%;">Service</th>
+      <th>Purpose</th>
+      <th>Environment</th>
+    </tr>
+    <tr>
+      <td><strong>VNPAY</strong></td>
+      <td>Vietnam Payment Gateway</td>
+      <td>Sandbox/Test mode</td>
+    </tr>
+    <tr>
+      <td><strong>Stripe</strong></td>
+      <td>International Payment</td>
+      <td>Test mode với test cards</td>
+    </tr>
+    <tr>
+      <td><strong>MoMo</strong></td>
+      <td>E-wallet Payment</td>
+      <td>Sandbox/Test mode</td>
+    </tr>
+    <tr>
+      <td><strong>Cloudinary</strong></td>
+      <td>Image Upload & Storage</td>
+      <td>Free tier account</td>
+    </tr>
+  </table>
+  
+  <h3>4.4. Test Tools</h3>
+  <table>
+    <tr>
+      <th style="width: 25%;">Tool</th>
+      <th style="width: 35%;">Purpose</th>
+      <th>Version</th>
+    </tr>
+    <tr>
+      <td><strong>Postman</strong></td>
+      <td>API Testing (manual)</td>
+      <td>Latest version</td>
+    </tr>
+    <tr>
+      <td><strong>Thunder Client</strong></td>
+      <td>VSCode extension for API testing</td>
+      <td>Latest</td>
+    </tr>
+    <tr>
+      <td><strong>Jest</strong></td>
+      <td>Unit testing framework cho Node.js</td>
+      <td>v29.x</td>
+    </tr>
+    <tr>
+      <td><strong>MongoDB Compass</strong></td>
+      <td>Database GUI và query tool</td>
+      <td>Latest</td>
+    </tr>
+    <tr>
+      <td><strong>Browser DevTools</strong></td>
+      <td>Debug frontend, inspect network</td>
+      <td>Built-in</td>
+    </tr>
+    <tr>
+      <td><strong>Git</strong></td>
+      <td>Version control</td>
+      <td>v2.x</td>
+    </tr>
+  </table>
+  
+  <h3>4.5. Test Data</h3>
+  <p>
+    Test data được chuẩn bị sẵn bao gồm:
+  </p>
+  <ul>
+    <li><strong>Test Users</strong>:
+      <ul>
+        <li>Role user: test_user@example.com / Test@123</li>
+        <li>Role admin: admin@fastfood.com / Admin@123</li>
+        <li>Role staff: staff@fastfood.com / Staff@123</li>
+      </ul>
+    </li>
+    <li><strong>Sample Foods</strong>: 20+ món ăn với đầy đủ categories</li>
+    <li><strong>Sample Orders</strong>: Đơn hàng với các trạng thái khác nhau (CREATED, PREPARING, DELIVERING, DELIVERED)</li>
+    <li><strong>Test Payment Accounts</strong>: Sandbox accounts cho VNPAY, Stripe, MoMo</li>
+  </ul>
+</div>
+
+
+
+
+<!-- 5. TEST SCHEDULE -->
+<div id="sec5" class="page-break">
+  <h2>5. LỊCH TRÌNH KIỂM THỬ</h2>
+  
+  <h3>5.1. Test Phases</h3>
+  <p>
+    Quá trình kiểm thử được chia thành <strong>4 phases chính</strong>:
+  </p>
+  
+  <table>
+    <tr>
+      <th style="width: 8%;">Phase</th>
+      <th style="width: 25%;">Phase Name</th>
+      <th style="width: 37%;">Activities</th>
+      <th style="width: 15%;">Duration</th>
+      <th style="width: 15%;">Status</th>
+    </tr>
+    <tr>
+      <td class="center"><strong>1</strong></td>
+      <td><strong>Test Planning</strong></td>
+      <td>
+        - Xây dựng Test Plan<br/>
+        - Thiết kế Test Cases<br/>
+        - Setup môi trường testing<br/>
+        - Chuẩn bị test data
+      </td>
+      <td class="center">5 days</td>
+      <td class="center">✅ Completed</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>2</strong></td>
+      <td><strong>Test Execution</strong></td>
+      <td>
+        - Execute Black Box test cases<br/>
+        - Execute Grey Box test cases<br/>
+        - Execute White Box test cases<br/>
+        - Log defects
+      </td>
+      <td class="center">10 days</td>
+      <td class="center">⏳ In Progress</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>3</strong></td>
+      <td><strong>Bug Fixing & Regression</strong></td>
+      <td>
+        - Fix defects found<br/>
+        - Regression testing<br/>
+        - Verify fixes<br/>
+        - Update test results
+      </td>
+      <td class="center">7 days</td>
+      <td class="center">🔜 Pending</td>
+    </tr>
+    <tr>
+      <td class="center"><strong>4</strong></td>
+      <td><strong>Test Closure</strong></td>
+      <td>
+        - Code coverage analysis<br/>
+        - Final Test Report<br/>
+        - Lessons learned<br/>
+        - Documentation handover
+      </td>
+      <td class="center">3 days</td>
+      <td class="center">🔜 Pending</td>
+    </tr>
+    <tr>
+      <td colspan="3" class="right"><strong>TOTAL DURATION:</strong></td>
+      <td class="center"><strong>25 days</strong></td>
+      <td></td>
+    </tr>
+  </table>
+  
+  <h3>5.2. Milestones</h3>
+  <table>
+    <tr>
+      <th style="width: 8%;">No</th>
+      <th style="width: 35%;">Milestone</th>
+      <th style="width: 20%;">Target Date</th>
+      <th style="width: 37%;">Deliverables</th>
+    </tr>
+    <tr>
+      <td class="center">1</td>
+      <td>Test Plan Approved</td>
+      <td>18-Dec-2025</td>
+      <td>Test Plan document (this document)</td>
+    </tr>
+    <tr>
+      <td class="center">2</td>
+      <td>Test Cases Designed</td>
+      <td>20-Dec-2025</td>
+      <td>90 test cases (5 modules)</td>
+    </tr>
+    <tr>
+      <td class="center">3</td>
+      <td>Black Box Testing Completed</td>
+      <td>25-Dec-2025</td>
+      <td>50 TCs executed, defects logged</td>
+    </tr>
+    <tr>
+      <td class="center">4</td>
+      <td>Grey Box Testing Completed</td>
+      <td>28-Dec-2025</td>
+      <td>20 TCs executed, database verified</td>
+    </tr>
+    <tr>
+      <td class="center">5</td>
+      <td>White Box Testing Completed</td>
+      <td>02-Jan-2026</td>
+      <td>20 TCs executed, code coverage ≥80%</td>
+    </tr>
+    <tr>
+      <td class="center">6</td>
+      <td>Regression Testing Completed</td>
+      <td>07-Jan-2026</td>
+      <td>All critical defects fixed và verified</td>
+    </tr>
+    <tr>
+      <td class="center">7</td>
+      <td>Final Test Report</td>
+      <td>10-Jan-2026</td>
+      <td>Test Summary, Defect Report, Coverage Report</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 6. TEST RESOURCES -->
+<div id="sec6" class="page-break">
+  <h2>6. NGUỒN LỰC KIỂM THỬ</h2>
+  
+  <h3>6.1. Test Team</h3>
+  <table>
+    <tr>
+      <th style="width: 10%;">No</th>
+      <th style="width: 22%;">Role</th>
+      <th style="width: 20%;">Name</th>
+      <th style="width: 48%;">Responsibilities</th>
+    </tr>
+    <tr>
+      <td class="center">1</td>
+      <td><strong>Test Lead</strong></td>
+      <td>Test Team Lead</td>
+      <td>
+        - Quản lý toàn bộ quá trình kiểm thử<br/>
+        - Review Test Plan và Test Cases<br/>
+        - Phân công công việc cho team<br/>
+        - Báo cáo tiến độ
+      </td>
+    </tr>
+    <tr>
+      <td class="center">2</td>
+      <td><strong>Test Engineer 1</strong></td>
+      <td>Tester 1</td>
+      <td>
+        - Black Box Testing (Authentication, Menu)<br/>
+        - Grey Box Testing (Database verification)<br/>
+        - Defect logging
+      </td>
+    </tr>
+    <tr>
+      <td class="center">3</td>
+      <td><strong>Test Engineer 2</strong></td>
+      <td>Tester 2</td>
+      <td>
+        - Black Box Testing (Cart, Order)<br/>
+        - Integration Testing<br/>
+        - Test data preparation
+      </td>
+    </tr>
+    <tr>
+      <td class="center">4</td>
+      <td><strong>Test Engineer 3</strong></td>
+      <td>Tester 3</td>
+      <td>
+        - White Box Testing (Code coverage)<br/>
+        - Security Testing<br/>
+        - Automated test scripts
+      </td>
+    </tr>
+    <tr>
+      <td class="center">5</td>
+      <td><strong>QA Manager</strong></td>
+      <td>QA Manager</td>
+      <td>
+        - Review và approve Test Plan<br/>
+        - Monitor overall quality<br/>
+        - Escalation point
+      </td>
+    </tr>
+  </table>
+  
+  <h3>6.2. Developer Support</h3>
+  <p>
+    Developers sẽ hỗ trợ trong các hoạt động sau:
+  </p>
+  <ul>
+    <li>Giải thích code logic và architecture</li>
+    <li>Fix defects được phát hiện</li>
+    <li>Cung cấp unit test results</li>
+    <li>Hỗ trợ setup môi trường test</li>
+  </ul>
+  
+  <h3>6.3. Tools và Licenses</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Tool</th>
+      <th style="width: 25%;">License Type</th>
+      <th>Cost</th>
+    </tr>
+    <tr>
+      <td>Postman</td>
+      <td>Free tier</td>
+      <td class="center">Free</td>
+    </tr>
+    <tr>
+      <td>MongoDB Compass</td>
+      <td>Free</td>
+      <td class="center">Free</td>
+    </tr>
+    <tr>
+      <td>Jest (Testing framework)</td>
+      <td>Open source</td>
+      <td class="center">Free</td>
+    </tr>
+    <tr>
+      <td>VSCode</td>
+      <td>Free</td>
+      <td class="center">Free</td>
+    </tr>
+    <tr>
+      <td>MongoDB Atlas</td>
+      <td>Free tier (512MB)</td>
+      <td class="center">Free</td>
+    </tr>
+    <tr>
+      <td>Cloudinary</td>
+      <td>Free tier</td>
+      <td class="center">Free</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 7. RISKS AND MITIGATION -->
+<div id="sec7" class="page-break">
+  <h2>7. RỦI RO VÀ BIỆN PHÁP GIẢM THIỂU</h2>
+  
+  <table>
+    <tr>
+      <th style="width: 8%;">No</th>
+      <th style="width: 25%;">Risk</th>
+      <th style="width: 12%;">Impact</th>
+      <th style="width: 12%;">Likelihood</th>
+      <th style="width: 43%;">Mitigation Strategy</th>
+    </tr>
+    <tr>
+      <td class="center">1</td>
+      <td><strong>Third-party services không khả dụng</strong><br/>(VNPAY, Stripe, MoMo sandbox)</td>
+      <td class="center">High</td>
+      <td class="center">Medium</td>
+      <td>
+        - Sử dụng sandbox/test mode<br/>
+        - Mock payment responses nếu cần<br/>
+        - Test offline với dummy data
+      </td>
+    </tr>
+    <tr>
+      <td class="center">2</td>
+      <td><strong>Database connection errors</strong><br/>(MongoDB Atlas timeout)</td>
+      <td class="center">High</td>
+      <td class="center">Low</td>
+      <td>
+        - Setup local MongoDB backup<br/>
+        - Có connection retry logic<br/>
+        - Monitor database status
+      </td>
+    </tr>
+    <tr>
+      <td class="center">3</td>
+      <td><strong>Code changes trong quá trình testing</strong></td>
+      <td class="center">Medium</td>
+      <td class="center">High</td>
+      <td>
+        - Version control với Git<br/>
+        - Code freeze period trước khi test<br/>
+        - Regression testing sau mỗi fix
+      </td>
+    </tr>
+    <tr>
+      <td class="center">4</td>
+      <td><strong>Không đạt code coverage target</strong><br/>(&lt;80%)</td>
+      <td class="center">Medium</td>
+      <td class="center">Medium</td>
+      <td>
+        - Thêm test cases nếu cần<br/>
+        - Focus vào critical paths<br/>
+        - Developers viết unit tests
+      </td>
+    </tr>
+    <tr>
+      <td class="center">5</td>
+      <td><strong>Test data không đầy đủ</strong></td>
+      <td class="center">Low</td>
+      <td class="center">Low</td>
+      <td>
+        - Seed scripts để tạo test data<br/>
+        - Backup/restore database<br/>
+        - Documented test data setup
+      </td>
+    </tr>
+    <tr>
+      <td class="center">6</td>
+      <td><strong>Test environment không ổn định</strong></td>
+      <td class="center">High</td>
+      <td class="center">Low</td>
+      <td>
+        - Containerization với Docker<br/>
+        - Có environment setup guide<br/>
+        - Dedicated test environment
+      </td>
+    </tr>
+    <tr>
+      <td class="center">7</td>
+      <td><strong>Thiếu resources/nhân sự</strong></td>
+      <td class="center">High</td>
+      <td class="center">Low</td>
+      <td>
+        - Phân công rõ ràng từ đầu<br/>
+        - Cross-training team members<br/>
+        - Prioritize critical test cases
+      </td>
+    </tr>
+    <tr>
+      <td class="center">8</td>
+      <td><strong>Timeline bị trễ</strong></td>
+      <td class="center">Medium</td>
+      <td class="center">Medium</td>
+      <td>
+        - Daily standup meetings<br/>
+        - Track progress với metrics<br/>
+        - Buffer time trong schedule
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- 8. TEST CASES SUMMARY -->
+<div id="sec8" class="page-break">
+  <h2>8. TÓM TẮT TEST CASES</h2>
+  
+  <h3>8.1. Test Cases by Module</h3>
+  <table>
+    <tr>
+      <th style="width: 10%;">Module</th>
+      <th style="width: 15%;">Black Box</th>
+      <th style="width: 15%;">Grey Box</th>
+      <th style="width: 15%;">White Box</th>
+      <th style="width: 15%;">Total</th>
+      <th style="width: 15%;">Pass</th>
+      <th style="width: 15%;">Status</th>
+    </tr>
+    <tr>
+      <td><strong>Authentication</strong></td>
+      <td class="center">9</td>
+      <td class="center">4</td>
+      <td class="center">5</td>
+      <td class="center"><strong>18</strong></td>
+      <td class="center">0</td>
+      <td class="center">Untested</td>
+    </tr>
+    <tr>
+      <td><strong>Menu</strong></td>
+      <td class="center">8</td>
+      <td class="center">2</td>
+      <td class="center">2</td>
+      <td class="center"><strong>12</strong></td>
+      <td class="center">0</td>
+      <td class="center">Untested</td>
+    </tr>
+    <tr>
+      <td><strong>Cart</strong></td>
+      <td class="center">7</td>
+      <td class="center">4</td>
+      <td class="center">4</td>
+      <td class="center"><strong>15</strong></td>
+      <td class="center">0</td>
+      <td class="center">Untested</td>
+    </tr>
+    <tr>
+      <td><strong>Order & Payment</strong></td>
+      <td class="center">15</td>
+      <td class="center">5</td>
+      <td class="center">5</td>
+      <td class="center"><strong>25</strong></td>
+      <td class="center">0</td>
+      <td class="center">Untested</td>
+    </tr>
+    <tr>
+      <td><strong>Admin</strong></td>
+      <td class="center">11</td>
+      <td class="center">5</td>
+      <td class="center">4</td>
+      <td class="center"><strong>20</strong></td>
+      <td class="center">0</td>
+      <td class="center">Untested</td>
+    </tr>
+    <tr>
+      <td class="right"><strong>TOTAL:</strong></td>
+      <td class="center"><strong>50</strong></td>
+      <td class="center"><strong>20</strong></td>
+      <td class="center"><strong>20</strong></td>
+      <td class="center"><strong>90</strong></td>
+      <td class="center"><strong>0</strong></td>
+      <td></td>
+    </tr>
+  </table>
+  
+  <h3>8.2. Test Execution Status</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Status</th>
+      <th style="width: 20%;">Count</th>
+      <th style="width: 20%;">Percentage</th>
+      <th>Visualization</th>
+    </tr>
+    <tr>
+      <td>✅ Pass</td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>❌ Fail</td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>⏳ Untested</td>
+      <td class="center">90</td>
+      <td class="center">100%</td>
+      <td style="background-color: #FFF2CC;">████████████████████ 100%</td>
+    </tr>
+    <tr>
+      <td>🚫 N/A (Blocked)</td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td class="right"><strong>TOTAL:</strong></td>
+      <td class="center"><strong>90</strong></td>
+      <td class="center"><strong>100%</strong></td>
+      <td></td>
+    </tr>
+  </table>
+  
+  <p>
+    <strong>Ghi chú</strong>: Test execution đang ở giai đoạn bắt đầu (Phase 2). Dữ liệu trên sẽ được cập nhật sau khi hoàn thành testing.
+  </p>
+  
+  <h3>8.3. Code Coverage Targets</h3>
+  <table>
+    <tr>
+      <th style="width: 35%;">Coverage Metric</th>
+      <th style="width: 20%;">Target</th>
+      <th style="width: 20%;">Current</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td><strong>Statement Coverage</strong></td>
+      <td class="center">≥ 80%</td>
+      <td class="center">TBD</td>
+      <td class="center">Pending measurement</td>
+    </tr>
+    <tr>
+      <td><strong>Branch Coverage</strong></td>
+      <td class="center">≥ 75%</td>
+      <td class="center">TBD</td>
+      <td class="center">Pending measurement</td>
+    </tr>
+    <tr>
+      <td><strong>Function Coverage</strong></td>
+      <td class="center">≥ 85%</td>
+      <td class="center">TBD</td>
+      <td class="center">Pending measurement</td>
+    </tr>
+    <tr>
+      <td><strong>Line Coverage</strong></td>
+      <td class="center">≥ 80%</td>
+      <td class="center">TBD</td>
+      <td class="center">Pending measurement</td>
+    </tr>
+  </table>
+  <p>
+    <strong>Tools</strong>: Jest với coverage reporter, Istanbul/nyc, Codecov
+  </p>
+</div>
+
+<!-- 9. DEFECTS FOUND -->
+<div id="sec9" class="page-break">
+  <h2>9. DEFECTS FOUND (Sample)</h2>
+  
+  <p>
+    <strong>Lưu ý</strong>: Đây là <strong>sample defects</strong> cho mục đích demonstration. Actual defects sẽ được update sau khi thực thi test cases.
+  </p>
+  
+  <h3>9.1. Defect Summary</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Severity</th>
+      <th style="width: 20%;">Count</th>
+      <th style="width: 20%;">Percentage</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td>🔴 <strong>Critical</strong></td>
+      <td class="center">2</td>
+      <td class="center">33.3%</td>
+      <td class="center">Open</td>
+    </tr>
+    <tr>
+      <td>🟠 <strong>High</strong></td>
+      <td class="center">3</td>
+      <td class="center">50.0%</td>
+      <td class="center">Open</td>
+    </tr>
+    <tr>
+      <td>🟡 <strong>Medium</strong></td>
+      <td class="center">1</td>
+      <td class="center">16.7%</td>
+      <td class="center">Open</td>
+    </tr>
+    <tr>
+      <td>🟢 <strong>Low</strong></td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+      <td class="center">-</td>
+    </tr>
+    <tr>
+      <td class="right"><strong>TOTAL:</strong></td>
+      <td class="center"><strong>6</strong></td>
+      <td class="center"><strong>100%</strong></td>
+      <td></td>
+    </tr>
+  </table>
+  
+  <h3>9.2. Top Defects</h3>
+  <table>
+    <tr>
+      <th style="width: 12%;">Defect ID</th>
+      <th style="width: 38%;">Description</th>
+      <th style="width: 15%;">Module</th>
+      <th style="width: 15%;">Severity</th>
+      <th style="width: 20%;">Test Case ID</th>
+    </tr>
+    <tr>
+      <td class="center">DEF-001</td>
+      <td>Password không được hash khi lưu vào database (lưu plain text)</td>
+      <td>Authentication</td>
+      <td class="center">Critical</td>
+      <td>TC-GB-AUTH-002</td>
+    </tr>
+    <tr>
+      <td class="center">DEF-002</td>
+      <td>Tổng tiền không được cập nhật khi xóa món khỏi giỏ hàng</td>
+      <td>Cart</td>
+      <td class="center">High</td>
+      <td>TC-BB-CART-005</td>
+    </tr>
+    <tr>
+      <td class="center">DEF-003</td>
+      <td>Đơn hàng vẫn được tạo khi địa chỉ giao hàng để trống (thiếu validation)</td>
+      <td>Order</td>
+      <td class="center">High</td>
+      <td>TC-BB-ORDER-005</td>
+    </tr>
+    <tr>
+      <td class="center">DEF-004</td>
+      <td>Search không hoạt động với từ khóa tiếng Việt có dấu</td>
+      <td>Menu</td>
+      <td class="center">Medium</td>
+      <td>TC-BB-MENU-003</td>
+    </tr>
+    <tr>
+      <td class="center">DEF-005</td>
+      <td>VNPAY signature verification không hoạt động đúng</td>
+      <td>Payment</td>
+      <td class="center">Critical</td>
+      <td>TC-GB-PAY-001</td>
+    </tr>
+    <tr>
+      <td class="center">DEF-006</td>
+      <td>Không có confirmation dialog khi xóa món ăn (Admin)</td>
+      <td>Admin</td>
+      <td class="center">High</td>
+      <td>TC-BB-ADMIN-003</td>
+    </tr>
+  </table>
+  
+  <p>
+    <strong>Chi tiết defects</strong>: Xem file <code>Defect_List_FastFoodOnline.csv</code>
+  </p>
+  
+  <h3>9.3. Defect Resolution Status</h3>
+  <table>
+    <tr>
+      <th style="width: 40%;">Status</th>
+      <th style="width: 30%;">Count</th>
+      <th>Percentage</th>
+    </tr>
+    <tr>
+      <td>Fixed</td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+    </tr>
+    <tr>
+      <td>Open (In Progress)</td>
+      <td class="center">6</td>
+      <td class="center">100%</td>
+    </tr>
+    <tr>
+      <td>Deferred</td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+    </tr>
+    <tr>
+      <td>Rejected</td>
+      <td class="center">0</td>
+      <td class="center">0%</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 10. APPROVAL -->
+<div id="sec10" class="page-break">
+  <h2>10. PHÊ DUYỆT</h2>
+  
+  <p>
+    Tài liệu Test Plan này cần được phê duyệt bởi các stakeholders sau trước khi bắt đầu test execution:
+  </p>
+  
+  <table style="margin-top: 30pt;">
+    <tr>
+      <th style="width: 25%;">Role</th>
+      <th style="width: 25%;">Name</th>
+      <th style="width: 25%;">Signature</th>
+      <th style="width: 25%;">Date</th>
+    </tr>
+    <tr>
+      <td><strong>Prepared By</strong><br/>(Test Team)</td>
+      <td>Nguyễn Trần Quốc Tiến<br/>Nguyễn Phạm Hoàng Quân</td>
+      <td style="height: 50pt;"></td>
+      <td>18-Dec-2024</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewed By</strong><br/>(Giám sát)</td>
+      <td>Đỗ Như Tài</td>
+      <td style="height: 50pt;"></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><strong>Approved By</strong><br/>(Project Manager)</td>
+      <td>Project Manager</td>
+      <td style="height: 50pt;"></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td><strong>Acknowledged By</strong><br/>(Development Lead)</td>
+      <td>Dev Lead</td>
+      <td style="height: 50pt;"></td>
+      <td></td>
+    </tr>
+  </table>
+  
+  <div style="margin-top: 40pt; padding: 15pt; border: 2px solid #000;">
+    <h3 style="margin-top: 0;">NOTES / COMMENTS:</h3>
+    <p style="min-height: 100pt; margin: 10pt 0;">
+      <!-- Space for handwritten notes/comments -->
+    </p>
+  </div>
+  
+  <div style="margin-top: 40pt; border-top: 1px solid #000; padding-top: 15pt;">
+    <p class="center" style="font-size: 11pt; color: #666;">
+      <strong>--- END OF TEST PLAN DOCUMENT ---</strong>
+    </p>
+    <p class="center" style="font-size: 11pt; color: #666;">
+      Document Code: FFO_TestPlan_v1.0<br/>
+      Version: 1.0<br/>
+      Date: 18-Dec-2024<br/>
+      Total Pages: Approximately 15-20 pages
+    </p>
+  </div>
+</div>
+
+<!-- APPENDIX (Optional) -->
+<div class="page-break">
+  <h2>PHỤ LỤC</h2>
+  
+  <h3>A. Tài liệu tham khảo chi tiết</h3>
+  <ol>
+    <li><strong>TEST_CASES.md</strong> - 120+ test cases chi tiết với Black Box, Grey Box, White Box</li>
+    <li><strong>Defect_List_FastFoodOnline.csv</strong> - Danh sách defects với description, steps, priority, severity</li>
+    <li><strong>Test_Summary.md</strong> - Executive summary về test execution và findings</li>
+    <li><strong>Database_Design.md</strong> - MongoDB schemas, collections, indexes, relationships</li>
+    <li><strong>Architecture_Design.md</strong> - MERN stack architecture, API endpoints, integrations</li>
+    <li><strong>UseCase_Description.md</strong> - Use cases, actors, flows, pre/post conditions</li>
+    <li><strong>Screen_Design.md</strong> - UI mockups, components, user flows</li>
+  </ol>
+  
+  <h3>B. Test Case Files</h3>
+  <ol>
+    <li>01_Test_Case_FastFoodOnline_Sheet5_Cover.csv - Cover page</li>
+    <li>01_Test_Case_FastFoodOnline_Sheet4_List.csv - Function list</li>
+    <li>01_Test_Case_FastFoodOnline_Sheet3_Authentication.csv - 18 TCs cho Authentication</li>
+    <li>01_Test_Case_FastFoodOnline_Sheet2_MenuCart.csv - 27 TCs cho Menu & Cart</li>
+    <li>01_Test_Case_FastFoodOnline_Sheet1_Summary.csv - Summary report</li>
+    <li>FastFoodOnline_TestCase_Complete.csv - File tổng hợp</li>
+  </ol>
+  
+  <h3>C. Review Checklists</h3>
+  <ol>
+    <li>Test_Plan_Review_Checklist.csv - Checklist để review Test Plan này</li>
+    <li>Test_Case_Review_Checklist.csv - Checklist để review Test Cases</li>
+  </ol>
+  
+  <h3>D. Contact Information</h3>
+  <table>
+    <tr>
+      <th style="width: 30%;">Role</th>
+      <th style="width: 35%;">Contact Person</th>
+      <th>Email</th>
+    </tr>
+    <tr>
+      <td>Test Lead</td>
+      <td>Test Team Lead</td>
+      <td>testlead@fastfoodonline.com</td>
+    </tr>
+    <tr>
+      <td>QA Manager</td>
+      <td>QA Manager</td>
+      <td>qamgr@fastfoodonline.com</td>
+    </tr>
+    <tr>
+      <td>Project Manager</td>
+      <td>PM</td>
+      <td>pm@fastfoodonline.com</td>
+    </tr>
+    <tr>
+      <td>Development Lead</td>
+      <td>Dev Lead</td>
+      <td>devlead@fastfoodonline.com</td>
+    </tr>
+  </table>
+  
+  <h3>E. Glossary</h3>
+  <table>
+    <tr>
+      <th style="width: 25%;">Term</th>
+      <th>Definition</th>
+    </tr>
+    <tr>
+      <td><strong>Black Box Testing</strong></td>
+      <td>Kiểm thử chức năng mà không quan tâm đến cấu trúc code bên trong</td>
+    </tr>
+    <tr>
+      <td><strong>Grey Box Testing</strong></td>
+      <td>Kiểm thử với kiến thức một phần về database, API và internal logic</td>
+    </tr>
+    <tr>
+      <td><strong>White Box Testing</strong></td>
+      <td>Kiểm thử dựa trên phân tích code, control flow và data flow</td>
+    </tr>
+    <tr>
+      <td><strong>Regression Testing</strong></td>
+      <td>Kiểm thử lại các functionality đã passed để đảm bảo bug fixes không gây lỗi mới</td>
+    </tr>
+    <tr>
+      <td><strong>Code Coverage</strong></td>
+      <td>Tỷ lệ phần trăm code được execute bởi test cases</td>
+    </tr>
+    <tr>
+      <td><strong>Test Case</strong></td>
+      <td>Một bộ điều kiện hoặc biến để xác định xem hệ thống có hoạt động đúng không</td>
+    </tr>
+    <tr>
+      <td><strong>Defect/Bug</strong></td>
+      <td>Lỗi hoặc khiếm khuyết trong hệ thống khiến nó không hoạt động như mong đợi</td>
+    </tr>
+  </table>
+</div>
+
+
+</body>
+</html>
