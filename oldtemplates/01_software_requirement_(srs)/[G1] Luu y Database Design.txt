@@ -1,0 +1,6 @@
+- Database Design:
+  + Conceptual Model
+  + Lược đồ dữ liệu mức 1 (ERD)
+  + Mức 2 (CSDL Luận lý)
+  + Từ dien du lieu
+  + Cac luu y nghiep vu ve du lieu 

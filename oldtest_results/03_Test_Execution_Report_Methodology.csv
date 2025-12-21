@@ -1,0 +1,303 @@
+TEST EXECUTION REPORT - PHƯƠNG PHÁP LUẬN,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Project Name,FastFoodOnline,,,,,,,,,,,,,,,,,,,,,,,
+Project Code,FFO,,,,,,,,,,,,,,,,,,,,,,,
+Report Type,Test Execution Report với Phương pháp luận,,,,,,,,,,,,,,,,,,,,,,,
+Version,1.0,,,,,,,,,,,,,,,,,,,,,,,
+Execution Date,December 17, 2025,,,,,,,,,,,,,,,,,,,,,,,
+Test Environment,Development - Node.js 20, MongoDB Atlas, React Apps,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+PHƯƠNG PHÁP LUẬN BÁO CÁO THỰC THI,,,,,,,,,,,,,,,,,,,,,,,
+"Mục tiêu: Báo cáo kết quả thực thi test cases một cách có hệ thống và định lượng",,,,,,,,,,,,,,,,,,,,,,,
+"Phương pháp: 1. Track từng test case với status rõ ràng 2. Đo lường metrics 3. Phân tích defects 4. Đưa ra recommendations",,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+TỔNG QUAN THỰC THI,,,,,,,,,,,,,,,,,,,,,,,
+Total Test Cases,25,,,,,,,,,,,,,,,,,,,,,,,
+Executed,0,,,,,,,,,,,,,,,,,,,,,,,
+Passed,0,,,,,,,,,,,,,,,,,,,,,,,
+Failed,0,,,,,,,,,,,,,,,,,,,,,,,
+Blocked,0,,,,,,,,,,,,,,,,,,,,,,,
+Not Executed,25,,,,,,,,,,,,,,,,,,,,,,,
+Pass Rate,0%,,,,,,,,,,,,,,,,,,,,,,,,
+Execution Rate,0%,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+CHI TIẾT THỰC THI (Mỗi test case test 4-5 chức năng),,,,,,,,,,,,,,,,,,,,,,,,
+Test Case ID,Test Case Name,Module,Chức năng được test (4-5 chức năng),Priority,Status,Executed Date,Executed By,Actual Result,Defect ID,Remarks,Phương pháp luận,,,,,,,
+TC-AUTH-FLOW-001,Quy trình đăng ký và đăng nhập hoàn chỉnh,Authentication,"1. Validate email
+2. Hash password
+3. Generate token
+4. Save token
+5. Redirect",High,Not Executed,,,,,,,"Black Box + Grey Box
+Equivalence Partitioning
+Boundary Value Analysis",,,,,,
+TC-AUTH-SEC-001,Kiểm tra bảo mật authentication,Authentication,"1. Password strength
+2. Prevent injection
+3. Hash password
+4. Token expiry
+5. Session management",High,Not Executed,,,,,,,"White Box + Grey Box
+Security Testing
+Code Coverage",,,,,,
+TC-MENU-BROWSE-001,Quy trình duyệt và tìm kiếm món ăn,Menu,"1. Display list
+2. Filter category
+3. Search keyword
+4. View details
+5. Display price/image",Medium,Not Executed,,,,,,,"Black Box
+Equivalence Partitioning
+Boundary Value",,,,,,
+TC-CART-MANAGE-001,Quản lý giỏ hàng hoàn chỉnh,Cart,"1. Add item
+2. Update quantity
+3. Remove item
+4. Calculate total
+5. Persist to DB",High,Not Executed,,,,,,,"Black Box + Grey Box
+State Transition
+Data Flow",,,,,,
+TC-CART-CALC-001,Tính toán giỏ hàng với các trường hợp đặc biệt,Cart,"1. Calculate total
+2. Apply delivery fee
+3. Handle negative (reject)
+4. Handle zero (reject)
+5. Round amount",High,Not Executed,,,,,,,"Black Box + White Box
+Boundary Value Analysis
+Error Guessing",,,,,,
+TC-ORDER-FLOW-001,Quy trình đặt hàng hoàn chỉnh từ A-Z,Order,"1. Browse & filter
+2. Add to cart
+3. Calculate total
+4. Place order
+5. Payment & confirm",High,Not Executed,,,,,,,"Black Box + Integration
+End-to-End Testing
+State Transition",,,,,,
+TC-ORDER-STATUS-001,Quản lý trạng thái đơn hàng,Order,"1. Create (CREATED)
+2. Accept (PREPARING)
+3. Ready (READY_TO_SHIP)
+4. Deliver (DELIVERING)
+5. Complete (DELIVERED)",High,Not Executed,,,,,,,"Black Box + Grey Box
+State Transition Testing
+Timeline Tracking",,,,,,
+TC-ORDER-CANCEL-001,Quy trình hủy đơn hàng,Order,"1. Check cancel condition
+2. Process cancellation
+3. Handle refund
+4. Update inventory
+5. Send notification",Medium,Not Executed,,,,,,,"Black Box + Grey Box
+State Transition
+Business Rule Testing",,,,,,
+TC-PAY-VNPAY-001,Quy trình thanh toán VNPAY hoàn chỉnh,Payment,"1. Create payment request
+2. Redirect to gateway
+3. Handle callback
+4. Verify signature
+5. Update order status",High,Not Executed,,,,,,,"Black Box + Grey Box + White Box
+Integration Testing
+Security Testing",,,,,,
+TC-PAY-MULTI-001,Test thanh toán với nhiều phương thức,Payment,"1. VNPAY
+2. Stripe
+3. MoMo
+4. COD
+5. Error handling",High,Not Executed,,,,,,,"Black Box + Integration
+Equivalence Partitioning
+Error Guessing",,,,,,
+TC-PROFILE-MANAGE-001,Quản lý profile người dùng,Profile,"1. View profile
+2. Update info
+3. Change password
+4. Upload avatar
+5. Validate input",Medium,Not Executed,,,,,,,"Black Box + Grey Box
+Equivalence Partitioning
+File Upload Testing",,,,,,
+TC-ADMIN-FOOD-001,Quản lý món ăn trong Admin Panel,Admin,"1. Add food
+2. Edit food
+3. Upload image
+4. Toggle status
+5. Delete/Archive",High,Not Executed,,,,,,,"Black Box + Grey Box
+CRUD Testing
+File Upload",,,,,,
+TC-ADMIN-ORDER-001,Quản lý đơn hàng trong Admin Panel,Admin,"1. View all orders
+2. Filter orders
+3. Update status
+4. View details
+5. Assign drone",High,Not Executed,,,,,,,"Black Box + Grey Box
+Filter Testing
+State Transition",,,,,,
+TC-ADMIN-INVENTORY-001,Quản lý tồn kho,Admin,"1. View inventory
+2. Import stock
+3. Export stock
+4. Prevent negative
+5. Auto update on order",High,Not Executed,,,,,,,"Black Box + Grey Box + White Box
+Boundary Value
+Business Rule Testing",,,,,,
+TC-DB-INTEGRITY-001,Kiểm tra tính toàn vẹn dữ liệu,Database,"1. Unique constraint
+2. Foreign key
+3. Cascade delete
+4. Data validation
+5. Index performance",High,Not Executed,,,,,,,"Grey Box
+Database Testing
+Performance Testing",,,,,,
+TC-DB-PERFORMANCE-001,Kiểm tra hiệu năng database,Database,"1. Query optimization
+2. Aggregation
+3. GeoJSON queries
+4. Connection pooling
+5. Execution time",Medium,Not Executed,,,,,,,"Grey Box + White Box
+Performance Testing
+Index Analysis",,,,,,
+TC-API-ENDPOINTS-001,Test tất cả API endpoints,API,"1. GET endpoints
+2. POST endpoints
+3. PUT/PATCH endpoints
+4. DELETE endpoints
+5. Error handling",High,Not Executed,,,,,,,"Grey Box
+API Testing
+Error Handling",,,,,,
+TC-API-AUTH-001,Test authentication và authorization,API,"1. JWT validation
+2. Role-based access
+3. Token expiry
+4. Refresh token
+5. Unauthorized prevention",High,Not Executed,,,,,,,"Grey Box + White Box
+Security Testing
+Authorization Testing",,,,,,
+TC-SEC-INJECTION-001,Test bảo mật chống injection attacks,Security,"1. SQL/NoSQL injection
+2. XSS prevention
+3. CSRF protection
+4. Input sanitization
+5. Output encoding",High,Not Executed,,,,,,,"White Box + Security
+Penetration Testing
+Input Validation",,,,,,
+TC-SEC-PASSWORD-001,Test bảo mật mật khẩu,Security,"1. Password hashing
+2. Strength validation
+3. No plain text
+4. Reset security
+5. Session security",High,Not Executed,,,,,,,"White Box + Grey Box
+Security Testing
+Code Review",,,,,,
+TC-PERF-LOAD-001,Load testing hệ thống,Performance,"1. Response time
+2. Throughput
+3. Error rate
+4. Resource usage
+5. Scalability",Medium,Not Executed,,,,,,,"Performance
+Load Testing
+Stress Testing",,,,,,
+TC-INT-E2E-001,End-to-end testing quy trình hoàn chỉnh,Integration,"1. Registration
+2. Browse & search
+3. Cart & checkout
+4. Payment
+5. Tracking & delivery",High,Not Executed,,,,,,,"Integration + E2E
+End-to-End Testing
+User Acceptance",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+PHÂN TÍCH KẾT QUẢ THEO MODULE,,,,,,,,,,,,,,,,,,,,,,,
+Module,Total,Passed,Failed,Blocked,Not Executed,Pass Rate,Phương pháp luận,,,,,,,
+Authentication,2,0,0,0,2,0%,"Black Box + Grey Box + White Box
+Security Testing",,,,,,
+Menu,1,0,0,0,1,0%,"Black Box
+Equivalence Partitioning",,,,,,
+Cart,2,0,0,0,2,0%,"Black Box + Grey Box + White Box
+State Transition",,,,,,
+Order,3,0,0,0,3,0%,"Black Box + Grey Box + Integration
+End-to-End Testing",,,,,,
+Payment,2,0,0,0,2,0%,"Black Box + Grey Box + White Box
+Integration Testing",,,,,,
+Profile,1,0,0,0,1,0%,"Black Box + Grey Box
+Input Validation",,,,,,
+Admin,3,0,0,0,3,0%,"Black Box + Grey Box + White Box
+CRUD Testing",,,,,,
+Database,2,0,0,0,2,0%,"Grey Box + White Box
+Performance Testing",,,,,,
+API,2,0,0,0,2,0%,"Grey Box + White Box
+Security Testing",,,,,,
+Security,2,0,0,0,2,0%,"White Box + Security
+Penetration Testing",,,,,,
+Performance,1,0,0,0,1,0%,"Performance
+Load Testing",,,,,,
+Integration,1,0,0,0,1,0%,"Integration + E2E
+End-to-End Testing",,,,,,
+Total,25,0,0,0,25,0%,Comprehensive Testing với Multiple Techniques,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+PHÂN TÍCH KẾT QUẢ THEO TEST TYPE,,,,,,,,,,,,,,,,,,,,,,,
+Test Type,Total,Passed,Failed,Blocked,Not Executed,Pass Rate,Phương pháp luận,,,,,,,
+Black Box,10,0,0,0,10,0%,"Functional Testing
+Equivalence Partitioning
+Boundary Value Analysis",,,,,,
+Grey Box,8,0,0,0,8,0%,"Integration Testing
+Database Testing
+API Testing",,,,,,
+White Box,4,0,0,0,4,0%,"Code Coverage
+Security Testing
+Performance Testing",,,,,,
+Integration,2,0,0,0,2,0%,"End-to-End Testing
+System Integration",,,,,,
+Security,2,0,0,0,2,0%,"Security Testing
+Penetration Testing",,,,,,
+Performance,1,0,0,0,1,0%,"Load Testing
+Stress Testing",,,,,,
+Total,27,0,0,0,27,0%,Multiple Testing Techniques,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT SUMMARY,,,,,,,,,,,,,,,,,,,,,,,
+Total Defects,0,,,,,,,,,,,,,,,,,,,,,,,
+Critical,0,,,,,,,,,,,,,,,,,,,,,,,
+High,0,,,,,,,,,,,,,,,,,,,,,,,
+Medium,0,,,,,,,,,,,,,,,,,,,,,,,
+Low,0,,,,,,,,,,,,,,,,,,,,,,,
+Open,0,,,,,,,,,,,,,,,,,,,,,,,
+Fixed,0,,,,,,,,,,,,,,,,,,,,,,,
+Closed,0,,,,,,,,,,,,,,,,,,,,,,,
+Deferred,0,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT ANALYSIS (Phương pháp luận),,,,,,,,,,,,,,,,,,,,,,,,
+Severity,Count,Percentage,Root Cause Analysis,Phương pháp luận phát hiện,Recommendation,,,,,,,
+Critical,0,0%,N/A,N/A,"Priority fix
+Immediate action required",,,,,,
+High,0,0%,N/A,N/A,"Fix trong sprint hiện tại",,,,,,
+Medium,0,0%,N/A,N/A,"Fix trong sprint tiếp theo",,,,,,
+Low,0,0%,N/A,N/A,"Fix khi có thời gian",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+TEST METRICS (Phương pháp luận đo lường),,,,,,,,,,,,,,,,,,,,,,,,
+Metric,Target,Actual,Status,Phương pháp luận đo lường,,,,,,,
+Test Execution Rate,≥ 95%,0%,Not Met,"Số test cases executed / Tổng số test cases",,,,,,
+Pass Rate,≥ 90%,0%,Not Met,"Số test cases passed / Số test cases executed",,,,,,
+Code Coverage (Statement),≥ 80%,0%,Not Measured,"Istanbul/Jest Coverage Report",,,,,,
+Code Coverage (Branch),≥ 75%,0%,Not Measured,"Istanbul/Jest Coverage Report",,,,,,
+Defect Density,< 5 defects/100 test cases,0,Good,"Số defects / Số test cases × 100",,,,,,
+Defect Removal Efficiency,≥ 90%,0%,Not Measured,"Defects found in testing / Total defects × 100",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+RISK ASSESSMENT,,,,,,,,,,,,,,,,,,,,,,,
+Risk,Impact,Probability,Mitigation,Phương pháp luận quản lý rủi ro,,,,,,,
+Payment gateway unavailable,High,Low,"Use sandbox
+Mock payment service","Risk-based Testing
+Contingency Planning",,,,,,
+Database performance issues,High,Medium,"Optimize queries
+Use indexes
+Monitor performance","Performance Testing
+Proactive Monitoring",,,,,,
+Test environment instability,Medium,Medium,"Maintain stable environment
+Have backup
+Automation","Environment Management
+Automation",,,,,,
+Incomplete requirements,High,Low,"Clarify requirements
+Document assumptions
+Review with stakeholders","Requirements Analysis
+Stakeholder Communication",,,,,,
+Time constraints,Medium,Medium,"Prioritize test cases
+Focus on critical paths
+Automation for regression","Test Prioritization
+Risk-based Testing",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+RECOMMENDATIONS (Phương pháp luận đưa ra khuyến nghị),,,,,,,,,,,,,,,,,,,,,,,,
+Recommendation,Priority,Phương pháp luận,Expected Impact,,,,,,,
+Execute all test cases và update results,High,"Test Execution
+Result Tracking","Complete test coverage
+Accurate metrics",,,,,,
+Focus on critical và high priority test cases first,High,"Test Prioritization
+Risk-based Testing","Early detection of critical issues
+Better resource utilization",,,,,,
+Implement automated testing for regression,Medium,"Test Automation
+Continuous Integration","Faster regression testing
+Consistent test execution",,,,,,
+Improve code coverage to meet target metrics,Medium,"Code Coverage
+White Box Testing","Better code quality
+Reduced bugs in production",,,,,,
+Conduct performance testing with realistic load,Medium,"Performance Testing
+Load Testing","Identify performance bottlenecks
+Ensure scalability",,,,,,
+Implement continuous integration for automated testing,Low,"CI/CD
+Test Automation","Faster feedback
+Early bug detection",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+CONCLUSION (Phương pháp luận kết luận),,,,,,,,,,,,,,,,,,,,,,,,
+"Tổng kết: Báo cáo này trình bày kết quả thực thi test cases với phương pháp luận rõ ràng. Mỗi test case được thiết kế để test 4-5 chức năng liên quan, đảm bảo coverage cao và hiệu quả phát hiện lỗi.",,,,,,,,,,,,,,,,,,,,,,,
+"Phương pháp luận: Áp dụng multiple testing techniques (Black Box, Grey Box, White Box) kết hợp với các kỹ thuật thiết kế test case (Equivalence Partitioning, Boundary Value Analysis, State Transition) để đảm bảo chất lượng toàn diện.",,,,,,,,,,,,,,,,,,,,,,,
+"Next Steps: 1. Execute test cases 2. Update results 3. Track defects 4. Measure metrics 5. Generate final report",,,,,,,,,,,,,,,,,,,,,,,
+

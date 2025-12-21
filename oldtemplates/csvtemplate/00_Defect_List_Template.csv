@@ -1,0 +1,23 @@
+Environment,Test,,,,,
+Release Name,20150115141605,,,,,
+Date,13-Jan-2015,,,,,
+FPT QA Name,Nguyen Van A,,,,,
+,,,,,,
+Defect ID,Defect Description & Steps to reproduce,Actual Result,Expected Result,Priority,Serverity,Testcase ID
+#0,"<Write defect/comment description here>
+Should include Location + Action + Problem",,,,,
+,<Write Pre-condition and Steps to reproduce here>,"<Write Actual Result here. Link to Test Evidence if needed (photos)>
+Should have an appropriate attached picture (or file) for quicker understanding.","<Write Expected Result here>
+Expected result should be based on requirement and should be described in structure ""System SHOULD do something.""",<Prioritize your defect/comment),<Severity>,<ID of TC relates to this defect/comment if any>
+#1,[Organisation List]Number of rows in one page is 14 instead of 15.,,,,,
+,1. Click [Organisation] tab on menu bar and check number of data rows in grid view control.,System displays 14 records/page by default.,System should display 15 records/page by default.,Low,Cosmetic,Org_List_006
+#2,[Add Organisation]Untitled pop up when clicking on Look up button next to Lead Contact text box.,,,,,
+,"1. On Organisation List, click on Look up button next to Lead Contact text box.","System displays an untitled pop up. See picture in sheet Test Evidence #1 for more details.
+Similar issue when clicking on Look up button next to Type of Business text box.","System should displays pop up with title ""<Page name> -- Web page dialog"" ",,,
+#3,"[Organisation List] Cannot filter by letter ""N""",,,,,
+,"Pre-condition: there are at least one active organisation which name starts with letter ""N"" in database.
+Steps:
+1. Click on hyperlink ""N"" in filter area",System displays an empty grid.,"System should reload and show active Organisation which name begin with the letter ""N"" (both upper case and lower case). ",High,Medium,Org_List_014
+,,,,,,
+,,,,,,
+,,,,,,

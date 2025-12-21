@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "dev": "concurrently \"npm run server --prefix backend\" \"npm run dev --prefix frontend\" \"npm run dev --prefix admin\"",
@@ -14,6 +15,7 @@
     "postinstall": "node -e \"const fs=require('fs');const path=require('path');const script=path.join(process.cwd(),'tools','install-all.js');if(fs.existsSync(script)){require(script);}else{console.log('[install-all] tools/install-all.js missing; skipping.');}\"",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f backend"
+    "docker:logs": "docker compose logs -f backend",
+    "convert:csv-to-excel": "node tools/convert-csv-to-excel.js"
   }
 }

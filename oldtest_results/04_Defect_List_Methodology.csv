@@ -1,0 +1,145 @@
+DEFECT LIST - PHƯƠNG PHÁP LUẬN,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+Project Name,FastFoodOnline,,,,,,,,,,,,,,,,,,,,,,,
+Project Code,FFO,,,,,,,,,,,,,,,,,,,,,,,
+Document Type,Defect List với Phương pháp luận,,,,,,,,,,,,,,,,,,,,,,,
+Version,1.0,,,,,,,,,,,,,,,,,,,,,,,
+Date,December 17, 2025,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+PHƯƠNG PHÁP LUẬN QUẢN LÝ DEFECTS,,,,,,,,,,,,,,,,,,,,,,,
+"Mục tiêu: Quản lý và theo dõi defects một cách có hệ thống để đảm bảo chất lượng sản phẩm",,,,,,,,,,,,,,,,,,,,,,,
+"Phương pháp: 1. Phân loại defects theo severity và priority 2. Root cause analysis 3. Track lifecycle 4. Measure metrics 5. Continuous improvement",,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT CLASSIFICATION (Phương pháp luận phân loại),,,,,,,,,,,,,,,,,,,,,,,
+Severity Levels,Description,Impact,Phương pháp luận xác định,,,,,,,
+Critical,"System crash, data loss, security breach",High,"Immediate impact on core functionality
+Blocks testing or production",,,,,,
+High,"Major functionality broken, workaround available",High,"Significant impact on user experience
+Affects multiple users",,,,,,
+Medium,"Minor functionality issue, workaround exists",Medium,"Moderate impact
+Affects some users",,,,,,
+Low,"Cosmetic issue, minor inconvenience",Low,"Minimal impact
+Does not affect functionality",,,,,,
+Priority Levels,Description,Phương pháp luận xác định,,,,,,,
+P1 - Critical,"Fix immediately, blocks release",Business impact + User impact + Technical impact,,,,,
+P2 - High,"Fix in current sprint",Business impact + User impact,,,,,
+P3 - Medium,"Fix in next sprint",Moderate business/user impact,,,,,
+P4 - Low,"Fix when time permits",Low impact, can defer,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT LIST (Template - Cần cập nhật khi phát hiện defects),,,,,,,,,,,,,,,,,,,,,,,
+Defect ID,Title,Description,Module,Test Case ID,Severity,Priority,Status,Reporter,Assigned To,Reported Date,Due Date,Resolved Date,Root Cause,Phương pháp luận phát hiện,Steps to Reproduce,Expected Result,Actual Result,Environment,Attachments,Remarks,,,,,
+DEF-001,Template Defect,This is a template. Replace with actual defects when found.,All,TC-XXX-001,Critical,P1,Open,Test Team,Dev Team,2025-12-17,2025-12-18,,,"Black Box Testing
+Error Guessing","1. Step 1
+2. Step 2
+3. Step 3","Expected behavior","Actual behavior","Development","Screenshots/logs","Template - Update with real defects",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT METRICS (Phương pháp luận đo lường),,,,,,,,,,,,,,,,,,,,,,,
+Metric,Value,Target,Status,Phương pháp luận tính toán,,,,,,,
+Total Defects,0,< 50,Good,"Count all defects regardless of status",,,,,,
+Critical Defects,0,0,Good,"Count defects with severity = Critical",,,,,,
+High Defects,0,< 10,Good,"Count defects with severity = High",,,,,,
+Open Defects,0,< 20,Good,"Count defects with status = Open",,,,,,
+Fixed Defects,0,N/A,N/A,"Count defects with status = Fixed",,,,,,
+Closed Defects,0,N/A,N/A,"Count defects with status = Closed",,,,,,
+Defect Density,0,< 5 defects/100 test cases,Good,"Total defects / Total test cases × 100",,,,,,
+Defect Removal Efficiency,0%,≥ 90%,Not Measured,"Defects found in testing / Total defects × 100",,,,,,
+Average Time to Fix,0 days,< 3 days,N/A,"Sum(resolved date - reported date) / Count of resolved defects",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT ANALYSIS BY MODULE (Phương pháp luận phân tích),,,,,,,,,,,,,,,,,,,,,,,
+Module,Total,Critical,High,Medium,Low,Open,Fixed,Closed,Phương pháp luận phân tích,,,,,
+Authentication,0,0,0,0,0,0,0,0,"Analyze defects by module to identify problem areas",,,,,,
+Menu,0,0,0,0,0,0,0,0,"Focus testing on modules with high defect count",,,,,,
+Cart,0,0,0,0,0,0,0,0,"Review code quality in high-defect modules",,,,,,
+Order,0,0,0,0,0,0,0,0,"Improve test coverage for high-defect modules",,,,,,
+Payment,0,0,0,0,0,0,0,0,"Root cause analysis for recurring defects",,,,,,
+Profile,0,0,0,0,0,0,0,0,"Preventive measures for common defect patterns",,,,,,
+Admin,0,0,0,0,0,0,0,0,"Knowledge sharing about defect patterns",,,,,,
+Database,0,0,0,0,0,0,0,0,"Process improvement based on defect analysis",,,,,,
+API,0,0,0,0,0,0,0,0,"Training on defect prevention",,,,,,
+Security,0,0,0,0,0,0,0,0,"Tool improvement for defect detection",,,,,,
+Performance,0,0,0,0,0,0,0,0,"Best practices documentation",,,,,,
+Integration,0,0,0,0,0,0,0,0,"Continuous improvement process",,,,,,
+Total,0,0,0,0,0,0,0,0,Comprehensive Defect Analysis,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT TREND ANALYSIS (Phương pháp luận theo dõi xu hướng),,,,,,,,,,,,,,,,,,,,,,,
+Week,New Defects,Resolved Defects,Open Defects,Phương pháp luận phân tích xu hướng,,,,,,,
+Week 1,0,0,0,"Track defect trends over time
+Identify if defects are increasing or decreasing",,,,,,
+Week 2,0,0,0,"Measure defect resolution rate
+Identify bottlenecks in defect resolution",,,,,,
+Week 3,0,0,0,"Predict defect count at release
+Plan resources for defect fixing",,,,,,
+Week 4,0,0,0,"Identify patterns in defect discovery
+Improve test effectiveness",,,,,,
+Week 5,0,0,0,"Measure quality improvement
+Track defect removal efficiency",,,,,,
+Week 6,0,0,0,"Final quality assessment
+Release readiness evaluation",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+ROOT CAUSE ANALYSIS (Phương pháp luận phân tích nguyên nhân gốc),,,,,,,,,,,,,,,,,,,,,,,
+Root Cause Category,Count,Percentage,Phương pháp luận phân tích,Prevention Strategy,,,,,,,
+Requirements Issues,0,0%,"Analyze defects caused by unclear/missing requirements","Improve requirements gathering
+Better requirements review",,,,,,
+Design Issues,0,0%,"Analyze defects caused by design flaws","Improve design review
+Use design patterns",,,,,,
+Coding Errors,0,0%,"Analyze defects caused by coding mistakes","Code review
+Pair programming
+Static code analysis",,,,,,
+Testing Gaps,0,0%,"Analyze defects missed in testing","Improve test coverage
+Better test design
+More test scenarios",,,,,,
+Environment Issues,0,0%,"Analyze defects caused by environment problems","Stable test environment
+Environment automation",,,,,,
+Integration Issues,0,0%,"Analyze defects in integration points","Better integration testing
+API contract testing",,,,,,
+Other,0,0%,"Analyze other root causes","Continuous improvement
+Lessons learned",,,,,,
+Total,0,100%,Root Cause Analysis,Prevention Strategy Implementation,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+DEFECT RESOLUTION WORKFLOW (Phương pháp luận quy trình xử lý),,,,,,,,,,,,,,,,,,,,,,,
+Status,Description,Phương pháp luận,Next Action,,,,,,,
+New,Defect mới được report,"Log defect với đầy đủ thông tin
+Assign priority và severity",Review và assign,,,,,
+Assigned,Defect được assign cho developer,"Developer acknowledge defect
+Estimate fix time",Start fixing,,,,,
+In Progress,Developer đang fix defect,"Track progress
+Update status regularly",Complete fix và test locally,,,,,
+Fixed,Defect đã được fix,"Developer mark as fixed
+Provide fix details",QA verify fix,,,,,
+Verified,QA đã verify fix thành công,"QA test fix
+Confirm resolution",Close defect,,,,,
+Closed,Defect đã được close,"Document resolution
+Update metrics",Archive,,,,,
+Reopened,Defect được reopen do fix không đúng,"Analyze why fix failed
+Re-assign với higher priority",Fix again với better approach,,,,,
+Deferred,Defect được defer sang release sau,"Document reason for deferral
+Plan for future release",Monitor và plan fix,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+BEST PRACTICES (Phương pháp luận best practices),,,,,,,,,,,,,,,,,,,,,,,
+Practice,Description,Phương pháp luận áp dụng,,,,,,,
+Clear Defect Description,"Mô tả defect rõ ràng với steps to reproduce","Use template
+Include screenshots
+Provide test data",,,,,,
+Proper Classification,"Phân loại severity và priority đúng","Use severity/priority matrix
+Consider business impact",,,,,,
+Timely Reporting,"Report defects ngay khi phát hiện","Don't wait
+Report immediately
+Include all details",,,,,,
+Root Cause Analysis,"Phân tích nguyên nhân gốc của defects","5 Whys technique
+Fishbone diagram
+Brainstorming",,,,,,
+Prevention Focus,"Tập trung vào prevention thay vì chỉ fix","Learn from defects
+Improve processes
+Share knowledge",,,,,,
+Metrics Tracking,"Theo dõi metrics để đo lường chất lượng","Track key metrics
+Analyze trends
+Take action",,,,,,
+Continuous Improvement,"Cải thiện liên tục dựa trên defects","Retrospectives
+Process improvement
+Knowledge sharing",,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+CONCLUSION (Phương pháp luận kết luận),,,,,,,,,,,,,,,,,,,,,,,
+"Tổng kết: Defect management là một phần quan trọng của quy trình kiểm thử. Phương pháp luận quản lý defects hiệu quả giúp đảm bảo chất lượng sản phẩm và cải thiện quy trình phát triển.",,,,,,,,,,,,,,,,,,,,,,,
+"Phương pháp luận: Áp dụng systematic approach để track, analyze, và resolve defects. Focus vào root cause analysis và prevention để giảm số lượng defects trong tương lai.",,,,,,,,,,,,,,,,,,,,,,,
+"Next Steps: 1. Report defects khi phát hiện 2. Track defects through lifecycle 3. Analyze root causes 4. Implement prevention strategies 5. Measure và improve",,,,,,,,,,,,,,,,,,,,,,,
+
