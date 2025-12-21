@@ -311,93 +311,641 @@ test_results_final/02_Test_Cases/
 
 ## 🚀 Công nghệ sử dụng
 
-You can spin up the complete stack (frontend + backend + admin) with Docker. MongoDB is expected to run on MongoDB Atlas (or another managed instance) via the connection string in `backend/.env`.
+### Frontend
+- **React 18** - UI library với Hooks
+- **Vite** - Build tool và dev server
+- **React Router v6** - Client-side routing
+- **Context API** - State management
+- **Axios** - HTTP client
+- **CSS3** - Styling với responsive design
 
-1. Build và chạy toàn bộ dịch vụ:
-   ```bash
-   npm run docker:up
-   ```
-   The stack exposes the frontend at `http://localhost:5173`, the admin panel at `http://localhost:5174`, and the API at `http://localhost:4000`.
-   > Tương đương với `docker compose up --build` nếu bạn không muốn dùng script npm.
-2. Bổ sung biến môi trường `MONGO_URL` trong `backend/.env` bằng connection string Atlas (ví dụ `mongodb+srv://...`). Docker Compose không khởi chạy MongoDB nội bộ nên sẽ không có cổng 27017 được mở trên máy bạn.
-3. Dừng stack khi không dùng nữa:
-   ```bash
-   npm run docker:down
-   ```
+### Backend
+- **Node.js 20 LTS** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - NoSQL database
+- **Mongoose** - ODM cho MongoDB
+- **JWT** - JSON Web Tokens cho authentication
+- **Bcrypt** - Password hashing
 
-To rebuild after code changes you can run `docker compose up --build` again, or `docker compose up` if the images are already built.
+### Payment Gateways
+- **VNPAY** - Vietnam payment gateway
+- **Stripe** - International credit/debit cards
+- **MoMo** - Vietnam e-wallet
 
-### Troubleshooting Mongo Connection
-- Backend container load `backend/.env`; hãy chắc chắn `MONGO_URL` chính xác (Atlas hoặc local). Nếu cần chạy MongoDB cục bộ, khởi tạo instance/container riêng (ngoài docker compose) rồi cập nhật `MONGO_URL` tương ứng.
-- If you start the API manually, prefer `npm run server --prefix backend` (or `cd backend && npm run server`) so nodemon watches the right paths.
-- Với Docker Compose, kiểm tra backend đã kết nối được Atlas bằng `docker compose logs backend` (sẽ log `DB Connected: <cluster-host>`).
-- For MongoDB Atlas URIs, whitelist your IP address and verify username/password. The backend now prints the precise Mongo error so you can spot authentication or network issues quickly.
-- If you see `Missing MONGO_URL`, double-check environment variables in Docker, your shell session, or `backend/.env`.
+### DevOps & Tools
+- **Docker & Docker Compose** - Containerization
+- **Nginx** - Reverse proxy và static file serving
+- **Cloudinary** - Image hosting và optimization
+- **Git** - Version control
+- **Postman** - API testing
+- **MongoDB Atlas** - Cloud database
 
-## Run Locally
+### Testing Tools
+- **Jest** (planned) - Unit testing
+- **React Testing Library** (planned) - Component testing
+- **Supertest** (planned) - API testing
+- Manual testing với comprehensive test cases
 
-### Mac setup (MongoDB Atlas)
-- Yêu cầu Node.js 20 LTS. Nếu dùng `nvm`:
-  ```bash
-  nvm install 20
-  nvm use 20
-  ```
-- Từ thư mục gốc dự án: `npm install`
-- Backend dùng `backend/.env` (đã có mẫu MongoDB Atlas). Chỉ cần cập nhật `MONGO_URL` với connection string của bạn và whitelist IP trên Atlas.
-- Frontend và Admin mặc định gọi API `http://localhost:4000`; có thể override bằng cách tạo `frontend/.env.local` và `admin/.env.local` với `VITE_API_URL=` khi deploy.
-- Chạy toàn bộ ứng dụng (backend + frontend + admin):
-  ```bash
-  npm run dev
-  ```
-- Hoặc chạy riêng backend:
-  ```bash
-  npm run server --prefix backend
-  ```
-- Khi backend lên thành công sẽ log `DB Connected: <cluster-host>` và `Server Started on port: 4000`.
+---
 
-Clone the project
+## 💻 Cài đặt và chạy dự án
 
-```bash
-    git clone https://github.com/Mshandev/Food-Delivery
-```
-Go to the project directory
+### ⚙️ Yêu cầu hệ thống
+
+- **Node.js**: v20 LTS hoặc cao hơn
+- **npm**: v10+ (đi kèm với Node.js 20)
+- **MongoDB**: v6.0+ (hoặc MongoDB Atlas)
+- **Git**: Latest version
+
+### 📥 Clone dự án
 
 ```bash
-    cd Food-Delivery
+git clone https://github.com/yourusername/FastFoodOnline.git
+cd FastFoodOnline
 ```
-Install dependencies (all apps)
+
+### 🔧 Cài đặt dependencies
+
+Dự án sử dụng automated installation script:
 
 ```bash
-    npm install
+# Cài đặt tất cả dependencies (backend + frontend + admin)
+npm install
 ```
-> The root `postinstall` script installs backend, frontend, and admin dependencies automatically, so you only run the command once.
 
-Start all apps locally in one terminal
+Script tự động chạy:
+- `npm install` trong thư mục `backend/`
+- `npm install` trong thư mục `frontend/`
+- `npm install` trong thư mục `admin/`
+
+**Hoặc cài đặt thủ công từng phần:**
 
 ```bash
-    npm run dev
-```
-> This uses `concurrently` to run the backend, frontend, and admin dev servers together.
-Setup Environment Vaiables
+# Backend
+npm install --prefix backend
 
-```Make .env file in "backend" folder and store environment Variables
-  JWT_SECRET=YOUR_SECRET_TEXT
-  SALT=YOUR_SALT_VALUE
-  MONGO_URL=YOUR_DATABASE_URL
-  VNPAY_TMN_CODE=YOUR_TMN_CODE
-  VNPAY_HASH_SECRET=YOUR_HASH_SECRET
-  VNPAY_RETURN_URL=http://localhost:5173/verify
-  VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  STRIPE_SECRET_KEY=YOUR_STRIPE_SECRET_KEY
-  STRIPE_SUCCESS_URL=http://localhost:5173/verify
-  STRIPE_CANCEL_URL=http://localhost:5173/order
-  STRIPE_CURRENCY=vnd
-  FRONTEND_BASE_URL=http://localhost:5173
-  MOMO_PARTNER_CODE=YOUR_MOMO_PARTNER_CODE
-  MOMO_ACCESS_KEY=YOUR_MOMO_ACCESS_KEY
-  MOMO_SECRET_KEY=YOUR_MOMO_SECRET_KEY
-  MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
-  MOMO_QUERY_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/query
+# Frontend
+npm install --prefix frontend
+
+# Admin
+npm install --prefix admin
+```
+
+### 🗄️ Cấu hình Database
+
+#### Option 1: MongoDB Atlas (Recommended)
+1. Tạo tài khoản tại [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Tạo một cluster mới (Free tier: M0)
+3. Whitelist your IP address
+4. Tạo database user với username/password
+5. Lấy connection string
+
+#### Option 2: MongoDB Local
+```bash
+# Cài đặt MongoDB Community Edition
+# Windows: Download từ mongodb.com
+# macOS: brew install mongodb-community
+# Linux: apt-get install mongodb
+
+# Start MongoDB
+mongod --dbpath /path/to/data/directory
+```
+
+### 🔐 Cấu hình môi trường
+
+Tạo file `.env` trong thư mục `backend/`:
+
+```env
+# Database
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/fastfood?retryWrites=true&w=majority
+
+# JWT
+JWT_SECRET=your_very_long_random_secret_key_here
+SALT=10
+
+# VNPAY Payment
+VNPAY_TMN_CODE=your_vnpay_terminal_code
+VNPAY_HASH_SECRET=your_vnpay_hash_secret
+VNPAY_RETURN_URL=http://localhost:5173/verify
+VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+
+# Stripe Payment
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_SUCCESS_URL=http://localhost:5173/verify
+STRIPE_CANCEL_URL=http://localhost:5173/order
+STRIPE_CURRENCY=vnd
+
+# MoMo Payment
+MOMO_PARTNER_CODE=your_momo_partner_code
+MOMO_ACCESS_KEY=your_momo_access_key
+MOMO_SECRET_KEY=your_momo_secret_key
+MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+MOMO_QUERY_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/query
+MOMO_REDIRECT_URL=http://localhost:5173/verify
+MOMO_IPN_URL=
+MOMO_REQUEST_TYPE=captureWallet
+MOMO_LANG=vi
+
+# Server
+FRONTEND_BASE_URL=http://localhost:5173
+PORT=4000
+```
+
+**Lưu ý:**
+- Để test payment, cần đăng ký tài khoản sandbox tại các payment gateway
+- VNPAY sandbox: https://sandbox.vnpayment.vn
+- MoMo test: https://developers.momo.vn
+
+### ▶️ Chạy ứng dụng
+
+#### Chạy tất cả (Development mode)
+```bash
+npm run dev
+```
+Lệnh này sẽ start đồng thời:
+- Backend API: http://localhost:4000
+- Frontend: http://localhost:5173
+- Admin Panel: http://localhost:5174
+
+#### Chạy riêng từng phần
+
+**Backend:**
+```bash
+npm run server --prefix backend
+# hoặc
+cd backend && npm run server
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+**Admin:**
+```bash
+cd admin
+npm run dev
+```
+
+### ✅ Verify installation
+
+1. **Backend**: Mở http://localhost:4000
+   - Nếu thấy "Cannot GET /", backend đã chạy thành công
+   - Check console log: "DB Connected: ..." và "Server Started on port: 4000"
+
+2. **Frontend**: Mở http://localhost:5173
+   - Trang chủ hiển thị menu món ăn
+
+3. **Admin**: Mở http://localhost:5174
+   - Dashboard admin panel
+
+### 🚨 Troubleshooting
+
+#### MongoDB Connection Issues
+```bash
+# Check MongoDB Atlas connection
+# 1. Verify MONGO_URL in .env
+# 2. Whitelist your IP on Atlas
+# 3. Check username/password
+# 4. Ensure network access
+
+# View backend logs
+docker compose logs backend  # nếu dùng Docker
+# hoặc check terminal console
+```
+
+#### Port already in use
+```bash
+# Kill process on port
+# Windows
+netstat -ano | findstr :4000
+taskkill /PID <PID> /F
+
+# macOS/Linux
+lsof -ti:4000 | xargs kill -9
+```
+
+#### Module not found
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Or for specific folder
+cd backend
+rm -rf node_modules package-lock.json
+npm install
+```
+
+---
+
+## 🐳 Docker Deployment
+
+### Sử dụng Docker Compose
+
+Dự án hỗ trợ containerization hoàn chỉnh với Docker Compose.
+
+#### Prerequisites
+- Docker Desktop: v24+ (Windows/Mac)
+- Docker Engine: v24+ (Linux)
+- Docker Compose: v2.20+
+
+#### Build và Run
+
+1. **Start toàn bộ stack:**
+```bash
+npm run docker:up
+# hoặc
+docker compose up --build
+```
+
+Services sẽ chạy tại:
+- Frontend: http://localhost:5173
+- Admin: http://localhost:5174
+- Backend API: http://localhost:4000
+
+2. **Stop services:**
+```bash
+npm run docker:down
+# hoặc
+docker compose down
+```
+
+3. **View logs:**
+```bash
+npm run docker:logs
+# hoặc
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+#### Docker Configuration
+
+**docker-compose.yml:**
+```yaml
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URL=${MONGO_URL}
+    env_file:
+      - ./backend/.env
+    
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+  
+  admin:
+    build: ./admin
+    ports:
+      - "5174:80"
+    depends_on:
+      - backend
+```
+
+**Lưu ý:**
+- MongoDB phải chạy trên MongoDB Atlas (hoặc external instance)
+- Docker Compose không bao gồm MongoDB container
+- Environment variables được load từ `backend/.env`
+
+#### Rebuild after changes
+
+```bash
+# Rebuild specific service
+docker compose up --build backend
+
+# Rebuild all
+docker compose up --build
+
+# Remove all containers and rebuild
+docker compose down
+docker compose up --build
+```
+
+---
+
+## 📂 Cấu trúc dự án
+
+```
+FastFoodOnline/
+├── backend/                      # Node.js Backend
+│   ├── config/                   # Configuration files
+│   │   ├── cloudinary.js        # Cloudinary setup
+│   │   └── db.js                # MongoDB connection
+│   ├── controllers/             # Route controllers
+│   │   ├── cartController.js
+│   │   ├── userController.js
+│   │   └── v2/                  # API version 2
+│   ├── middleware/              # Express middlewares
+│   │   └── auth.js             # JWT authentication
+│   ├── models/                  # Mongoose models
+│   │   ├── userModel.js
+│   │   └── v2/                  # Models v2
+│   ├── routes/                  # API routes
+│   │   ├── cartRoute.js
+│   │   ├── foodRoute.js
+│   │   ├── orderRoute.js
+│   │   └── userRoute.js
+│   ├── uploads/                 # Uploaded images
+│   ├── .env                     # Environment variables
+│   ├── app.js                   # Express app setup
+│   ├── server.js                # Server entry point
+│   └── package.json
+│
+├── frontend/                     # React Frontend (User Panel)
+│   ├── public/                  # Static assets
+│   ├── src/
+│   │   ├── assets/             # Images, icons
+│   │   ├── components/         # React components
+│   │   │   ├── Navbar/
+│   │   │   ├── Header/
+│   │   │   ├── FoodItem/
+│   │   │   └── ...
+│   │   ├── context/            # React Context
+│   │   │   └── StoreContext.jsx
+│   │   ├── pages/              # Page components
+│   │   │   ├── Home/
+│   │   │   ├── Cart/
+│   │   │   ├── PlaceOrder/
+│   │   │   └── ...
+│   │   ├── App.jsx             # Main App component
+│   │   └── main.jsx            # Entry point
+│   ├── .env.local              # Frontend env (optional)
+│   ├── vite.config.js
+│   └── package.json
+│
+├── admin/                        # React Admin Panel
+│   ├── public/
+│   ├── src/
+│   │   ├── components/         # Admin components
+│   │   │   ├── Navbar/
+│   │   │   ├── Sidebar/
+│   │   │   └── ...
+│   │   ├── pages/              # Admin pages
+│   │   │   ├── Add/
+│   │   │   ├── List/
+│   │   │   ├── Orders/
+│   │   │   └── ...
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── vite.config.js
+│   └── package.json
+│
+├── docker/                       # Docker configs
+├── docker-compose.yml            # Docker Compose config
+├── package.json                  # Root package.json
+├── README.md                     # This file
+├── TEST_CASES.md                 # Detailed test cases
+└── .gitignore
+```
+
+---
+
+## 📚 API Documentation
+
+### Base URL
+```
+Development: http://localhost:4000
+Production: https://your-api-domain.com
+```
+
+### Authentication Endpoints
+
+#### Register
+```http
+POST /api/user/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePass123"
+}
+
+Response: 200 OK
+{
+  "success": true,
+  "token": "jwt_token_here"
+}
+```
+
+#### Login
+```http
+POST /api/user/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123"
+}
+
+Response: 200 OK
+{
+  "success": true,
+  "token": "jwt_token_here"
+}
+```
+
+### Food Endpoints
+
+#### Get All Foods
+```http
+GET /api/food/list
+
+Response: 200 OK
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "food_id",
+      "name": "Margherita Pizza",
+      "description": "Classic pizza with tomato and mozzarella",
+      "price": 199000,
+      "image": "https://cloudinary.com/...",
+      "category": "Pizza"
+    }
+  ]
+}
+```
+
+#### Add Food (Admin Only)
+```http
+POST /api/food/add
+Authorization: Bearer <admin_token>
+Content-Type: multipart/form-data
+
+name: Margherita Pizza
+description: Classic pizza
+price: 199000
+category: Pizza
+image: <file>
+
+Response: 201 Created
+{
+  "success": true,
+  "message": "Food added successfully"
+}
+```
+
+### Cart Endpoints
+
+#### Add to Cart
+```http
+POST /api/cart/add
+Authorization: Bearer <user_token>
+Content-Type: application/json
+
+{
+  "itemId": "food_id",
+  "quantity": 2
+}
+
+Response: 200 OK
+{
+  "success": true,
+  "message": "Added to cart"
+}
+```
+
+### Order & Payment Endpoints
+
+#### Place Order
+```http
+POST /api/order/place
+Authorization: Bearer <user_token>
+Content-Type: application/json
+
+{
+  "items": [...],
+  "amount": 398000,
+  "address": {...},
+  "paymentMethod": "vnpay"
+}
+```
+
+Xem thêm API endpoints trong [`docs/api-v2.md`](docs/api-v2.md)
+
+---
+
+## 🎓 Scripts có sẵn
+
+```bash
+# Development
+npm run dev                    # Chạy tất cả (backend + frontend + admin)
+npm run server --prefix backend # Chạy backend only
+npm run dev --prefix frontend   # Chạy frontend only
+npm run dev --prefix admin      # Chạy admin only
+
+# Installation
+npm install                     # Cài đặt tất cả dependencies
+npm run install:backend         # Cài đặt backend only
+npm run install:frontend        # Cài đặt frontend only
+npm run install:admin           # Cài đặt admin only
+
+# Docker
+npm run docker:up              # Start all services với Docker
+npm run docker:down            # Stop all services
+npm run docker:logs            # View backend logs
+
+# Utilities
+npm run convert:csv-to-excel   # Convert test cases CSV to Excel
+```
+
+---
+
+## 🤝 Đóng góp
+
+Contributions are always welcome! Để đóng góp:
+
+1. Fork repository này
+2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
+
+### Development Guidelines
+
+- Follow existing code style
+- Write meaningful commit messages
+- Update documentation nếu cần
+- Add tests for new features
+- Ensure all tests pass
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👨‍💻 Authors & Contact
+
+**Project Team**: FastFoodOnline Development Team
+
+**GitHub**: [Repository Link](https://github.com/yourusername/FastFoodOnline)
+
+**Feedback**: Nếu có bất kỳ feedback hoặc câu hỏi nào, vui lòng liên hệ qua Issues trên GitHub.
+
+---
+
+## 📋 Changelog
+
+### Version 1.0.0 (December 2025)
+- ✅ Initial release với đầy đủ tính năng
+- ✅ MERN Stack implementation
+- ✅ 3 Payment gateways: VNPAY, Stripe, MoMo
+- ✅ Admin panel hoàn chỉnh
+- ✅ Docker support
+- ✅ Comprehensive testing với 90+ test cases
+- ✅ API documentation
+- ✅ Responsive design
+
+---
+
+## 🎯 Future Enhancements
+
+- [ ] Automated testing với Jest và Cypress
+- [ ] Real-time order tracking với WebSocket
+- [ ] Email notifications cho orders
+- [ ] SMS notifications với Twilio
+- [ ] Multi-language support (i18n)
+- [ ] Dark mode
+- [ ] PWA features (offline support)
+- [ ] Performance optimization
+- [ ] SEO optimization
+- [ ] Analytics dashboard
+- [ ] Customer reviews và ratings
+- [ ] Loyalty program
+- [ ] Promo codes và discounts
+
+---
+
+## 📖 Additional Resources
+
+- [Test Cases Documentation](TEST_CASES.md) - Chi tiết 90+ test cases
+- [Test Results Folder](test_results_final/) - Tất cả tài liệu kiểm thử
+- [API Documentation v2](docs/api-v2.md) - API specs chi tiết
+- [Database Design](test_results_final/04_Design_Documents/Database_Design.md)
+- [Architecture Design](test_results_final/04_Design_Documents/Architecture_Design.md)
+- [Use Case Descriptions](test_results_final/04_Design_Documents/UseCase_Description.md)
+
+---
+
+<div align="center">
+
+**⭐ Nếu bạn thấy dự án này hữu ích, hãy cho một star nhé! ⭐**
+
+Made with ❤️ by FastFoodOnline Team
+
+</div>
   MOMO_REDIRECT_URL=http://localhost:5173/verify
   MOMO_IPN_URL=
   MOMO_REQUEST_TYPE=captureWallet
@@ -425,26 +973,413 @@ Start the Backend server
     npm start
 ```
 
-## Tech Stack
-* [React](https://reactjs.org/)
-* [Node.js](https://nodejs.org/en)
-* [Express.js](https://expressjs.com/)
-* [Mongodb](https://www.mongodb.com/)
-* [VNPAY Sandbox](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html)
-* [Stripe](https://stripe.com/)
-* [MoMo](https://developers.momo.vn/)
-* [JWT-Authentication](https://jwt.io/introduction)
-* [Multer](https://www.npmjs.com/package/multer)
+---
 
-## Deployment
+## 🚀 Công nghệ sử dụng
 
-The application is deployed on Render.
+### Frontend
+- **React 18** - UI library với Hooks
+- **Vite** - Build tool và dev server
+- **React Router v6** - Client-side routing
+- **Context API** - State management
+- **Axios** - HTTP client
+- **CSS3** - Styling với responsive design
 
-## Contributing
+### Backend
+- **Node.js 20 LTS** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - NoSQL database
+- **Mongoose** - ODM cho MongoDB
+- **JWT** - JSON Web Tokens cho authentication
+- **Bcrypt** - Password hashing
 
-Contributions are always welcome!
-Just raise an issue, and we will discuss it.
+### Payment Gateways
+- **VNPAY** - Vietnam payment gateway
+- **Stripe** - International credit/debit cards
+- **MoMo** - Vietnam e-wallet
 
-## Feedback
+### DevOps & Tools
+- **Docker & Docker Compose** - Containerization
+- **Nginx** - Reverse proxy và static file serving
+- **Cloudinary** - Image hosting và optimization
+- **Git** - Version control
+- **Postman** - API testing
+- **MongoDB Atlas** - Cloud database
 
-If you have any feedback, please reach out to me [here](https://www.linkedin.com/in/muhammad-shan-full-stack-developer/)
+### Testing Tools
+- **Jest** (planned) - Unit testing
+- **React Testing Library** (planned) - Component testing
+- **Supertest** (planned) - API testing
+- Manual testing với comprehensive test cases
+
+---
+
+## 💻 Cài đặt và chạy dự án
+
+### ⚙️ Yêu cầu hệ thống
+
+- **Node.js**: v20 LTS hoặc cao hơn
+- **npm**: v10+ (đi kèm với Node.js 20)
+- **MongoDB**: v6.0+ (hoặc MongoDB Atlas)
+- **Git**: Latest version
+
+### 📥 Clone dự án
+
+```bash
+git clone https://github.com/yourusername/FastFoodOnline.git
+cd FastFoodOnline
+```
+
+### 🔧 Cài đặt dependencies
+
+Dự án sử dụng automated installation script:
+
+```bash
+# Cài đặt tất cả dependencies (backend + frontend + admin)
+npm install
+```
+
+Script tự động chạy:
+- `npm install` trong thư mục `backend/`
+- `npm install` trong thư mục `frontend/`
+- `npm install` trong thư mục `admin/`
+
+**Hoặc cài đặt thủ công từng phần:**
+
+```bash
+# Backend
+npm install --prefix backend
+
+# Frontend
+npm install --prefix frontend
+
+# Admin
+npm install --prefix admin
+```
+
+### 🗄️ Cấu hình Database
+
+#### Option 1: MongoDB Atlas (Recommended)
+1. Tạo tài khoản tại [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Tạo một cluster mới (Free tier: M0)
+3. Whitelist your IP address
+4. Tạo database user với username/password
+5. Lấy connection string
+
+#### Option 2: MongoDB Local
+```bash
+# Cài đặt MongoDB Community Edition
+# Windows: Download từ mongodb.com
+# macOS: brew install mongodb-community
+# Linux: apt-get install mongodb
+
+# Start MongoDB
+mongod --dbpath /path/to/data/directory
+```
+
+### 🔐 Cấu hình môi trường
+
+Tạo file `.env` trong thư mục `backend/`:
+
+```env
+# Database
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/fastfood?retryWrites=true&w=majority
+
+# JWT
+JWT_SECRET=your_very_long_random_secret_key_here
+SALT=10
+
+# VNPAY Payment
+VNPAY_TMN_CODE=your_vnpay_terminal_code
+VNPAY_HASH_SECRET=your_vnpay_hash_secret
+VNPAY_RETURN_URL=http://localhost:5173/verify
+VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+
+# Stripe Payment
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_SUCCESS_URL=http://localhost:5173/verify
+STRIPE_CANCEL_URL=http://localhost:5173/order
+STRIPE_CURRENCY=vnd
+
+# MoMo Payment
+MOMO_PARTNER_CODE=your_momo_partner_code
+MOMO_ACCESS_KEY=your_momo_access_key
+MOMO_SECRET_KEY=your_momo_secret_key
+MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+MOMO_QUERY_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/query
+MOMO_REDIRECT_URL=http://localhost:5173/verify
+MOMO_IPN_URL=
+MOMO_REQUEST_TYPE=captureWallet
+MOMO_LANG=vi
+
+# Server
+FRONTEND_BASE_URL=http://localhost:5173
+PORT=4000
+```
+
+**Lưu ý:**
+- Để test payment, cần đăng ký tài khoản sandbox tại các payment gateway
+- VNPAY sandbox: https://sandbox.vnpayment.vn
+- MoMo test: https://developers.momo.vn
+
+### ▶️ Chạy ứng dụng
+
+#### Chạy tất cả (Development mode)
+```bash
+npm run dev
+```
+Lệnh này sẽ start đồng thời:
+- Backend API: http://localhost:4000
+- Frontend: http://localhost:5173
+- Admin Panel: http://localhost:5174
+
+#### Chạy riêng từng phần
+
+**Backend:**
+```bash
+npm run server --prefix backend
+# hoặc
+cd backend && npm run server
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+**Admin:**
+```bash
+cd admin
+npm run dev
+```
+
+### ✅ Verify installation
+
+1. **Backend**: Mở http://localhost:4000
+   - Nếu thấy "Cannot GET /", backend đã chạy thành công
+   - Check console log: "DB Connected: ..." và "Server Started on port: 4000"
+
+2. **Frontend**: Mở http://localhost:5173
+   - Trang chủ hiển thị menu món ăn
+
+3. **Admin**: Mở http://localhost:5174
+   - Dashboard admin panel
+
+### 🚨 Troubleshooting
+
+#### MongoDB Connection Issues
+```bash
+# Check MongoDB Atlas connection
+# 1. Verify MONGO_URL in .env
+# 2. Whitelist your IP on Atlas
+# 3. Check username/password
+# 4. Ensure network access
+
+# View backend logs
+docker compose logs backend  # nếu dùng Docker
+# hoặc check terminal console
+```
+
+#### Port already in use
+```bash
+# Kill process on port
+# Windows
+netstat -ano | findstr :4000
+taskkill /PID <PID> /F
+
+# macOS/Linux
+lsof -ti:4000 | xargs kill -9
+```
+
+#### Module not found
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Or for specific folder
+cd backend
+rm -rf node_modules package-lock.json
+npm install
+```
+
+---
+
+## 🐳 Docker Deployment
+
+### Sử dụng Docker Compose
+
+Dự án hỗ trợ containerization hoàn chỉnh với Docker Compose.
+
+#### Prerequisites
+- Docker Desktop: v24+ (Windows/Mac)
+- Docker Engine: v24+ (Linux)
+- Docker Compose: v2.20+
+
+#### Build và Run
+
+1. **Start toàn bộ stack:**
+```bash
+npm run docker:up
+# hoặc
+docker compose up --build
+```
+
+Services sẽ chạy tại:
+- Frontend: http://localhost:5173
+- Admin: http://localhost:5174
+- Backend API: http://localhost:4000
+
+2. **Stop services:**
+```bash
+npm run docker:down
+# hoặc
+docker compose down
+```
+
+3. **View logs:**
+```bash
+npm run docker:logs
+# hoặc
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+#### Docker Configuration
+
+**docker-compose.yml:**
+```yaml
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URL=${MONGO_URL}
+    env_file:
+      - ./backend/.env
+    
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+  
+  admin:
+    build: ./admin
+    ports:
+      - "5174:80"
+    depends_on:
+      - backend
+```
+
+**Lưu ý:**
+- MongoDB phải chạy trên MongoDB Atlas (hoặc external instance)
+- Docker Compose không bao gồm MongoDB container
+- Environment variables được load từ `backend/.env`
+
+#### Rebuild after changes
+
+```bash
+# Rebuild specific service
+docker compose up --build backend
+
+# Rebuild all
+docker compose up --build
+
+# Remove all containers and rebuild
+docker compose down
+docker compose up --build
+```
+
+---
+
+## 🤝 Đóng góp
+
+Contributions are always welcome! Để đóng góp:
+
+1. Fork repository này
+2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
+
+### Development Guidelines
+
+- Follow existing code style
+- Write meaningful commit messages
+- Update documentation nếu cần
+- Add tests for new features
+- Ensure all tests pass
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👨‍💻 Authors & Contact
+
+**Project Team**: FastFoodOnline Development Team
+
+**GitHub**: [Repository Link](https://github.com/yourusername/FastFoodOnline)
+
+**Feedback**: Nếu có bất kỳ feedback hoặc câu hỏi nào, vui lòng liên hệ qua Issues trên GitHub.
+
+---
+
+## 📋 Changelog
+
+### Version 1.0.0 (December 2025)
+- ✅ Initial release với đầy đủ tính năng
+- ✅ MERN Stack implementation
+- ✅ 3 Payment gateways: VNPAY, Stripe, MoMo
+- ✅ Admin panel hoàn chỉnh
+- ✅ Docker support
+- ✅ Comprehensive testing với 90+ test cases
+- ✅ API documentation
+- ✅ Responsive design
+
+---
+
+## 🎯 Future Enhancements
+
+- [ ] Automated testing với Jest và Cypress
+- [ ] Real-time order tracking với WebSocket
+- [ ] Email notifications cho orders
+- [ ] SMS notifications với Twilio
+- [ ] Multi-language support (i18n)
+- [ ] Dark mode
+- [ ] PWA features (offline support)
+- [ ] Performance optimization
+- [ ] SEO optimization
+- [ ] Analytics dashboard
+- [ ] Customer reviews và ratings
+- [ ] Loyalty program
+- [ ] Promo codes và discounts
+
+---
+
+## 📖 Additional Resources
+
+- [Test Cases Documentation](TEST_CASES.md) - Chi tiết 90+ test cases
+- [Test Results Folder](test_results_final/) - Tất cả tài liệu kiểm thử
+- [API Documentation v2](docs/api-v2.md) - API specs chi tiết
+- [Database Design](test_results_final/04_Design_Documents/Database_Design.md)
+- [Architecture Design](test_results_final/04_Design_Documents/Architecture_Design.md)
+- [Use Case Descriptions](test_results_final/04_Design_Documents/UseCase_Description.md)
+
+---
+
+<div align="center">
+
+**⭐ Nếu bạn thấy dự án này hữu ích, hãy cho một star nhé! ⭐**
+
+Made with ❤️ by FastFoodOnline Team
+
+</div>
