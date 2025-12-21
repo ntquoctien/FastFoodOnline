@@ -7,6 +7,7 @@ import * as userRepo from "../repositories/userRepository.js";
 import cloudinary from "../config/cloudinary.js";
 
 const createToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET);
+const getSaltRounds = () => Number(process.env.SALT || 10);
 
 export const validateRegistrationInput = ({ email, password }) => {
   if (!validator.isEmail(email || "")) {
@@ -93,7 +94,7 @@ export const register = async (name, email, password) => {
     return validation;
   }
 
-  const salt = await bcrypt.genSalt(Number(process.env.SALT || 10));
+  const salt = await bcrypt.genSalt(getSaltRounds());
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const user = await userRepo.createUser({ name, email, password: hashedPassword });
@@ -126,10 +127,13 @@ export const updateProfile = async ({
   removeAvatar,
 }) => {
   const user = await userRepo.findById(userId);
-  if (!user) {
+  const cleanupNewAvatar = async () => {
     if (avatarFileName) {
       await deleteAvatar(avatarFileName);
     }
+  };
+  if (!user) {
+    await cleanupNewAvatar();
     return { success: false, message: "User not found" };
   }
 
@@ -138,22 +142,18 @@ export const updateProfile = async ({
     update.name = name.trim();
   }
   if (typeof email === "string" && email.trim()) {
-    const normalisedEmail = email.trim().toLowerCase();
-    if (!validator.isEmail(normalisedEmail)) {
-      if (avatarFileName) {
-        await deleteAvatar(avatarFileName);
-      }
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!validator.isEmail(normalizedEmail)) {
+      await cleanupNewAvatar();
       return { success: false, message: "Please enter a valid email" };
     }
-    if (normalisedEmail !== user.email) {
-      const exists = await userRepo.findOneByEmail(normalisedEmail);
+    if (normalizedEmail !== user.email) {
+      const exists = await userRepo.findOneByEmail(normalizedEmail);
       if (exists && String(exists._id) !== String(user._id)) {
-        if (avatarFileName) {
-          await deleteAvatar(avatarFileName);
-        }
+        await cleanupNewAvatar();
         return { success: false, message: "Email is already in use" };
       }
-      update.email = normalisedEmail;
+      update.email = normalizedEmail;
     }
   }
   if (typeof phone === "string") {
@@ -162,25 +162,19 @@ export const updateProfile = async ({
 
   if (newPassword) {
     if (!currentPassword) {
-      if (avatarFileName) {
-        await deleteAvatar(avatarFileName);
-      }
+      await cleanupNewAvatar();
       return { success: false, message: "Current password is required" };
     }
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      if (avatarFileName) {
-        await deleteAvatar(avatarFileName);
-      }
+      await cleanupNewAvatar();
       return { success: false, message: "Current password is incorrect" };
     }
     if (newPassword.length < 8) {
-      if (avatarFileName) {
-        await deleteAvatar(avatarFileName);
-      }
+      await cleanupNewAvatar();
       return { success: false, message: "New password must have at least 8 characters" };
     }
-    const salt = await bcrypt.genSalt(Number(process.env.SALT || 10));
+    const salt = await bcrypt.genSalt(getSaltRounds());
     update.password = await bcrypt.hash(newPassword, salt);
   }
 
@@ -196,9 +190,7 @@ export const updateProfile = async ({
   }
 
   if (!Object.keys(update).length) {
-    if (avatarFileName) {
-      await deleteAvatar(avatarFileName);
-    }
+    await cleanupNewAvatar();
     return { success: false, message: "No changes provided" };
   }
 
